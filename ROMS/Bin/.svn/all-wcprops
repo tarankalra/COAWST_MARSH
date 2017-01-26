@@ -1,0 +1,167 @@
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin
+END
+ws_remove.sh
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/ws_remove.sh
+END
+verify.bash
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/verify.bash
+END
+job_op.sh
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/job_op.sh
+END
+job_fte.sh
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/job_fte.sh
+END
+copyright.sh
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/copyright.sh
+END
+job_afte.sh
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/job_afte.sh
+END
+ws_remove.bash
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/ws_remove.bash
+END
+cpp_clean
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/cpp_clean
+END
+copyright.bash
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/copyright.bash
+END
+submit_i4dvar.sh
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/submit_i4dvar.sh
+END
+sfmakedepend
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/sfmakedepend
+END
+job_normalization.sh
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/job_normalization.sh
+END
+job_i4dvar.sh
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/job_i4dvar.sh
+END
+job_i4dvar_sen.sh
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/job_i4dvar_sen.sh
+END
+job_fsv.sh
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/job_fsv.sh
+END
+job_so_semi.sh
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/job_so_semi.sh
+END
+nc-config
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/coawstmodel/COAWST/!svn/ver/851/ROMS/Bin/nc-config
+END
+job_r4dvar.sh
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/job_r4dvar.sh
+END
+check_nc.sh
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/check_nc.sh
+END
+job_array_modes.sh
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/job_array_modes.sh
+END
+build.sh
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/build.sh
+END
+job_psas.sh
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/job_psas.sh
+END
+job_r4dvar_sen.sh
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/job_r4dvar_sen.sh
+END
+build.bash
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/build.bash
+END
+submit_is4dvar.bash
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/submit_is4dvar.bash
+END
+substitute
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/substitute
+END
+job_psas_sen.sh
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Bin/job_psas_sen.sh
+END

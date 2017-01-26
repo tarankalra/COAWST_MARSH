@@ -1,0 +1,96 @@
+8
+
+dir
+1108
+https://coawstmodel.sourcerepo.com/coawstmodel/COAWST/ROMS
+https://coawstmodel.sourcerepo.com/coawstmodel/COAWST
+
+
+
+2016-08-05T15:55:42.156701Z
+1098
+jcwarner
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+48cfb302-6b48-4dc2-989a-fd0c5d807893
+
+External
+dir
+
+Include
+dir
+
+Version
+file
+
+
+
+
+2016-09-07T15:55:50.000000Z
+379f30c89f202336ae41c655224fa122
+2016-08-05T15:55:42.156701Z
+1098
+jcwarner
+has-props
+
+Nonlinear
+dir
+
+Functionals
+dir
+
+Adjoint
+dir
+
+SeaIce
+dir
+
+Programs
+dir
+
+Representer
+dir
+
+Tangent
+dir
+
+License_ROMS.txt
+file
+
+
+
+
+2016-09-07T15:55:50.000000Z
+75133128d378f552814d925d5ebd50bc
+2016-07-12T19:25:11.704331Z
+1087
+jcwarner
+has-props
+
+Utility
+dir
+
+Modules
+dir
+
+Bin
+dir
+
+Obsolete
+dir
+
+Drivers
+dir
+

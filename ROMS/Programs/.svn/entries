@@ -1,0 +1,54 @@
+8
+
+dir
+1108
+https://coawstmodel.sourcerepo.com/coawstmodel/COAWST/ROMS/Programs
+https://coawstmodel.sourcerepo.com/coawstmodel/COAWST
+
+
+
+2016-07-12T19:25:11.704331Z
+1087
+jcwarner
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+48cfb302-6b48-4dc2-989a-fd0c5d807893
+
+types.F
+file
+
+
+
+
+2016-09-07T15:55:48.000000Z
+6855242625318a94f29b9229cd2e8a62
+2016-07-12T19:25:11.704331Z
+1087
+jcwarner
+has-props
+
+Module.mk
+file
+
+
+
+
+2016-09-07T15:55:48.000000Z
+b3400a2ccb28559179942bb100e66eb5
+2016-07-12T19:25:11.704331Z
+1087
+jcwarner
+has-props
+

@@ -1,0 +1,125 @@
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/coawstmodel/COAWST/!svn/ver/1093/ROMS/SeaIce
+END
+ice_limit.F
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/SeaIce/ice_limit.F
+END
+ice_elastic.F
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/SeaIce/ice_elastic.F
+END
+ice_spdiw.F
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/SeaIce/ice_spdiw.F
+END
+Module.mk
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/coawstmodel/COAWST/!svn/ver/1087/ROMS/SeaIce/Module.mk
+END
+ice_evp.F
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/SeaIce/ice_evp.F
+END
+ice_evp_sig.F
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/SeaIce/ice_evp_sig.F
+END
+ice_thermo.F
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/SeaIce/ice_thermo.F
+END
+ice_smolar.h
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/SeaIce/ice_smolar.h
+END
+tibc.F
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/coawstmodel/COAWST/!svn/ver/844/ROMS/SeaIce/tibc.F
+END
+i2d_bc.F
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/coawstmodel/COAWST/!svn/ver/853/ROMS/SeaIce/i2d_bc.F
+END
+uibc.F
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/coawstmodel/COAWST/!svn/ver/844/ROMS/SeaIce/uibc.F
+END
+ncep_flux.F
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/SeaIce/ncep_flux.F
+END
+vibc.F
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/coawstmodel/COAWST/!svn/ver/844/ROMS/SeaIce/vibc.F
+END
+ice_enthalpi.F
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/coawstmodel/COAWST/!svn/ver/844/ROMS/SeaIce/ice_enthalpi.F
+END
+ice_flux_rst.F
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/coawstmodel/COAWST/!svn/ver/853/ROMS/SeaIce/ice_flux_rst.F
+END
+ice_advect.F
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/SeaIce/ice_advect.F
+END
+ice_mk.h
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/SeaIce/ice_mk.h
+END
+seaice.F
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/SeaIce/seaice.F
+END
+ini_strengthcoef.F
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/SeaIce/ini_strengthcoef.F
+END
+ice_vbc.F
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/SeaIce/ice_vbc.F
+END

@@ -1,0 +1,101 @@
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Nonlinear/Wec
+END
+wstvelocity.F
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/coawstmodel/COAWST/!svn/ver/844/ROMS/Nonlinear/Wec/wstvelocity.F
+END
+radiation_stress.F_mellor05
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/coawstmodel/COAWST/!svn/ver/844/ROMS/Nonlinear/Wec/radiation_stress.F_mellor05
+END
+wec_roller.F
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/coawstmodel/COAWST/!svn/ver/895/ROMS/Nonlinear/Wec/wec_roller.F
+END
+radiation_stress.F_mellor08
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/coawstmodel/COAWST/!svn/ver/844/ROMS/Nonlinear/Wec/radiation_stress.F_mellor08
+END
+wec_stokes.F
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/coawstmodel/COAWST/!svn/ver/976/ROMS/Nonlinear/Wec/wec_stokes.F
+END
+us2dbc_im.F
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/coawstmodel/COAWST/!svn/ver/972/ROMS/Nonlinear/Wec/us2dbc_im.F
+END
+Module.mk
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/coawstmodel/COAWST/!svn/ver/401/ROMS/Nonlinear/Wec/Module.mk
+END
+vs2dbc_im.F
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/coawstmodel/COAWST/!svn/ver/844/ROMS/Nonlinear/Wec/vs2dbc_im.F
+END
+us3dbc_im.F
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/coawstmodel/COAWST/!svn/ver/972/ROMS/Nonlinear/Wec/us3dbc_im.F
+END
+wec_vf.F
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/coawstmodel/COAWST/!svn/ver/844/ROMS/Nonlinear/Wec/wec_vf.F
+END
+vs3dbc_im.F
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/coawstmodel/COAWST/!svn/ver/844/ROMS/Nonlinear/Wec/vs3dbc_im.F
+END
+wec_wave_mix.F
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/coawstmodel/COAWST/!svn/ver/1033/ROMS/Nonlinear/Wec/wec_wave_mix.F
+END
+radiation_stress.F
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/coawstmodel/COAWST/!svn/ver/844/ROMS/Nonlinear/Wec/radiation_stress.F
+END
+wec_streaming.F
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/coawstmodel/COAWST/!svn/ver/1073/ROMS/Nonlinear/Wec/wec_streaming.F
+END
+wec_dissip.F
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/coawstmodel/COAWST/!svn/ver/844/ROMS/Nonlinear/Wec/wec_dissip.F
+END
+radiation_stress.F_mellor11
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/coawstmodel/COAWST/!svn/ver/844/ROMS/Nonlinear/Wec/radiation_stress.F_mellor11
+END

@@ -1,0 +1,858 @@
+diag.F:     &                OCEAN(ng) % zeta)
+diag.F:     &                      ubar, vbar, zeta)
+diag.F:      real(r8), intent(in) :: zeta(LBi:,LBj:,:)
+diag.F:      real(r8), intent(in) :: zeta(LBi:UBi,LBj:UBj,3)
+diag.F:            ke2d(i,j)=(zeta(i,j,krhs)+h(i,j)-ABS(zice(i,j)))*           &
+diag.F:            ke2d(i,j)=(zeta(i,j,krhs)+h(i,j))*0.25_r8*u2v2
+diag.F:            pe2d(i,j)=cff*zeta(i,j,krhs)*zeta(i,j,krhs)
+diag.F:     &                     omn(i,j)*(zeta(i,j,krhs)+h(i,j)-             &
+diag.F:     &                     omn(i,j)*(zeta(i,j,krhs)+h(i,j))
+forcing.F:     &                   OCEAN(ng) % f_zeta,                            &
+forcing.F:     &                   OCEAN(ng) % zeta)
+forcing.F:     &                         f_zeta,                                  &
+forcing.F:     &                         zeta)
+forcing.F:      real(r8), intent(in) :: f_zeta(LBi:,LBj:)
+forcing.F:      real(r8), intent(inout) :: zeta(LBi:,LBj:,:)
+forcing.F:      real(r8), intent(in) :: f_zeta(LBi:UBi,LBj:UBj)
+forcing.F:      real(r8), intent(inout) :: zeta(LBi:UBi,LBj:UBj,3)
+forcing.F:            zeta(i,j,Kfrc)=zeta(i,j,Kfrc)+f_zeta(i,j)
+forcing.F:            Zt_avg1(i,j)=Zt_avg1(i,j)+f_zeta(i,j)
+forcing.F:          zeta(i,j,Kfrc)=zeta(i,j,Kfrc)+f_zeta(i,j)
+get_data.F:     &                    BOUNDARY(ng) % zetaG_west)
+get_data.F:     &                    BOUNDARY(ng) % zetaG_east)
+get_data.F:     &                    BOUNDARY(ng) % zetaG_south)
+get_data.F:     &                    BOUNDARY(ng) % zetaG_north)
+get_data.F:     &                  OCEAN(ng) % zetaG)
+get_data.F:     &                  OCEAN(ng) % zetaG)
+get_idata.F:     &                      TIDES(ng) % zeta_tide)
+gls_prestep.F:! values computed from zeta(:,:,n+1) rather than zeta(:,:,n), so that
+ini_fields.F:      PUBLIC :: ini_zeta
+ini_fields.F:     &                      OCEAN(ng) % rzeta,                          &
+ini_fields.F:     &                      OCEAN(ng) % zeta)
+ini_fields.F:     &                            rubar, rvbar, rzeta,                  &
+ini_fields.F:     &                            ubar, vbar, zeta)
+ini_fields.F:      real(r8), intent(in) :: zeta(LBi:,LBj:,:)
+ini_fields.F:      real(r8), intent(inout) :: rzeta(LBi:,LBj:,:)
+ini_fields.F:      real(r8), intent(in) :: zeta(LBi:UBi,LBj:UBj,3)
+ini_fields.F:      real(r8), intent(inout) :: rzeta(LBi:UBi,LBj:UBj,2)
+ini_fields.F:     &                     ubar, vbar, zeta)
+ini_fields.F:     &                     ubar, vbar, zeta)
+ini_fields.F:     &                     ubar, vbar, zeta)
+ini_fields.F:     &                     ubar, vbar, zeta)
+ini_fields.F:     &                     ubar, vbar, zeta)
+ini_fields.F:     &                     ubar, vbar, zeta)
+ini_fields.F:     &                     ubar, vbar, zeta)
+ini_fields.F:     &                     ubar, vbar, zeta)
+ini_fields.F:     &                              rzeta(:,:,i))
+ini_fields.F:     &                      rubar, rvbar, rzeta)
+ini_fields.F:      SUBROUTINE ini_zeta (ng, tile, model)
+ini_fields.F:      CALL ini_zeta_tile (ng, tile, model,                              &
+ini_fields.F:     &                    OCEAN(ng) % zeta)
+ini_fields.F:      END SUBROUTINE ini_zeta
+ini_fields.F:      SUBROUTINE ini_zeta_tile (ng, tile, model,                        &
+ini_fields.F:     &                          zeta)
+ini_fields.F:      USE zetabc_mod, ONLY : zetabc_tile
+ini_fields.F:      real(r8), intent(inout) :: zeta(LBi:,LBj:,:)
+ini_fields.F:      real(r8), intent(inout) :: zeta(LBi:UBi,LBj:UBj,3)
+ini_fields.F:            cff1=zeta(i,j,kstp)
+ini_fields.F:            zeta(i,j,kstp)=cff1
+ini_fields.F:            zeta(i,j,knew)=cff1
+ini_fields.F:            zeta(i,j,krhs)=cff1
+ini_fields.F:          CALL zetabc_tile (ng, tile,                                   &
+ini_fields.F:     &                      zeta)
+ini_fields.F:          CALL zetabc_tile (ng, tile,                                   &
+ini_fields.F:     &                      zeta)
+ini_fields.F:          CALL zetabc_tile (ng, tile,                                   &
+ini_fields.F:     &                      zeta)
+ini_fields.F:     &                          zeta(:,:,kstp))
+ini_fields.F:     &                          zeta(:,:,knew))
+ini_fields.F:     &                          zeta(:,:,krhs))
+ini_fields.F:     &                            zeta(:,:,krhs))
+ini_fields.F:     &                            zeta(:,:,knew))
+ini_fields.F:     &                    zeta(:,:,kstp),                               &
+ini_fields.F:     &                    zeta(:,:,knew))
+ini_fields.F:     &                    zeta(:,:,kstp),                               &
+ini_fields.F:     &                    zeta(:,:,krhs))
+ini_fields.F:     &                      zeta(:,:,krhs))
+ini_fields.F:     &                      zeta(:,:,knew))
+ini_fields.F:          Zt_avg1(i,j)=zeta(i,j,kstp)
+ini_fields.F:      END SUBROUTINE ini_zeta_tile
+lmd_bkpp.F:      real(r8) :: zetahat, zetapar
+lmd_bkpp.F:            zetahat=vonKar*sigma*Bflux(i,j,k)
+lmd_bkpp.F:            zetapar=zetahat/(Ustar3+small)
+lmd_bkpp.F:            IF (zetahat.ge.0.0_r8) THEN                         ! stable
+lmd_bkpp.F:              wm(i,j)=vonKar*Ustar(i,j)/(1.0_r8+5.0_r8*zetapar)
+lmd_bkpp.F:              IF (zetapar.gt.lmd_zetam) THEN
+lmd_bkpp.F:     &                  (1.0_r8-16.0_r8*zetapar)**0.25_r8
+lmd_bkpp.F:                wm(i,j)=vonKar*(lmd_am*Ustar3-lmd_cm*zetahat)**r3
+lmd_bkpp.F:              IF (zetapar.gt.lmd_zetas) THEN
+lmd_bkpp.F:     &                  (1.0_r8-16.0_r8*zetapar)**0.5_r8
+lmd_bkpp.F:                ws(i,j)=vonKar*(lmd_as*Ustar3-lmd_cs*zetahat)**r3
+lmd_bkpp.F:          zetahat=vonKar*sigma*Bfbot(i,j)
+lmd_bkpp.F:          zetapar=zetahat/(Ustar3+small)
+lmd_bkpp.F:          IF (zetahat.ge.0.0_r8) THEN                           ! stable
+lmd_bkpp.F:            wm(i,j)=vonKar*Ustar(i,j)/(1.0_r8+5.0_r8*zetapar)
+lmd_bkpp.F:            IF (zetapar.gt.lmd_zetam) THEN
+lmd_bkpp.F:     &                (1.0_r8-16.0_r8*zetapar)**0.25_r8
+lmd_bkpp.F:              wm(i,j)=vonKar*(lmd_am*Ustar3-lmd_cm*zetahat)**r3
+lmd_bkpp.F:            IF (zetapar.gt.lmd_zetas) THEN
+lmd_bkpp.F:     &                (1.0_r8-16.0_r8*zetapar)**0.5_r8
+lmd_bkpp.F:              ws(i,j)=vonKar*(lmd_as*Ustar3-lmd_cs*zetahat)**r3
+lmd_bkpp.F:              zetahat=vonKar*sigma*Bflux(i,j,k)
+lmd_bkpp.F:              zetapar=zetahat/(Ustar3+small)
+lmd_bkpp.F:              IF (zetahat.ge.0.0_r8) THEN                       ! stable
+lmd_bkpp.F:                wm(i,j)=vonKar*Ustar(i,j)/(1.0_r8+5.0_r8*zetapar)
+lmd_bkpp.F:                IF (zetapar.gt.lmd_zetam) THEN
+lmd_bkpp.F:     &                    (1.0_r8-16.0_r8*zetapar)**0.25_r8
+lmd_bkpp.F:                  wm(i,j)=vonKar*(lmd_am*Ustar3-lmd_cm*zetahat)**r3
+lmd_bkpp.F:                IF (zetapar.gt.lmd_zetas) THEN
+lmd_bkpp.F:     &                    (1.0_r8-16.0_r8*zetapar)**0.5_r8
+lmd_bkpp.F:                  ws(i,j)=vonKar*(lmd_as*Ustar3-lmd_cs*zetahat)**r3
+lmd_skpp.F:      real(r8) :: zetahat, zetapar
+lmd_skpp.F:            zetahat=vonKar*sigma*Bflux(i,j,k-1)
+lmd_skpp.F:            zetapar=zetahat/(Ustar3+small)
+lmd_skpp.F:            IF (zetahat.ge.0.0_r8) THEN                         ! stable
+lmd_skpp.F:              wm(i,j)=vonKar*Ustar(i,j)/(1.0_r8+5.0_r8*zetapar)
+lmd_skpp.F:              IF (zetapar.gt.lmd_zetam) THEN
+lmd_skpp.F:     &                  (1.0_r8-16.0_r8*zetapar)**0.25_r8
+lmd_skpp.F:                wm(i,j)=vonKar*(lmd_am*Ustar3-lmd_cm*zetahat)**r3
+lmd_skpp.F:              IF (zetapar.gt.lmd_zetas) THEN
+lmd_skpp.F:     &                  (1.0_r8-16.0_r8*zetapar)**0.5_r8
+lmd_skpp.F:                ws(i,j)=vonKar*(lmd_as*Ustar3-lmd_cs*zetahat)**r3
+lmd_skpp.F:          zetahat=vonKar*sigma*Bfsfc(i,j)
+lmd_skpp.F:          zetapar=zetahat/(Ustar3+small)
+lmd_skpp.F:          IF (zetahat.ge.0.0_r8) THEN                           ! stable
+lmd_skpp.F:            wm(i,j)=vonKar*Ustar(i,j)/(1.0_r8+5.0_r8*zetapar)
+lmd_skpp.F:            IF (zetapar.gt.lmd_zetam) THEN
+lmd_skpp.F:     &                (1.0_r8-16.0_r8*zetapar)**0.25_r8
+lmd_skpp.F:              wm(i,j)=vonKar*(lmd_am*Ustar3-lmd_cm*zetahat)**r3
+lmd_skpp.F:            IF (zetapar.gt.lmd_zetas) THEN
+lmd_skpp.F:     &                (1.0_r8-16.0_r8*zetapar)**0.5_r8
+lmd_skpp.F:              ws(i,j)=vonKar*(lmd_as*Ustar3-lmd_cs*zetahat)**r3
+lmd_skpp.F:              zetahat=vonKar*sigma*Bflux(i,j,k)
+lmd_skpp.F:              zetapar=zetahat/(Ustar3+small)
+lmd_skpp.F:              IF (zetahat.ge.0.0_r8) THEN                       ! stable
+lmd_skpp.F:                wm(i,j)=vonKar*Ustar(i,j)/(1.0_r8+5.0_r8*zetapar)
+lmd_skpp.F:                IF (zetapar.gt.lmd_zetam) THEN
+lmd_skpp.F:     &                    (1.0_r8-16.0_r8*zetapar)**0.25_r8
+lmd_skpp.F:                  wm(i,j)=vonKar*(lmd_am*Ustar3-lmd_cm*zetahat)**r3
+lmd_skpp.F:                IF (zetapar.gt.lmd_zetas) THEN
+lmd_skpp.F:     &                    (1.0_r8-16.0_r8*zetapar)**0.5_r8
+lmd_skpp.F:                  ws(i,j)=vonKar*(lmd_as*Ustar3-lmd_cs*zetahat)**r3
+main2d.F:      USE ini_fields_mod, ONLY : ini_fields, ini_zeta
+main2d.F:                  CALL ini_zeta (ng, tile, iNLM)
+main3d.F:      USE ini_fields_mod, ONLY : ini_fields, ini_zeta
+main3d.F:      USE set_zeta_mod, ONLY : set_zeta
+main3d.F:                  CALL ini_zeta (ng, tile, iNLM)
+main3d.F:                CALL set_zeta (ng, tile)
+main3d.F:                CALL nesting (ng, iNLM, nzeta)
+main3d_offline.F:      USE ini_fields_mod, ONLY : ini_fields, ini_zeta
+main3d_offline.F:      USE set_zeta_mod, ONLY : set_zeta
+main3d_offline.F:              CALL ini_zeta (ng, tile, iNLM)
+main3d_offline.F:            CALL set_zeta (ng, tile)
+my25_prestep.F:! values computed from zeta(:,:,n+1) rather than zeta(:,:,n), so that
+nesting.F:!  Process free-surface (zeta) at the appropriate time index.
+nesting.F:     &        (isection.eq.nzeta).or.                                   &
+nesting.F:            IF (isection.eq.nzeta) THEN
+nesting.F:              IF (isection.eq.nzeta) THEN
+nesting.F:     &                            OCEAN(dg) % zeta(:,:,Tindex),         &
+nesting.F:     &                            COMPOSITE(cr) % zeta(:,:,rec))
+nesting.F:!  Process free-surface equation rigth-hand-side (rzeta) term.
+nesting.F:     &                          OCEAN(dg) % rzeta(:,:,Tindex),          &
+nesting.F:     &                          COMPOSITE(cr) % rzeta)
+nesting.F:     &                        REFINED(cr) % zeta(:,:,tnew))
+nesting.F:!  Process free-surface (zeta) at the appropriate time index.
+nesting.F:     &        (isection.eq.nzeta).or.                                   &
+nesting.F:            IF (isection.eq.nzeta) THEN
+nesting.F:              IF (isection.eq.nzeta) THEN
+nesting.F:     &                            COMPOSITE(cr) % zeta(:,:,rec),        &
+nesting.F:     &                            OCEAN(rg) % zeta(:,:,Tindex))
+nesting.F:     &                            OCEAN(rg) % zeta(:,:,Tindex))
+nesting.F:!  Process free-surface equation rigth-hand-side (rzeta) term.
+nesting.F:     &                          COMPOSITE(cr) % rzeta,                  &
+nesting.F:     &                          OCEAN(rg) % rzeta(:,:,Tindex))
+nesting.F:     &                          OCEAN(rg) % rzeta(:,:,Tindex))
+nesting.F:     &                          OCEAN(dg)%zeta(:,:,Dindex2d),           &
+nesting.F:     &                          OCEAN(rg)%zeta(:,:,Rindex2d))
+nesting.F:     &                              OCEAN(rg)%zeta(:,:,Rindex2d))
+nesting.F:     &                        OCEAN(rg)%zeta(:,:,Rindex2d),             &
+nesting.F:!     zeta       Updated free-surface                                  !
+nesting.F:     &                                  REFINED(cr)%zeta(1,m,told)+     &
+nesting.F:     &                                  REFINED(cr)%zeta(2,m,told)+     &
+nesting.F:     &                                  REFINED(cr)%zeta(3,m,told)+     &
+nesting.F:     &                                  REFINED(cr)%zeta(4,m,told))+    &
+nesting.F:     &                                  REFINED(cr)%zeta(1,m,tnew)+     &
+nesting.F:     &                                  REFINED(cr)%zeta(2,m,tnew)+     &
+nesting.F:     &                                  REFINED(cr)%zeta(3,m,tnew)+     &
+nesting.F:     &                                  REFINED(cr)%zeta(4,m,tnew))
+nesting.F:            OCEAN(ng)%zeta(i,j,1)=my_value
+nesting.F:            OCEAN(ng)%zeta(i,j,2)=my_value
+nesting.F:            OCEAN(ng)%zeta(i,j,3)=my_value
+nesting.F:     &           OCEAN(ng)%zeta(Istr-1,j,indx1(ng))+                    &
+nesting.F:     &           OCEAN(ng)%zeta(Istr  ,j,indx1(ng)))
+nesting.F:     &           OCEAN(ng)%zeta(Iend+1,j,indx1(ng))+                    &
+nesting.F:     &           OCEAN(ng)%zeta(Iend  ,j,indx1(ng)))
+nesting.F:     &           OCEAN(ng)%zeta(i,Jstr-1,indx1(ng))+                    &
+nesting.F:     &           OCEAN(ng)%zeta(i,Jstr  ,indx1(ng)))
+nesting.F:     &           OCEAN(ng)%zeta(i,Jend+1,indx1(ng))+                    &
+nesting.F:     &           OCEAN(ng)%zeta(i,Jend  ,indx1(ng)))
+nesting.F:     &                      OCEAN(ng)%zeta(:,:,1),                      &
+nesting.F:     &                      OCEAN(ng)%zeta(:,:,2),                      &
+nesting.F:     &                      OCEAN(ng)%zeta(:,:,3))
+obc_adjust.F:          BOUNDARY(ng)%zeta_west(j)=BOUNDARY(ng)%zeta_west(j)+          &
+obc_adjust.F:     &                              BOUNDARY(ng)%tl_zeta_obc(j,         &
+obc_adjust.F:     &                              BOUNDARY(ng)%tl_zeta_obc(j,         &
+obc_adjust.F:          BOUNDARY(ng)%zeta_east(j)=BOUNDARY(ng)%zeta_east(j)+          &
+obc_adjust.F:     &                              BOUNDARY(ng)%tl_zeta_obc(j,         &
+obc_adjust.F:     &                              BOUNDARY(ng)%tl_zeta_obc(j,         &
+obc_adjust.F:          BOUNDARY(ng)%zeta_south(i)=BOUNDARY(ng)%zeta_south(i)+        &
+obc_adjust.F:     &                               BOUNDARY(ng)%tl_zeta_obc(i,        &
+obc_adjust.F:     &                               BOUNDARY(ng)%tl_zeta_obc(i,        &
+obc_adjust.F:          BOUNDARY(ng)%zeta_north(i)=BOUNDARY(ng)%zeta_north(i)+        &
+obc_adjust.F:     &                               BOUNDARY(ng)%tl_zeta_obc(i,        &
+obc_adjust.F:     &                               BOUNDARY(ng)%tl_zeta_obc(i,        &
+obc_adjust.F:            BOUNDARY(ng)%zeta_obc(j,iwest,ic,Lout)=                     &
+obc_adjust.F:     &                              BOUNDARY(ng)%zeta_west(j)
+obc_adjust.F:            BOUNDARY(ng)%zeta_obc(j,ieast,ic,Lout)=                     &
+obc_adjust.F:     &                              BOUNDARY(ng)%zeta_east(j)
+obc_adjust.F:            BOUNDARY(ng)%zeta_obc(i,isouth,ic,Lout)=                    &
+obc_adjust.F:     &                              BOUNDARY(ng)%zeta_south(i)
+obc_adjust.F:            BOUNDARY(ng)%zeta_obc(i,inorth,ic,Lout)=                    &
+obc_adjust.F:     &                              BOUNDARY(ng)%zeta_north(i)
+obc_volcons.F:     &                    OCEAN(ng) % zeta)
+obc_volcons.F:     &                          ubar, vbar, zeta)
+obc_volcons.F:      real(r8), intent(in) :: zeta(LBi:,LBj:,:)
+obc_volcons.F:      real(r8), intent(in) :: zeta(LBi:UBi,LBj:UBj,3)
+obc_volcons.F:            cff=0.5_r8*(zeta(Istr-1,j,kinp)+h(Istr-1,j)+                &
+obc_volcons.F:     &                  zeta(Istr  ,j,kinp)+h(Istr  ,j))*on_u(Istr,j)
+obc_volcons.F:            cff=0.5_r8*(zeta(Iend  ,j,kinp)+h(Iend  ,j)+                &
+obc_volcons.F:     &                  zeta(Iend+1,j,kinp)+h(Iend+1,j))*on_u(Iend+1,j)
+obc_volcons.F:            cff=0.5_r8*(zeta(i,Jstr-1,kinp)+h(i,Jstr-1)+                &
+obc_volcons.F:     &                  zeta(i,Jstr  ,kinp)+h(i,Jstr  ))*om_v(i,Jstr)
+obc_volcons.F:            cff=0.5_r8*(zeta(i,Jend  ,kinp)+h(i,Jend  )+                &
+obc_volcons.F:     &                  zeta(i,Jend+1,kinp)+h(i,Jend+1))*om_v(i,Jend+1)
+omega.F:!  contains the vertical velocity at the free-surface, d(zeta)/d(t).
+omega.F:!  isosurfaces. These isosurfaces are proportional to d(zeta)/d(t).
+prsgrd31.h:     &                  OCEAN(ng) % zetat,                              &
+prsgrd31.h:     &                        zetat,                                    &
+prsgrd31.h:      real(r8), intent(in) :: zetat(LBi:,LBj:)
+prsgrd31.h:      real(r8), intent(in) :: zetat(LBi:UBi,LBj:UBj)
+prsgrd31.h:          phix(i)=phix(i)+zetat(i,j)-zetat(i-1,j)
+prsgrd31.h:            phie(i)=phie(i)+zetat(i,j)-zetat(i,j-1)
+prsgrd32.h:     &                  OCEAN(ng) % zetat,                              &
+prsgrd32.h:     &                        zetat,                                    &
+prsgrd32.h:      real(r8), intent(in) :: zetat(LBi:,LBj:)
+prsgrd32.h:      real(r8), intent(in) :: zetat(LBi:UBi,LBj:UBj)
+prsgrd32.h:     &                 zetat(i,j)+                                      &
+prsgrd40.h:     &                  OCEAN(ng) % zetat,                              &
+prsgrd40.h:     &                        zetat,                                    &
+prsgrd40.h:      real(r8), intent(in) :: zetat(LBi:,LBj:)
+prsgrd40.h:      real(r8), intent(in) :: zetat(LBi:UBi,LBj:UBj)
+prsgrd40.h:          P(i,j,N(ng))=P(i,j,N(ng))+fac1*zetat(i,j)
+prsgrd42.h:     &                  OCEAN(ng) % zetat,                              &
+prsgrd42.h:     &                        zetat,                                    &
+prsgrd42.h:      real(r8), intent(in) :: zetat(LBi:,LBj:)
+prsgrd42.h:      real(r8), intent(in) :: zetat(LBi:UBi,LBj:UBj)
+prsgrd42.h:          P(i,j,N(ng))=P(i,j,N(ng))+zetat(i,j)
+prsgrd44.h:     &                  OCEAN(ng) % zetat,                              &
+prsgrd44.h:     &                        zetat,                                    &
+prsgrd44.h:      real(r8), intent(in) :: zetat(LBi:,LBj:)
+prsgrd44.h:      real(r8), intent(in) :: zetat(LBi:UBi,LBj:UBj)
+prsgrd44.h:          P(i,j,N(ng))=P(i,j,N(ng))+zetat(i,j)
+set_avg2.F:              AVERAGE2(ng)%avgzeta(i,j)=OCEAN(ng)%zeta(i,j,Kout)
+set_avg2.F:              AVERAGE2(ng)%avgzeta(i,j)=AVERAGE2(ng)%avgzeta(i,j)*      &
+set_avg2.F:              AVERAGE2(ng)%avgzeta(i,j)=AVERAGE2(ng)%avgzeta(i,j)+      &
+set_avg2.F:     &                                  OCEAN(ng)%zeta(i,j,Kout)
+set_avg2.F:              AVERAGE2(ng)%avgzeta(i,j)=rfac(i,j)*                      &
+set_avg2.F:     &                                  AVERAGE2(ng)%avgzeta(i,j)
+set_avg.F:     &                       OCEAN(ng) % zeta,                          &
+set_avg.F:              AVERAGE(ng)%avgzeta(i,j)=OCEAN(ng)%zeta(i,j,Kout)
+set_avg.F:              AVERAGE(ng)%avgzeta(i,j)=AVERAGE(ng)%avgzeta(i,j)*        &
+set_avg.F:              AVERAGE(ng)%avgWztw(i,j)=OCEAN(ng)%zetaw(i,j)
+set_avg.F:              AVERAGE(ng)%avgZZ(i,j)=OCEAN(ng)%zeta(i,j,Kout)*          &
+set_avg.F:     &                               OCEAN(ng)%zeta(i,j,Kout)
+set_avg.F:              AVERAGE(ng)%avgzeta(i,j)=AVERAGE(ng)%avgzeta(i,j)+        &
+set_avg.F:     &                                 OCEAN(ng)%zeta(i,j,Kout)
+set_avg.F:     &                                 OCEAN(ng)%zetaw(i,j)
+set_avg.F:     &                               OCEAN(ng)%zeta(i,j,Kout)*          &
+set_avg.F:     &                               OCEAN(ng)%zeta(i,j,Kout)
+set_avg.F:              AVERAGE(ng)%avgzeta(i,j)=rfac(i,j)*                       &
+set_avg.F:     &                                 AVERAGE(ng)%avgzeta(i,j)
+set_avg.F:     &                              AVERAGE(ng)%avgzeta)
+set_avg.F:     &                          AVERAGE(ng)%avgzeta)
+set_avg.F:                TIDES(ng)%zeta_tide(i,j,nk)=TIDES(ng)%zeta_tide(i,j,    &
+set_avg.F:     &                                      OCEAN(ng)%zeta(i,j,Kout)*   &
+set_avg.F:                TIDES(ng)%zeta_tide(i,j,nk)=TIDES(ng)%zeta_tide(i,j,    &
+set_avg.F:     &                                      OCEAN(ng)%zeta(i,j,Kout)*   &
+set_avg.F:!!                Ak(nk)=Ak(nk)+Y(nk,mk)*TIDES(ng)%zeta_tide(i,j,mk)
+set_avg.F:                  Ak(nk)=Ak(nk)+Y(mk,nk)*TIDES(ng)%zeta_tide(i,j,mk)
+set_avg.F:              TIDES(ng)%zeta_detided(i,j)=AVERAGE(ng)%avgzeta(i,j)-     &
+set_data.F:     &                      BOUNDARY(ng) % zetaG_west,                  &
+set_data.F:     &                      BOUNDARY(ng) % zeta_west,                   &
+set_data.F:     &                      BOUNDARY(ng) % zetaG_east,                  &
+set_data.F:     &                      BOUNDARY(ng) % zeta_east,                   &
+set_data.F:     &                      BOUNDARY(ng) % zetaG_south,                 &
+set_data.F:     &                      BOUNDARY(ng) % zeta_south,                  &
+set_data.F:     &                      BOUNDARY(ng) % zetaG_north,                 &
+set_data.F:     &                      BOUNDARY(ng) % zeta_north,                  &
+set_data.F:              IF (BOUNDARY(ng)%zeta_west(j).le.cff) THEN
+set_data.F:                BOUNDARY(ng)%zeta_west(j)=cff
+set_data.F:     &                      BOUNDARY(ng)%zeta_west)
+set_data.F:              IF (BOUNDARY(ng)%zeta_east(j).le.cff) THEN
+set_data.F:                BOUNDARY(ng)%zeta_east(j)=cff
+set_data.F:     &                      BOUNDARY(ng)%zeta_east)
+set_data.F:              IF (BOUNDARY(ng)%zeta_south(i).le.cff) THEN
+set_data.F:                BOUNDARY(ng)%zeta_south(i)=cff
+set_data.F:     &                      BOUNDARY(ng)%zeta_south)
+set_data.F:              IF (BOUNDARY(ng)%zeta_north(i).le.cff) THEN
+set_data.F:                BOUNDARY(ng)%zeta_north(i)=cff
+set_data.F:     &                      BOUNDARY(ng)%zeta_north)
+set_data.F:            OCEAN(ng)%zeta(i,j,1) = CLIMA(ng)%ssh(i,j)
+set_data.F:            OCEAN(ng)%zeta(i,j,2) = CLIMA(ng)%ssh(i,j)
+set_data.F:     &                      LBi, UBi, LBj, UBj, OCEAN(ng)%zeta(:,:,i))
+set_data.F:     &                      OCEAN(ng)%zeta)
+set_data.F:     &                       OCEAN(ng)%zetaG,                           &
+set_data.F:     &                       OCEAN(ng)%f_zeta,                          &
+set_depth.F:!         z_w(x,y,s,t) = Zo_w + zeta(x,y,t) * [1.0 + Zo_w / h(x,y)]
+set_depth.F:!         z_w(x,y,s,t) = zeta(x,y,t) + [zeta(x,y,t)+ h(x,y)] * Zo_w
+set_depth.F:!  free-surface values (zeta_west, zeta_east, zeta_south, zeta_north).
+set_depth.F:      real(r8), parameter :: zeta0 = 0.0_r8
+set_depth.F:!         z_w(x,y,s,t) = Zo_w + zeta(x,y,0) * [1.0 + Zo_w / h(x,y)]
+set_depth.F:!  where zeta(x,y,0) = 0 for time independent depths.
+set_depth.F:              z_w(i,j,k)=z_w0+zeta0*(1.0_r8+z_w0*hinv)
+set_depth.F:              z_r(i,j,k)=z_r0+zeta0*(1.0_r8+z_r0*hinv)
+set_depth.F:!         z_w(x,y,s,t) = zeta(x,y,0) + [zeta(x,y,t)+ h(x,y)] * Zo_w
+set_depth.F:!  where zeta(x,y,0) = 0 for time independent depths.
+set_depth.F:              z_w(i,j,k)=zeta0+(zeta0+hwater)*cff2_w
+set_depth.F:              z_r(i,j,k)=zeta0+(zeta0+hwater)*cff2_r
+set_depth.F:!         z_w(x,y,s,t) = Zo_w + zeta(x,y,t) * [1.0 + Zo_w / h(x,y)]
+set_depth.F:              Zw(k)=z_w0+BOUNDARY(ng)%zeta_west(j)*(1.0_r8+z_w0*hinv)
+set_depth.F:              Zw(k)=z_w0+BOUNDARY(ng)%zeta_east(j)*(1.0_r8+z_w0*hinv)
+set_depth.F:              Zw(k)=z_w0+BOUNDARY(ng)%zeta_south(i)*(1.0_r8+z_w0*hinv)
+set_depth.F:              Zw(k)=z_w0+BOUNDARY(ng)%zeta_north(i)*(1.0_r8+z_w0*hinv)
+set_depth.F:!         z_w(x,y,s,t) = zeta(x,y,t) + [zeta(x,y,t)+ h(x,y)] * Zo_w
+set_depth.F:              Zw(k)=BOUNDARY(ng)%zeta_west(j)+                          &
+set_depth.F:     &              (BOUNDARY(ng)%zeta_west(j)+hwater)*cff2_w
+set_depth.F:              Zw(k)=BOUNDARY(ng)%zeta_east(j)+                          &
+set_depth.F:     &              (BOUNDARY(ng)%zeta_east(j)+hwater)*cff2_w
+set_depth.F:              Zw(k)=BOUNDARY(ng)%zeta_south(i)+                         &
+set_depth.F:     &              (BOUNDARY(ng)%zeta_south(i)+hwater)*cff2_w
+set_depth.F:              Zw(k)=BOUNDARY(ng)%zeta_north(i)+                         &
+set_depth.F:     &              (BOUNDARY(ng)%zeta_north(i)+hwater)*cff2_w
+set_tides.F:!  If appropriate, load tidal forcing into boundary arrays.  The "zeta"
+set_tides.F:!  points for these arrays, the values of "zeta_west" and "zeta_east"
+set_tides.F:!  are averaged at u-points.  Similarly, the values of "zeta_south"
+set_tides.F:!  and "zeta_north" is averaged at v-points. Noticed that these
+set_tides.F:              BOUNDARY(ng)%zeta_west(j)=BOUNDARY(ng)%zeta_west(j)+      &
+set_tides.F:              BOUNDARY(ng)%zeta_west(j)=0.5_r8*(Etide(Istr-1,j)+        &
+set_tides.F:     &                      BOUNDARY(ng)%zeta_west)
+set_tides.F:              BOUNDARY(ng)%zeta_east(j)=BOUNDARY(ng)%zeta_east(j)+      &
+set_tides.F:              BOUNDARY(ng)%zeta_east(j)=0.5_r8*(Etide(Iend  ,j)+        &
+set_tides.F:     &                      BOUNDARY(ng)%zeta_east)
+set_tides.F:              BOUNDARY(ng)%zeta_south(i)=BOUNDARY(ng)%zeta_south(i)+    &
+set_tides.F:              BOUNDARY(ng)%zeta_south(i)=0.5_r8*(Etide(i,Jstr-1)+       &
+set_tides.F:     &                      BOUNDARY(ng)%zeta_south)
+set_tides.F:              BOUNDARY(ng)%zeta_north(i)=BOUNDARY(ng)%zeta_north(i)+    &
+set_tides.F:              BOUNDARY(ng)%zeta_north(i)=0.5_r8*(Etide(i,Jend  )+       &
+set_tides.F:     &                      BOUNDARY(ng)%zeta_north)
+set_zeta.F:      MODULE set_zeta_mod
+set_zeta.F:!svn $Id: set_zeta.F 732 2008-09-07 01:55:51Z jcwarner $
+set_zeta.F:      PUBLIC  :: set_zeta
+set_zeta.F:      SUBROUTINE set_zeta (ng, tile)
+set_zeta.F:      CALL set_zeta_tile (ng, tile,                                     &
+set_zeta.F:     &                    OCEAN(ng) % zeta)
+set_zeta.F:      END SUBROUTINE set_zeta
+set_zeta.F:      SUBROUTINE set_zeta_tile (ng, tile,                               &
+set_zeta.F:     &                          zeta)
+set_zeta.F:      real(r8), intent(out) :: zeta(LBi:,LBj:,:)
+set_zeta.F:      real(r8), intent(out) :: zeta(LBi:UBi,LBj:UBj,3)
+set_zeta.F:          zeta(i,j,1)=Zt_avg1(i,j)
+set_zeta.F:          zeta(i,j,2)=Zt_avg1(i,j)
+set_zeta.F:     &                          zeta(:,:,1))
+set_zeta.F:     &                          zeta(:,:,2))
+set_zeta.F:     &                    zeta(:,:,1),                                  &
+set_zeta.F:     &                    zeta(:,:,2))
+set_zeta.F:      END SUBROUTINE set_zeta_tile
+set_zeta.F:      END MODULE set_zeta_mod
+step2d_LF_AM3.h:     &                  OCEAN(ng) % zetaw,                              &
+step2d_LF_AM3.h:     &                  OCEAN(ng) % rzeta,                              &
+step2d_LF_AM3.h:     &                  OCEAN(ng) % zeta)
+step2d_LF_AM3.h:     &                        bh, qsp, zetaw,                           &
+step2d_LF_AM3.h:     &                        rubar, rvbar, rzeta,                      &
+step2d_LF_AM3.h:     &                        ubar,  vbar, zeta)
+step2d_LF_AM3.h:      USE zetabc_mod, ONLY : zetabc_tile
+step2d_LF_AM3.h:      real(r8), intent(in) :: zetaw(LBi:,LBj:)
+step2d_LF_AM3.h:      real(r8), intent(inout) :: rzeta(LBi:,LBj:,:)
+step2d_LF_AM3.h:      real(r8), intent(inout) :: zeta(LBi:,LBj:,:)
+step2d_LF_AM3.h:      real(r8), intent(in) :: zetaw(LBi:UBi,LBj:UBj)
+step2d_LF_AM3.h:      real(r8), intent(inout) :: rzeta(LBi:UBi,LBj:UBj,2)
+step2d_LF_AM3.h:      real(r8), intent(inout) :: zeta(LBi:UBi,LBj:UBj,3)
+step2d_LF_AM3.h:      real(r8), dimension(IminS:ImaxS,JminS:JmaxS) :: gzeta
+step2d_LF_AM3.h:      real(r8), dimension(IminS:ImaxS,JminS:JmaxS) :: gzeta2
+step2d_LF_AM3.h:      real(r8), dimension(IminS:ImaxS,JminS:JmaxS) :: gzetaSA
+step2d_LF_AM3.h:      real(r8), dimension(IminS:ImaxS,JminS:JmaxS) :: rhs_zeta
+step2d_LF_AM3.h:      real(r8), dimension(IminS:ImaxS,JminS:JmaxS) :: zeta_new
+step2d_LF_AM3.h:          Drhs(i,j)=zeta(i,j,krhs)+hw(i,j)
+step2d_LF_AM3.h:          Drhs(i,j)=zeta(i,j,krhs)+h(i,j)
+step2d_LF_AM3.h:          Drhs(i,j)=zeta(i,j,krhs)+hw(i,j)
+step2d_LF_AM3.h:          Drhs(i,j)=zeta(i,j,krhs)+h(i,j)
+step2d_LF_AM3.h:              Zt_avg1(i,j)=Zt_avg1(i,j)+cff1*zeta(i,j,krhs)
+step2d_LF_AM3.h:     &                  h, zeta(:,:,kstp),                              &
+step2d_LF_AM3.h:            rhs_zeta(i,j)=(DUon(i,j)-DUon(i+1,j))+                      &
+step2d_LF_AM3.h:            zeta_new(i,j)=zeta(i,j,kstp)+                               &
+step2d_LF_AM3.h:     &                    pm(i,j)*pn(i,j)*cff1*rhs_zeta(i,j)
+step2d_LF_AM3.h:            zeta_new(i,j)=zeta_new(i,j)*rmask(i,j)
+step2d_LF_AM3.h:            Dnew(i,j)=zeta_new(i,j)+hw(i,j)
+step2d_LF_AM3.h:            Dnew(i,j)=zeta_new(i,j)+h(i,j)
+step2d_LF_AM3.h:            zwrk(i,j)=0.5_r8*(zeta(i,j,kstp)+zeta_new(i,j))
+step2d_LF_AM3.h:            gzeta(i,j)=(fac+rhoS(i,j))*zwrk(i,j)
+step2d_LF_AM3.h:            gzeta2(i,j)=gzeta(i,j)*zwrk(i,j)
+step2d_LF_AM3.h:            gzetaSA(i,j)=zwrk(i,j)*(rhoS(i,j)-rhoA(i,j))
+step2d_LF_AM3.h:            gzeta(i,j)=zwrk(i,j)
+step2d_LF_AM3.h:            gzeta2(i,j)=zwrk(i,j)*zwrk(i,j)
+step2d_LF_AM3.h:            rhs_zeta(i,j)=(DUon(i,j)-DUon(i+1,j))+                      &
+step2d_LF_AM3.h:            zeta_new(i,j)=zeta(i,j,kstp)+                               &
+step2d_LF_AM3.h:     &                    pm(i,j)*pn(i,j)*cff1*rhs_zeta(i,j)
+step2d_LF_AM3.h:            zeta_new(i,j)=zeta_new(i,j)*rmask(i,j)
+step2d_LF_AM3.h:            Dnew(i,j)=zeta_new(i,j)+hw(i,j)
+step2d_LF_AM3.h:            Dnew(i,j)=zeta_new(i,j)+h(i,j)
+step2d_LF_AM3.h:            zwrk(i,j)=cff5*zeta(i,j,krhs)+                              &
+step2d_LF_AM3.h:     &                cff4*(zeta(i,j,kstp)+zeta_new(i,j))
+step2d_LF_AM3.h:            gzeta(i,j)=(fac+rhoS(i,j))*zwrk(i,j)
+step2d_LF_AM3.h:            gzeta2(i,j)=gzeta(i,j)*zwrk(i,j)
+step2d_LF_AM3.h:            gzetaSA(i,j)=zwrk(i,j)*(rhoS(i,j)-rhoA(i,j))
+step2d_LF_AM3.h:            gzeta(i,j)=zwrk(i,j)
+step2d_LF_AM3.h:            gzeta2(i,j)=zwrk(i,j)*zwrk(i,j)
+step2d_LF_AM3.h:            zeta_new(i,j)=zeta(i,j,kstp)+                               &
+step2d_LF_AM3.h:     &                                     cff2*rzeta(i,j,kstp)-        &
+step2d_LF_AM3.h:     &                                     cff3*rzeta(i,j,ptsk))
+step2d_LF_AM3.h:            zeta_new(i,j)=zeta_new(i,j)*rmask(i,j)
+step2d_LF_AM3.h:            Dnew(i,j)=zeta_new(i,j)+hw(i,j)
+step2d_LF_AM3.h:            Dnew(i,j)=zeta_new(i,j)+h(i,j)
+step2d_LF_AM3.h:            zwrk(i,j)=cff5*zeta_new(i,j)+cff4*zeta(i,j,krhs)
+step2d_LF_AM3.h:            gzeta(i,j)=(fac+rhoS(i,j))*zwrk(i,j)
+step2d_LF_AM3.h:            gzeta2(i,j)=gzeta(i,j)*zwrk(i,j)
+step2d_LF_AM3.h:            gzetaSA(i,j)=zwrk(i,j)*(rhoS(i,j)-rhoA(i,j))
+step2d_LF_AM3.h:            gzeta(i,j)=zwrk(i,j)
+step2d_LF_AM3.h:            gzeta2(i,j)=zwrk(i,j)*zwrk(i,j)
+step2d_LF_AM3.h:          zeta(i,j,knew)=zeta_new(i,j)
+step2d_LF_AM3.h:          zeta(i,j,knew)=zeta(i,j,knew)+                                &
+step2d_LF_AM3.h:!         IF (zeta(i,j,knew).le.(Dcrit(ng)-h(i,j))) THEN
+step2d_LF_AM3.h:!           zeta(i,j,knew)=Dcrit(ng)-h(i,j)
+step2d_LF_AM3.h:            rzeta(i,j,krhs)=rhs_zeta(i,j)
+step2d_LF_AM3.h:     &                            rzeta(:,:,krhs))
+step2d_LF_AM3.h:     &                      rzeta(:,:,krhs))
+step2d_LF_AM3.h:            zeta(i,j,knew)=zeta(i,j,knew)+                              &
+step2d_LF_AM3.h:      CALL zetabc_tile (ng, tile,                                       &
+step2d_LF_AM3.h:     &                  zeta)
+step2d_LF_AM3.h:     &                          zeta(:,:,knew))
+step2d_LF_AM3.h:     &                    zeta(:,:,knew))
+step2d_LF_AM3.h:     &                   (gzeta(i-1,j)-                                 &
+step2d_LF_AM3.h:     &                    gzeta(i  ,j))+                                &
+step2d_LF_AM3.h:     &                   (gzetaSA(i-1,j)+                               &
+step2d_LF_AM3.h:     &                    gzetaSA(i  ,j)+                               &
+step2d_LF_AM3.h:     &                   (gzeta2(i-1,j)-                                &
+step2d_LF_AM3.h:     &                    gzeta2(i  ,j)))
+step2d_LF_AM3.h:     &                   gzeta(i-1,j)+gzeta(i,j))*                      &
+step2d_LF_AM3.h:     &         gzeta(i-1,j)+gzeta(i,j))
+step2d_LF_AM3.h:          cff4=cff3*g*(zetaw(i-1,j)-zetaw(i,j))
+step2d_LF_AM3.h:          DiaU2rhs(i,j,M2zeta)=DiaU2rhs(i,j,M2pgrd)
+step2d_LF_AM3.h:     &                     (gzeta(i,j-1)-                               &
+step2d_LF_AM3.h:     &                      gzeta(i,j  ))+                              &
+step2d_LF_AM3.h:     &                     (gzetaSA(i,j-1)+                             &
+step2d_LF_AM3.h:     &                      gzetaSA(i,j  )+                             &
+step2d_LF_AM3.h:     &                     (gzeta2(i,j-1)-                              &
+step2d_LF_AM3.h:     &                      gzeta2(i,j  )))
+step2d_LF_AM3.h:     &                     gzeta(i,j-1)+gzeta(i,j))*                    &
+step2d_LF_AM3.h:     &           gzeta(i,j-1)+gzeta(i,j))
+step2d_LF_AM3.h:            cff4=cff3*g*(zetaw(i,j-1)-zetaw(i,j))
+step2d_LF_AM3.h:            DiaV2rhs(i,j,M2zeta)=DiaV2rhs(i,j,M2pgrd)
+step2d_LF_AM3.h:              DiaU2rhs(i,j,M2zeta)=DiaU2rhs(i,j,M2zeta)+                &
+step2d_LF_AM3.h:              DiaV2rhs(i,j,M2zeta)=DiaV2rhs(i,j,M2zeta)+                &
+step2d_LF_AM3.h:              DiaU2rhs(i,j,M2zeta)=DiaU2rhs(i,j,M2zeta)+                &
+step2d_LF_AM3.h:              DiaV2rhs(i,j,M2zeta)=DiaV2rhs(i,j,M2zeta)+                &
+step2d_LF_AM3.h:              DiaU2rhs(i,j,M2zeta)=DiaU2rhs(i,j,M2zeta)+                &
+step2d_LF_AM3.h:              DiaV2rhs(i,j,M2zeta)=DiaV2rhs(i,j,M2zeta)+                &
+step2d_LF_AM3.h:            DiaU2rhs(i,j,M2zeta)=DiaU2rhs(i,j,M2zeta)+                  &
+step2d_LF_AM3.h:            DiaV2rhs(i,j,M2zeta)=DiaV2rhs(i,j,M2zeta)+                  &
+step2d_LF_AM3.h:          Dstp(i,j)=zeta(i,j,kstp)+hw(i,j)
+step2d_LF_AM3.h:          Dstp(i,j)=zeta(i,j,kstp)+h(i,j)
+step2d_LF_AM3.h:     &                 ubar, vbar, zeta)
+step2d_LF_AM3.h:     &                 ubar, vbar, zeta)
+step2d_LF_AM3.h:     &                      ubar, vbar, zeta)
+step2d_LF_AM3.h:          Dnew(i,j)=zeta(i,j,knew)+hw(i,j)
+step2d_LF_AM3.h:          Dnew(i,j)=zeta(i,j,knew)+h(i,j)
+step_floats.F:!  (p=g*(z+zeta)=constant) or geopotential floats (constant depth).
+step_floats.F:!  (p=g*(z+zeta)=constant) or geopotential floats (constant depth).
+u2dbc_im.F:     &                 OCEAN(ng) % zeta)
+u2dbc_im.F:     &                       ubar, vbar, zeta)
+u2dbc_im.F:      real(r8), intent(in) :: zeta(LBi:,LBj:,:)
+u2dbc_im.F:      real(r8), intent(in) :: zeta(LBi:UBi,LBj:UBj,3)
+u2dbc_im.F:                bry_pgr=-g*(zeta(Istr,j,know)-                          &
+u2dbc_im.F:     &                      BOUNDARY(ng)%zeta_west(j))*                 &
+u2dbc_im.F:                bry_pgr=-g*(zeta(Istr  ,j,know)-                        &
+u2dbc_im.F:     &                      zeta(Istr-1,j,know))*                       &
+u2dbc_im.F:     &                             zeta(Istr-1,j,know)+                 &
+u2dbc_im.F:     &                             zeta(Istr  ,j,know)))
+u2dbc_im.F:     &                             zeta(Istr-1,j,know)+                 &
+u2dbc_im.F:     &                             zeta(Istr  ,j,know)))
+u2dbc_im.F:     &                                 zeta(Istr-1,j,know)+             &
+u2dbc_im.F:     &                                 zeta(Istr  ,j,know)))
+u2dbc_im.F:     &                                 zeta(Istr-1,j,know)+             &
+u2dbc_im.F:     &                                 zeta(Istr  ,j,know)))
+u2dbc_im.F:     &                            zeta(Istr-1,j,know)+                  &
+u2dbc_im.F:     &                            zeta(Istr  ,j,know)))
+u2dbc_im.F:     &                            zeta(Istr-1,j,know)+                  &
+u2dbc_im.F:     &                            zeta(Istr  ,j,know)))
+u2dbc_im.F:     &                          Cx*(0.5_r8*(zeta(Istr-1,j,know)+        &
+u2dbc_im.F:     &                                      zeta(Istr  ,j,know))-       &
+u2dbc_im.F:     &                              BOUNDARY(ng)%zeta_west(j))
+u2dbc_im.F:                bry_pgr=-g*(zeta(Istr,j,know)-                          &
+u2dbc_im.F:     &                      BOUNDARY(ng)%zeta_west(j))*                 &
+u2dbc_im.F:                bry_pgr=-g*(zeta(Istr  ,j,know)-                        &
+u2dbc_im.F:     &                      zeta(Istr-1,j,know))*                       &
+u2dbc_im.F:     &                             zeta(Istr-1,j,know)+                 &
+u2dbc_im.F:     &                             zeta(Istr  ,j,know)))
+u2dbc_im.F:     &                                 zeta(Istr-1,j,know)+             &
+u2dbc_im.F:     &                                 zeta(Istr  ,j,know)))
+u2dbc_im.F:     &                    zeta(Istr-1,j,know)+                          &
+u2dbc_im.F:     &                    zeta(Istr  ,j,know))
+u2dbc_im.F:              Zx=(0.5_r8+Cx)*zeta(Istr  ,j,know)+                       &
+u2dbc_im.F:     &           (0.5_r8-Cx)*zeta(Istr-1,j,know)
+u2dbc_im.F:                cff3=zeta(Istr,j,kout)+                                 &
+u2dbc_im.F:     &               Cx*zeta(Istr-1,j,know)-                            &
+u2dbc_im.F:     &               (1.0_r8+Cx)*zeta(Istr,j,know)
+u2dbc_im.F:     &                           cff1*(Zx-BOUNDARY(ng)%zeta_west(j)))
+u2dbc_im.F:                bry_pgr=-g*(zeta(Istr,j,know)-                          &
+u2dbc_im.F:     &                      BOUNDARY(ng)%zeta_west(j))*                 &
+u2dbc_im.F:                bry_pgr=-g*(zeta(Istr  ,j,know)-                        &
+u2dbc_im.F:     &                      zeta(Istr-1,j,know))*                       &
+u2dbc_im.F:     &                            zeta(Istr-1,j,know)+                  &
+u2dbc_im.F:     &                            zeta(Istr  ,j,know)))
+u2dbc_im.F:     &                            zeta(Istr-1,j,know)+                  &
+u2dbc_im.F:     &                            zeta(Istr  ,j,know)))
+u2dbc_im.F:     &              (GRID(ng)%h(Istr-1,j)+zeta(Istr-1,j,kout)+          &
+u2dbc_im.F:     &               GRID(ng)%h(Istr  ,j)+zeta(Istr  ,j,kout))
+u2dbc_im.F:                bry_pgr=-g*(BOUNDARY(ng)%zeta_east(j)-                  &
+u2dbc_im.F:     &                      zeta(Iend,j,know))*                         &
+u2dbc_im.F:                bry_pgr=-g*(zeta(Iend+1,j,know)-                        &
+u2dbc_im.F:     &                      zeta(Iend  ,j,know))*                       &
+u2dbc_im.F:     &                             zeta(Iend  ,j,know)+                 &
+u2dbc_im.F:     &                             zeta(Iend+1,j,know)))
+u2dbc_im.F:     &                             zeta(Iend  ,j,know)+                 &
+u2dbc_im.F:     &                             zeta(Iend+1,j,know)))
+u2dbc_im.F:     &                                 zeta(Iend+1,j,know)+             &
+u2dbc_im.F:     &                                 zeta(Iend  ,j,know)))
+u2dbc_im.F:     &                                 zeta(Iend+1,j,know)+             &
+u2dbc_im.F:     &                                 zeta(Iend  ,j,know)))
+u2dbc_im.F:     &                            zeta(Iend  ,j,know)+                  &
+u2dbc_im.F:     &                            zeta(Iend+1,j,know)))
+u2dbc_im.F:     &                            zeta(Iend  ,j,know)+                  &
+u2dbc_im.F:     &                            zeta(Iend+1,j,know)))
+u2dbc_im.F:     &                            Cx*(0.5_r8*(zeta(Iend  ,j,know)+      &
+u2dbc_im.F:     &                                        zeta(Iend+1,j,know))-     &
+u2dbc_im.F:     &                                BOUNDARY(ng)%zeta_east(j))
+u2dbc_im.F:                bry_pgr=-g*(BOUNDARY(ng)%zeta_east(j)-                  &
+u2dbc_im.F:     &                      zeta(Iend,j,know))*                         &
+u2dbc_im.F:                bry_pgr=-g*(zeta(Iend+1,j,know)-                        &
+u2dbc_im.F:     &                      zeta(Iend  ,j,know))*                       &
+u2dbc_im.F:     &                             zeta(Iend  ,j,know)+                 &
+u2dbc_im.F:     &                             zeta(Iend+1,j,know)))
+u2dbc_im.F:     &                                 zeta(Iend+1,j,know)+             &
+u2dbc_im.F:     &                                 zeta(Iend  ,j,know)))
+u2dbc_im.F:     &                    zeta(Iend  ,j,know)+                          &
+u2dbc_im.F:     &                    zeta(Iend+1,j,know))
+u2dbc_im.F:              Zx=(0.5_r8+Cx)*zeta(Iend  ,j,know)+                       &
+u2dbc_im.F:     &           (0.5_r8-Cx)*zeta(Iend+1,j,know)
+u2dbc_im.F:                cff3=zeta(Iend,j,kout)+                                 &
+u2dbc_im.F:     &               Cx*zeta(Iend+1,j,know)-                            &
+u2dbc_im.F:     &               (1.0_r8+Cx)*zeta(Iend,j,know)
+u2dbc_im.F:     &                             cff1*(Zx-BOUNDARY(ng)%zeta_east(j)))
+u2dbc_im.F:                bry_pgr=-g*(BOUNDARY(ng)%zeta_east(j)-                  &
+u2dbc_im.F:     &                      zeta(Iend,j,know))*                         &
+u2dbc_im.F:                bry_pgr=-g*(zeta(Iend+1,j,know)-                        &
+u2dbc_im.F:     &                      zeta(Iend  ,j,know))*                       &
+u2dbc_im.F:     &                            zeta(Iend  ,j,know)+                  &
+u2dbc_im.F:     &                            zeta(Iend+1,j,know)))
+u2dbc_im.F:     &                            zeta(Iend  ,j,know)+                  &
+u2dbc_im.F:     &                            zeta(Iend+1,j,know)))
+u2dbc_im.F:     &              (GRID(ng)%h(Iend+1,j)+zeta(Iend+1,j,kout)+          &
+u2dbc_im.F:     &               GRID(ng)%h(Iend  ,j)+zeta(Iend  ,j,kout))
+u2dbc_im.F:     &                            zeta(i-1,Jstr,know)+                  &
+u2dbc_im.F:     &                            zeta(i  ,Jstr,know)))
+u2dbc_im.F:     &                            zeta(i-1,Jstr,know)+                  &
+u2dbc_im.F:     &                            zeta(i  ,Jstr,know)))
+u2dbc_im.F:     &                            zeta(i-1,Jend,know)+                  &
+u2dbc_im.F:     &                            zeta(i  ,Jend,know)))
+u2dbc_im.F:     &                            zeta(i-1,Jend,know)+                  &
+u2dbc_im.F:     &                            zeta(i  ,Jend,know)))
+v2dbc_im.F:     &                 OCEAN(ng) % zeta)
+v2dbc_im.F:     &                       ubar, vbar, zeta)
+v2dbc_im.F:      real(r8), intent(in) :: zeta(LBi:,LBj:,:)
+v2dbc_im.F:      real(r8), intent(in) :: zeta(LBi:UBi,LBj:UBj,3)
+v2dbc_im.F:                bry_pgr=-g*(zeta(i,Jstr,know)-                          &
+v2dbc_im.F:     &                      BOUNDARY(ng)%zeta_south(i))*                &
+v2dbc_im.F:                bry_pgr=-g*(zeta(i,Jstr  ,know)-                        &
+v2dbc_im.F:     &                      zeta(i,Jstr-1,know))*                       &
+v2dbc_im.F:     &                             zeta(i,Jstr-1,know)+                 &
+v2dbc_im.F:     &                             zeta(i,Jstr  ,know)))
+v2dbc_im.F:     &                             zeta(i,Jstr-1,know)+                 &
+v2dbc_im.F:     &                             zeta(i,Jstr  ,know)))
+v2dbc_im.F:     &                                 zeta(i,Jstr-1,know)+             &
+v2dbc_im.F:     &                                 zeta(i,Jstr  ,know)))
+v2dbc_im.F:     &                                 zeta(i,Jstr-1,know)+             &
+v2dbc_im.F:     &                                 zeta(i,Jstr  ,know)))
+v2dbc_im.F:     &                            zeta(i,Jstr-1,know)+                  &
+v2dbc_im.F:     &                            zeta(i,Jstr  ,know)))
+v2dbc_im.F:     &                            zeta(i,Jstr-1,know)+                  &
+v2dbc_im.F:     &                            zeta(i,Jstr  ,know)))
+v2dbc_im.F:     &                          Ce*(0.5_r8*(zeta(i,Jstr-1,know)+        &
+v2dbc_im.F:     &                                      zeta(i,Jstr  ,know))-       &
+v2dbc_im.F:     &                              BOUNDARY(ng)%zeta_south(i))
+v2dbc_im.F:                bry_pgr=-g*(zeta(i,Jstr,know)-                          &
+v2dbc_im.F:     &                      BOUNDARY(ng)%zeta_south(i))*                &
+v2dbc_im.F:                bry_pgr=-g*(zeta(i,Jstr  ,know)-                        &
+v2dbc_im.F:     &                      zeta(i,Jstr-1,know))*                       &
+v2dbc_im.F:     &                             zeta(i,Jstr-1,know)+                 &
+v2dbc_im.F:     &                             zeta(i,Jstr  ,know)))
+v2dbc_im.F:     &                                 zeta(i,Jstr-1,know)+             &
+v2dbc_im.F:     &                                 zeta(i,Jstr  ,know)))
+v2dbc_im.F:     &                    zeta(i,Jstr-1,know)+                          &
+v2dbc_im.F:     &                    zeta(i,Jstr  ,know))
+v2dbc_im.F:              Ze=(0.5_r8+Ce)*zeta(i,Jstr  ,know)+                       &
+v2dbc_im.F:     &           (0.5_r8-Ce)*zeta(i,Jstr-1,know)
+v2dbc_im.F:                cff3=zeta(i,Jstr,kout)+                                 &
+v2dbc_im.F:     &               Ce*zeta(i,Jstr-1,know)-                            &
+v2dbc_im.F:     &               (1.0_r8+Ce)*zeta(i,Jstr,know)
+v2dbc_im.F:     &                           cff1*(Ze-BOUNDARY(ng)%zeta_south(i)))
+v2dbc_im.F:                bry_pgr=-g*(zeta(i,Jstr,know)-                          &
+v2dbc_im.F:     &                      BOUNDARY(ng)%zeta_south(i))*                &
+v2dbc_im.F:                bry_pgr=-g*(zeta(i,Jstr  ,know)-                        &
+v2dbc_im.F:     &                      zeta(i,Jstr-1,know))*                       &
+v2dbc_im.F:     &                            zeta(i,Jstr-1,know)+                  &
+v2dbc_im.F:     &                            zeta(i,Jstr  ,know)))
+v2dbc_im.F:     &                            zeta(i,Jstr-1,know)+                  &
+v2dbc_im.F:     &                            zeta(i,Jstr  ,know)))
+v2dbc_im.F:     &              (GRID(ng)%h(i,Jstr-1)+zeta(i,Jstr-1,kout)+          &
+v2dbc_im.F:     &               GRID(ng)%h(i,Jstr  )+zeta(i,Jstr  ,kout))
+v2dbc_im.F:                bry_pgr=-g*(BOUNDARY(ng)%zeta_north(i)-                 &
+v2dbc_im.F:     &                      zeta(i,Jend,know))*                         &
+v2dbc_im.F:                bry_pgr=-g*(zeta(i,Jend+1,know)-                        &
+v2dbc_im.F:     &                      zeta(i,Jend  ,know))*                       &
+v2dbc_im.F:     &                             zeta(i,Jend  ,know)+                 &
+v2dbc_im.F:     &                             zeta(i,Jend+1,know)))
+v2dbc_im.F:     &                             zeta(i,Jend  ,know)+                 &
+v2dbc_im.F:     &                             zeta(i,Jend+1,know)))
+v2dbc_im.F:     &                                 zeta(i,Jend+1,know)+             &
+v2dbc_im.F:     &                                 zeta(i,Jend  ,know)))
+v2dbc_im.F:     &                                 zeta(i,Jend+1,know)+             &
+v2dbc_im.F:     &                                 zeta(i,Jend  ,know)))
+v2dbc_im.F:     &                            zeta(i,Jend  ,know)+                  &
+v2dbc_im.F:     &                            zeta(i,Jend+1,know)))
+v2dbc_im.F:     &                            zeta(i,Jend  ,know)+                  &
+v2dbc_im.F:     &                            zeta(i,Jend+1,know)))
+v2dbc_im.F:     &                            Ce*(0.5_r8*(zeta(i,Jend  ,know)+      &
+v2dbc_im.F:     &                                        zeta(i,Jend+1,know))-     &
+v2dbc_im.F:     &                                BOUNDARY(ng)%zeta_north(i))
+v2dbc_im.F:                bry_pgr=-g*(BOUNDARY(ng)%zeta_north(i)-                 &
+v2dbc_im.F:     &                      zeta(i,Jend,know))*                         &
+v2dbc_im.F:                bry_pgr=-g*(zeta(i,Jend+1,know)-                        &
+v2dbc_im.F:     &                      zeta(i,Jend  ,know))*                       &
+v2dbc_im.F:     &                             zeta(i,Jend  ,know)+                 &
+v2dbc_im.F:     &                             zeta(i,Jend+1,know)))
+v2dbc_im.F:     &                                 zeta(i,Jend+1,know)+             &
+v2dbc_im.F:     &                                 zeta(i,Jend  ,know)))
+v2dbc_im.F:     &                    zeta(i,Jend  ,know)+                          &
+v2dbc_im.F:     &                    zeta(i,Jend+1,know))
+v2dbc_im.F:              Ze=(0.5_r8+Ce)*zeta(i,Jend  ,know)+                       &
+v2dbc_im.F:     &           (0.5_r8-Ce)*zeta(i,Jend+1,know)
+v2dbc_im.F:                cff3=zeta(i,Jend,kout)+                                 &
+v2dbc_im.F:     &               Ce*zeta(i,Jend+1,know)-                            &
+v2dbc_im.F:     &               (1.0_r8+Ce)*zeta(i,Jend,know)
+v2dbc_im.F:     &                             cff1*(Ze-BOUNDARY(ng)%zeta_north(i)))
+v2dbc_im.F:                bry_pgr=-g*(BOUNDARY(ng)%zeta_north(i)-                 &
+v2dbc_im.F:     &                      zeta(i,Jend,know))*                         &
+v2dbc_im.F:                bry_pgr=-g*(zeta(i,Jend+1,know)-                        &
+v2dbc_im.F:     &                      zeta(i,Jend  ,know))*                       &
+v2dbc_im.F:     &                            zeta(i,Jend  ,know)+                  &
+v2dbc_im.F:     &                            zeta(i,Jend+1,know)))
+v2dbc_im.F:     &                            zeta(i,Jend  ,know)+                  &
+v2dbc_im.F:     &                            zeta(i,Jend+1,know)))
+v2dbc_im.F:     &              (GRID(ng)%h(i,Jend+1)+zeta(i,Jend+1,kout)+          &
+v2dbc_im.F:     &               GRID(ng)%h(i,Jend  )+zeta(i,Jend  ,kout))
+v2dbc_im.F:     &                            zeta(Istr,j-1,know)+                  &
+v2dbc_im.F:     &                            zeta(Istr,j  ,know)))
+v2dbc_im.F:     &                            zeta(Istr,j-1,know)+                  &
+v2dbc_im.F:     &                            zeta(Istr,j  ,know)))
+v2dbc_im.F:     &                          zeta(Iend,j-1,know)+                    &
+v2dbc_im.F:     &                          zeta(Iend,j  ,know)))
+v2dbc_im.F:     &                            zeta(Iend,j-1,know)+                  &
+v2dbc_im.F:     &                            zeta(Iend,j  ,know)))
+wetdry.F:     &                        OCEAN(ng)%zeta(:,:,Tindex),               &
+wetdry.F:     &                    OCEAN(ng)%zeta(:,:,Tindex),                   &
+wetdry.F:     &                        h, zeta,                                  &
+wetdry.F:      real(r8), intent(in) :: zeta(LBi:,LBj:)
+wetdry.F:      real(r8), intent(in) :: zeta(LBi:UBi,LBj:UBj)
+wetdry.F:          IF ((zeta(i,j)+h(i,j)).le.(Dcrit(ng)+eps)) THEN
+wetdry.F:     &                            h, zeta,                              &
+wetdry.F:      real(r8), intent(in) :: zeta(LBi:,LBj:)
+wetdry.F:      real(r8), intent(in) :: zeta(LBi:UBi,LBj:UBj)
+wetdry.F:          IF ((zeta(i,j)+h(i,j)).le.(Dcrit(ng)+eps)) THEN
+wvelocity.F:!  d(zeta)/d(t), which is the vertical velocity at the free-surface
+zetabc.F:      MODULE zetabc_mod
+zetabc.F:!svn $Id: zetabc.F 771 2008-09-30 02:30:00Z jcwarner $
+zetabc.F:      PUBLIC  :: zetabc_tile
+zetabc.F:      SUBROUTINE zetabc (ng, tile, kout)
+zetabc.F:      CALL zetabc_tile (ng, tile,                                       &
+zetabc.F:     &                  OCEAN(ng) % zeta)
+zetabc.F:      END SUBROUTINE zetabc
+zetabc.F:      SUBROUTINE zetabc_tile (ng, tile,                                 &
+zetabc.F:     &                        zeta)
+zetabc.F:      real(r8), intent(inout) :: zeta(LBi:,LBj:,:)
+zetabc.F:      real(r8), intent(inout) :: zeta(LBi:UBi,LBj:UBj,3)
+zetabc.F:            grad(Istr-1,j)=zeta(Istr-1,j  ,know)-                       &
+zetabc.F:     &                     zeta(Istr-1,j-1,know)
+zetabc.F:            grad(Istr,j)=zeta(Istr,j  ,know)-                           &
+zetabc.F:     &                   zeta(Istr,j-1,know)
+zetabc.F:              dZdt=zeta(Istr,j,know)-zeta(Istr  ,j,kout)
+zetabc.F:              dZdx=zeta(Istr,j,kout)-zeta(Istr+1,j,kout)
+zetabc.F:              BOUNDARY(ng)%zeta_west_Cx(j)=Cx
+zetabc.F:              BOUNDARY(ng)%zeta_west_Ce(j)=Ce
+zetabc.F:              BOUNDARY(ng)%zeta_west_C2(j)=cff
+zetabc.F:              zeta(Istr-1,j,kout)=(cff*zeta(Istr-1,j,know)+             &
+zetabc.F:     &                             Cx *zeta(Istr  ,j,kout)-             &
+zetabc.F:                zeta(Istr-1,j,kout)=zeta(Istr-1,j,kout)+                &
+zetabc.F:     &                              tau*(BOUNDARY(ng)%zeta_west(j)-     &
+zetabc.F:     &                                   zeta(Istr-1,j,know))
+zetabc.F:              zeta(Istr-1,j,kout)=zeta(Istr-1,j,kout)*                  &
+zetabc.F:     &                     zeta(Istr,j,know)))
+zetabc.F:              zeta(Istr-1,j,kout)=(1.0_r8-Cx)*zeta(Istr-1,j,know)+      &
+zetabc.F:     &                            Cx*zeta(Istr,j,know)
+zetabc.F:              zeta(Istr-1,j,kout)=zeta(Istr-1,j,kout)*                  &
+zetabc.F:     &                     zeta(Istr,j,know)))
+zetabc.F:     &                     zeta(Istr,j,know)))
+zetabc.F:              zeta(Istr-1,j,kout)=cff2*(zeta(Istr-1,j,know)+            &
+zetabc.F:     &                                  Cx*zeta(Istr,j,kout))
+zetabc.F:              zeta(Istr-1,j,kout)=zeta(Istr-1,j,kout)*                  &
+zetabc.F:              zeta(Istr-1,j,kout)=BOUNDARY(ng)%zeta_west(j)
+zetabc.F:              zeta(Istr-1,j,kout)=zeta(Istr-1,j,kout)*                  &
+zetabc.F:              zeta(Istr-1,j,kout)=zeta(Istr,j,kout)
+zetabc.F:              zeta(Istr-1,j,kout)=zeta(Istr-1,j,kout)*                  &
+zetabc.F:              zeta(Istr-1,j,kout)=zeta(Istr,j,kout)
+zetabc.F:              zeta(Istr-1,j,kout)=zeta(Istr-1,j,kout)*                  &
+zetabc.F:            grad(Iend  ,j)=zeta(Iend  ,j  ,know)-                       &
+zetabc.F:     &                     zeta(Iend  ,j-1,know)
+zetabc.F:            grad(Iend+1,j)=zeta(Iend+1,j  ,know)-                       &
+zetabc.F:     &                     zeta(Iend+1,j-1,know)
+zetabc.F:              dZdt=zeta(Iend,j,know)-zeta(Iend  ,j,kout)
+zetabc.F:              dZdx=zeta(Iend,j,kout)-zeta(Iend-1,j,kout)
+zetabc.F:              BOUNDARY(ng)%zeta_east_Cx(j)=Cx
+zetabc.F:              BOUNDARY(ng)%zeta_east_Ce(j)=Ce
+zetabc.F:              BOUNDARY(ng)%zeta_east_C2(j)=cff
+zetabc.F:              zeta(Iend+1,j,kout)=(cff*zeta(Iend+1,j,know)+             &
+zetabc.F:     &                             Cx *zeta(Iend  ,j,kout)-             &
+zetabc.F:                zeta(Iend+1,j,kout)=zeta(Iend+1,j,kout)+                &
+zetabc.F:     &                              tau*(BOUNDARY(ng)%zeta_east(j)-     &
+zetabc.F:     &                                   zeta(Iend+1,j,know))
+zetabc.F:              zeta(Iend+1,j,kout)=zeta(Iend+1,j,kout)*                  &
+zetabc.F:     &                     zeta(Iend,j,know)))
+zetabc.F:              zeta(Iend+1,j,kout)=(1.0_r8-Cx)*zeta(Iend+1,j,know)+      &
+zetabc.F:     &                            Cx*zeta(Iend,j,know)
+zetabc.F:              zeta(Iend+1,j,kout)=zeta(Iend+1,j,kout)*                  &
+zetabc.F:     &                     zeta(Iend,j,know)))
+zetabc.F:     &                     zeta(Iend,j,know)))
+zetabc.F:              zeta(Iend+1,j,kout)=cff2*(zeta(Iend+1,j,know)+            &
+zetabc.F:     &                                  Cx*zeta(Iend,j,kout))
+zetabc.F:              zeta(Iend+1,j,kout)=zeta(Iend+1,j,kout)*                  &
+zetabc.F:              zeta(Iend+1,j,kout)=BOUNDARY(ng)%zeta_east(j)
+zetabc.F:              zeta(Iend+1,j,kout)=zeta(Iend+1,j,kout)*                  &
+zetabc.F:              zeta(Iend+1,j,kout)=zeta(Iend,j,kout)
+zetabc.F:              zeta(Iend+1,j,kout)=zeta(Iend+1,j,kout)*                  &
+zetabc.F:              zeta(Iend+1,j,kout)=zeta(Iend,j,kout)
+zetabc.F:              zeta(Iend+1,j,kout)=zeta(Iend+1,j,kout)*                  &
+zetabc.F:            grad(i,Jstr  )=zeta(i  ,Jstr,know)-                         &
+zetabc.F:     &                     zeta(i-1,Jstr,know)
+zetabc.F:            grad(i,Jstr-1)=zeta(i  ,Jstr-1,know)-                       &
+zetabc.F:     &                     zeta(i-1,Jstr-1,know)
+zetabc.F:              dZdt=zeta(i,Jstr,know)-zeta(i,Jstr  ,kout)
+zetabc.F:              dZde=zeta(i,Jstr,kout)-zeta(i,Jstr-1,kout)
+zetabc.F:              BOUNDARY(ng)%zeta_south_Cx(i)=Cx
+zetabc.F:              BOUNDARY(ng)%zeta_south_Ce(i)=Ce
+zetabc.F:              BOUNDARY(ng)%zeta_south_C2(i)=cff
+zetabc.F:              zeta(i,Jstr-1,kout)=(cff*zeta(i,Jstr-1,know)+             &
+zetabc.F:     &                             Ce *zeta(i,Jstr  ,kout)-             &
+zetabc.F:                zeta(i,Jstr-1,kout)=zeta(i,Jstr-1,kout)+                &
+zetabc.F:     &                              tau*(BOUNDARY(ng)%zeta_south(i)-    &
+zetabc.F:     &                                   zeta(i,Jstr-1,know))
+zetabc.F:              zeta(i,Jstr-1,kout)=zeta(i,Jstr-1,kout)*                  &
+zetabc.F:     &                     zeta(i,Jstr,know)))
+zetabc.F:              zeta(i,Jstr-1,kout)=(1.0_r8-Ce)*zeta(i,Jstr-1,know)+      &
+zetabc.F:     &                            Ce*zeta(i,Jstr,know)
+zetabc.F:              zeta(i,Jstr-1,kout)=zeta(i,Jstr-1,kout)*                  &
+zetabc.F:     &                     zeta(i,Jstr,know)))
+zetabc.F:     &                     zeta(i,Jstr,know)))
+zetabc.F:              zeta(i,Jstr-1,kout)=cff2*(zeta(i,Jstr-1,know)+            &
+zetabc.F:     &                                  Ce*zeta(i,Jstr,kout))
+zetabc.F:              zeta(i,Jstr-1,kout)=zeta(i,Jstr-1,kout)*                  &
+zetabc.F:              zeta(i,Jstr-1,kout)=BOUNDARY(ng)%zeta_south(i)
+zetabc.F:              zeta(i,Jstr-1,kout)=zeta(i,Jstr-1,kout)*                  &
+zetabc.F:              zeta(i,Jstr-1,kout)=zeta(i,Jstr,kout)
+zetabc.F:              zeta(i,Jstr-1,kout)=zeta(i,Jstr-1,kout)*                  &
+zetabc.F:              zeta(i,Jstr-1,kout)=zeta(i,Jstr,kout)
+zetabc.F:              zeta(i,Jstr-1,kout)=zeta(i,Jstr-1,kout)*                  &
+zetabc.F:            grad(i,Jend  )=zeta(i  ,Jend  ,know)-                       &
+zetabc.F:     &                     zeta(i-1,Jend  ,know)
+zetabc.F:            grad(i,Jend+1)=zeta(i  ,Jend+1,know)-                       &
+zetabc.F:     &                     zeta(i-1,Jend+1,know)
+zetabc.F:              dZdt=zeta(i,Jend,know)-zeta(i,Jend  ,kout)
+zetabc.F:              dZde=zeta(i,Jend,kout)-zeta(i,Jend-1,kout)
+zetabc.F:              BOUNDARY(ng)%zeta_north_Cx(i)=Cx
+zetabc.F:              BOUNDARY(ng)%zeta_north_Ce(i)=Ce
+zetabc.F:              BOUNDARY(ng)%zeta_north_C2(i)=cff
+zetabc.F:              zeta(i,Jend+1,kout)=(cff*zeta(i,Jend+1,know)+             &
+zetabc.F:     &                             Ce *zeta(i,Jend  ,kout)-             &
+zetabc.F:                zeta(i,Jend+1,kout)=zeta(i,Jend+1,kout)+                &
+zetabc.F:     &                              tau*(BOUNDARY(ng)%zeta_north(i)-    &
+zetabc.F:     &                                   zeta(i,Jend+1,know))
+zetabc.F:              zeta(i,Jend+1,kout)=zeta(i,Jend+1,kout)*                  &
+zetabc.F:     &                     zeta(i,Jend,know)))
+zetabc.F:              zeta(i,Jend+1,kout)=(1.0_r8-Ce)*zeta(i,Jend+1,know)+      &
+zetabc.F:     &                            Ce*zeta(i,Jend,know)
+zetabc.F:              zeta(i,Jend+1,kout)=zeta(i,Jend+1,kout)*                  &
+zetabc.F:     &                     zeta(i,Jend,know)))
+zetabc.F:     &                     zeta(i,Jend,know)))
+zetabc.F:              zeta(i,Jend+1,kout)=cff2*(zeta(i,Jend+1,know)+            &
+zetabc.F:     &                                  Ce*zeta(i,Jend,kout))
+zetabc.F:              zeta(i,Jend+1,kout)=zeta(i,Jend+1,kout)*                  &
+zetabc.F:              zeta(i,Jend+1,kout)=BOUNDARY(ng)%zeta_north(i)
+zetabc.F:              zeta(i,Jend+1,kout)=zeta(i,Jend+1,kout)*                  &
+zetabc.F:              zeta(i,Jend+1,kout)=zeta(i,Jend,kout)
+zetabc.F:              zeta(i,Jend+1,kout)=zeta(i,Jend+1,kout)*                  &
+zetabc.F:              zeta(i,Jend+1,kout)=zeta(i,Jend,kout)
+zetabc.F:              zeta(i,Jend+1,kout)=zeta(i,Jend+1,kout)*                  &
+zetabc.F:            zeta(Istr-1,Jstr-1,kout)=0.5_r8*(zeta(Istr  ,Jstr-1,kout)+  &
+zetabc.F:     &                                       zeta(Istr-1,Jstr  ,kout))
+zetabc.F:            zeta(Iend+1,Jstr-1,kout)=0.5_r8*(zeta(Iend  ,Jstr-1,kout)+  &
+zetabc.F:     &                                       zeta(Iend+1,Jstr  ,kout))
+zetabc.F:            zeta(Istr-1,Jend+1,kout)=0.5_r8*(zeta(Istr-1,Jend  ,kout)+  &
+zetabc.F:     &                                       zeta(Istr  ,Jend+1,kout))
+zetabc.F:            zeta(Iend+1,Jend+1,kout)=0.5_r8*(zeta(Iend+1,Jend  ,kout)+  &
+zetabc.F:     &                                       zeta(Iend  ,Jend+1,kout))
+zetabc.F:              IF (zeta(Istr-1,j,kout).le.                               &
+zetabc.F:                zeta(Istr-1,j,kout)=cff-GRID(ng)%h(Istr-1,j)
+zetabc.F:              IF (zeta(Iend+1,j,kout).le.                               &
+zetabc.F:                zeta(Iend+1,j,kout)=cff-GRID(ng)%h(Iend+1,j)
+zetabc.F:              IF (zeta(i,Jstr-1,kout).le.                               &
+zetabc.F:                zeta(i,Jstr-1,kout)=cff-GRID(ng)%h(i,Jstr-1)
+zetabc.F:              IF (zeta(i,Jend+1,kout).le.                               &
+zetabc.F:                zeta(i,Jend+1,kout)=cff-GRID(ng)%h(i,Jend+1)
+zetabc.F:            IF (zeta(Istr-1,Jstr-1,kout).le.                            &
+zetabc.F:              zeta(Istr-1,Jstr-1,kout)=cff-GRID(ng)%h(Istr-1,Jstr-1)
+zetabc.F:            IF (zeta(Iend+1,Jstr-1,kout).le.                            &
+zetabc.F:              zeta(Iend+1,Jstr-1,kout)=cff-GRID(ng)%h(Iend+1,Jstr-1)
+zetabc.F:            IF (zeta(Istr-1,Jend+1,kout).le.                            &
+zetabc.F:              zeta(Istr-1,Jend+1,kout)=cff-GRID(ng)%h(Istr-1,Jend+1)
+zetabc.F:            IF (zeta(Iend+1,Jend+1,kout).le.                            &
+zetabc.F:              zeta(Iend+1,Jend+1,kout)=cff-GRID(ng)%h(Iend+1,Jend+1)
+zetabc.F:      END SUBROUTINE zetabc_tile
+zetabc.F:      END MODULE zetabc_mod
