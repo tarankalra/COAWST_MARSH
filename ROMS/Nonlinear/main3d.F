@@ -890,7 +890,6 @@
 # endif
 # ifdef SEDIMENT
                 CALL sediment (ng, tile)
-                write(*,*)"in sediment"
 # endif
               END DO
 !$OMP BARRIER
