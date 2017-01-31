@@ -347,6 +347,16 @@
 ! Compute maximum bottom stress for MPM bedload or suspended load.
 !-----------------------------------------------------------------------
 !
+
+!      DO ised=NCS+1,NST
+!        write(*,*)" ised sed bedload"
+!        DO j=Jstr,Jend
+!          DO i=Istr,Iend
+!            write(58,*)i,j,bed_mass(i,j,1,nstp,ised)
+!            write(59,*)nstp,ised,bed_mass(i,j,1,nstp,ised)
+!          END DO
+!        END DO 
+!      END DO 
 # if defined BEDLOAD_MPM
 #  ifdef BBL_MODEL
       DO j=Jstr-1,Jend+1

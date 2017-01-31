@@ -249,16 +249,11 @@
 !  Marsh mask at U-points and V-points.
 !----------------------------------------------------------------------
 !
-!
       umask_marsh=Inival
       vmask_marsh=Inival
       FX=Inival
       FY=Inival
-!      Thrust_w=Inival
-!      Thrust_e=Inival
-!      Thrust_n=Inival
-!      Thrust_s=Inival
-
+!
       DO j=JstrR,JendR
         DO i=Istr,IendR
           umask_marsh(i,j)=marsh_mask(i-1,j)+marsh_mask(i,j)
@@ -314,14 +309,36 @@
 !---------------------------------------------------------------------
 !
           depth_all=h(i,j)+zeta(i,j,1)
-          IF (depth_all.lt.0.2_r8) THEN
+!
+!---------------------------------------------------------------------
+!  Make the thrust mask =0
+!---------------------------------------------------------------------
+!
+          IF (depth_all.le.0.0_r8) THEN 
+            cff=0.0_r8
+!
+!---------------------------------------------------------------------
+!  Reduce thrust to 45% the thrust when 0.1< depth <0.2
+!---------------------------------------------------------------------
+!
+          ELSEIF (depth_all.gt.0.0_r8.and.depth_all.lt.0.2_r8) THEN
             cff=1.0_r8-0.45_r8*depth_all*5.0_r8
-          ELSEIF (0.2_r8.lt.depth_all.and.depth_all.lt.0.4_r8) THEN
+!
+!---------------------------------------------------------------------
+!  Reduce thrust to 27.5% when 0.2<depth<0.4
+!---------------------------------------------------------------------
+!
+          ELSEIF (depth_all.gt.0.2_r8.and.depth_all.lt.0.4_r8) THEN
             cff=0.55_r8*(1.0_r8-2.5_r8*(depth_all-0.2_r8))
-          ELSE
+!
+!---------------------------------------------------------------------
+! Constant reduction when the depth is higher than 0.4
+!---------------------------------------------------------------------
+!
+          ELSEIF (depth_all>0.4_r8) THEN 
             cff=0.275_r8
           ENDIF
-          mask_thrust(i,j)=cff*marsh_mask(i,j)
+          mask_thrust(i,j)=cff
 !
 !---------------------------------------------------------------------
 ! The total thrust computed only at cell centers if they are all wet.
@@ -339,6 +356,12 @@
         END DO
       END DO
 !
+!  |           |Thrust North |           |
+!--|---------- |-------------|---------  |-------------
+!  |Thrust West|   Marsh     |Thrust East| 
+!  |-----------|-------------|-----------|
+!  |           |Thrust South |           |    
+!
       DO j=Jstr,Jend
         DO i=Istr,Iend
 !
@@ -349,14 +372,14 @@
 !
           cff=half*(1.0_r8+SIGN(1.0_r8,FX(i-1,j)))
           Thrust_loc_w=umask_marsh(i,j)*FX(i-1,j)*cff*                  &
-                                            marsh_mask(i,j)
+                       mask_thrust(i-1,j)*marsh_mask(i,j)
 #  ifdef MARSH_SED_BEDLOAD 
           Thrust_w(i,j)=Thrust_loc_w
 #  endif
 !
           cff=half*(1.0_r8-SIGN(1.0_r8,FX(i+1,j)))
           Thrust_loc_e=umask_marsh(i+1,j)*FX(i+1,j)*cff*                &
-                                            marsh_mask(i,j)
+                       mask_thrust(i+1,j)*marsh_mask(i,j)
 #  ifdef MARSH_SED_BEDLOAD 
           Thrust_e(i+1,j)=Thrust_loc_e
 #  endif
@@ -368,14 +391,14 @@
 !
           cff=half*(1.0_r8-SIGN(1.0_r8,FY(i,j+1)))
           Thrust_loc_n=vmask_marsh(i,j+1)*FY(i,j+1)*cff*                &
-                                            marsh_mask(i,j)
+                       mask_thrust(i,j+1)*marsh_mask(i,j)
 #  ifdef MARSH_SED_BEDLOAD 
           Thrust_n(i,j+1)=Thrust_loc_n
 #  endif
 !
           cff=half*(1.0_r8+SIGN(1.0_r8,FY(i,j-1)))
           Thrust_loc_s=vmask_marsh(i,j)*FY(i,j-1)*cff*                  &
-                                             marsh_mask(i,j)
+                       mask_thrust(i,j-1)*marsh_mask(i,j)
 !
 #  ifdef MARSH_SED_BEDLOAD 
           Thrust_s(i,j)=Thrust_loc_s
@@ -394,6 +417,7 @@
       CALL bc_r2d_tile (ng, tile,                                       &
      &                  LBi, UBi, LBj, UBj,                             &
      &                  mask_thrust)
+#  ifdef MARSH_SED_BEDLOAD
      CALL bc_u2d_tile (ng, tile,                                        &
      &                  LBi, UBi, LBj, UBj,                             &
      &                  Thrust_w)
@@ -406,6 +430,7 @@
      CALL bc_v2d_tile (ng, tile,                                        &
      &                 LBi, UBi, LBj, UBj,                              &
      &                  Thrust_s)
+#  endif 
      CALL bc_r2d_tile (ng, tile,                                        &
      &                  LBi, UBi, LBj, UBj,                             &
      &                  Thrust_tonelli)
