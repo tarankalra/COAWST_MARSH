@@ -126,28 +126,18 @@
 !  Local variable declarations.
 !
       integer :: i, ised, j, k
-      real(r8) :: cff, cff1
-
+      real(r8) :: cff, cff1, cff2
+!
+!-----------------------------------------------------------------------
+! Save the initial in a local array bed_ini 
+! The change in marsh erosion uses this array
+!-----------------------------------------------------------------------
+!
       real(r8), dimension(IminS:ImaxS,JminS:JmaxS,NST) :: bed_ini
       real(r8) :: kfac, Thrust_crit, crit_bed_mass
       real(r8) :: Eff_thrust 
 
 # include "set_bounds.h"
-!
-! If the bed mass decreases by 50 % from the initial time step
-! in a cell, change the marsh_mask and only do this calculation for
-! the original marsh mask for now (so no new creation of marsh mask)
-!
-      DO ised=NCS+1,NST
-        DO j=Jstr,Jend
-          DO i=Istr,Iend
-            IF ( iic(ng).eq.1 ) THEN 
-              bed_ini(i,j,ised)=bed_mass(i,j,1,nstp,ised)
-            ENDIF 
-          END DO
-        END DO
-      END DO 
-!
 !
 !-----------------------------------------------------------------------
 ! Compute some constant of marsh sediment (May be would be input). 
@@ -157,7 +147,7 @@
 ! Critical thrust before Thrust exceeds on each cell face
 ! leads to marsh erosion 
 !
-      kfac=0.05_r8  
+      kfac=50.0_r8  
 !
 ! Critical thrust or erosion thrust value to be decided 
 !
@@ -199,11 +189,11 @@
 ! there is a thrust force 
 !
             IF(Eff_thrust.gt.0.0_r8) THEN
-              cff1=1.0_r8
+              cff2=1.0_r8
+              bed_mass(i,j,1,nstp,ised)=MAX(bed_mass(i,j,1,nstp,ised)-  &
+     &                                         cff1*cff2,0.0)
+              bed_ini(i,j,ised)=bed_mass(i,j,1,nstp,ised)+cff1 
             ENDIF
-!
-            bed_mass(i,j,1,nstp,ised)=MAX(bed_ini(i,j,ised)-            &
-     &                          cff1*bed_mass(i-1,j,1,nstp,ised),0.0)
 !
 ! Thrust from East cell face leads to sediment addition on right cell 
 !
@@ -212,26 +202,28 @@
             bed_mass(i+1,j,1,nstp,ised)=bed_mass(i+1,j,1,nstp,ised)+cff1 
 !
             IF(Eff_thrust.gt.0.0_r8) THEN
-              cff1=1.0_r8
+              cff2=1.0_r8
+              bed_mass(i,j,1,nstp,ised)=MAX(bed_mass(i,j,1,nstp,ised)-  & 
+     &                                         cff1*cff2,0.0)
+              bed_ini(i,j,ised)=bed_mass(i,j,1,nstp,ised)+cff1 
             ENDIF
 !
-            bed_mass(i,j,1,nstp,ised)=MAX(bed_ini(i,j,ised)-            & 
-     &                          cff1*bed_mass(i+1,j,1,nstp,ised),0.0)
 !
 ! Thrust from North cell face leads to sediment addition on cell above
 !
             cff=om_r(i,j)*dt(ng)
 !
             Eff_thrust=MAX((ABS(Thrust_n(i,j+1))-Thrust_crit),0.0_r8)
-            cff1=Eff_thrust*kfac*cff*bed_mass(i,j,1,nstp,ised)         
+            cff1=Eff_thrust*kfac*cff*bed_mass(i,j,1,nstp,ised)
             bed_mass(i,j+1,1,nstp,ised)=bed_mass(i,j+1,1,nstp,ised)+cff1
 !
             IF(Eff_thrust.gt.0.0_r8) THEN
-              cff1=1.0_r8
+              cff2=1.0_r8
+              bed_mass(i,j,1,nstp,ised)=MAX((bed_mass(i,j,1,nstp,ised)- &
+     &                                               cff1*cff2),0.0)
+              bed_ini(i,j,ised)=bed_mass(i,j,1,nstp,ised)+cff1
             ENDIF
 !
-            bed_mass(i,j,1,nstp,ised)=MAX((bed_ini(i,j,ised)-           &
-     &                        cff1*bed_mass(i,j+1,1,nstp,ised)),0.0)
 ! 
 ! Thrust from South cell face leads to sediment addition on cell above
 !
@@ -240,17 +232,18 @@
             bed_mass(i,j-1,1,nstp,ised)=bed_mass(i,j-1,1,nstp,ised)+cff1
 !
             IF(Eff_thrust.gt.0.0_r8) THEN
-              cff1=1.0_r8
+              cff2=1.0_r8
+              bed_mass(i,j,1,nstp,ised)=MAX((bed_mass(i,j,1,nstp,ised)- &
+     &                                         cff1*cff2),0.0)
+              bed_ini(i,j,ised)=bed_mass(i,j,1,nstp,ised)+cff1
             ENDIF
 !
-            bed_mass(i,j,1,nstp,ised)=MAX((bed_ini(i,j,ised)-           &
-     &                        cff1*bed_mass(i,j-1,1,nstp,ised)),0.0)
-
-            crit_bed_mass=0.5_r8*bed_ini(i,j,ised)*marsh_mask(i,j)
-            IF (bed_mass(i,j,1,nstp,ised).le.crit_bed_mass) THEN
-! 
-! if bed mass drops in a cell to 50% from initial value, marsh_mask=0
+! If the bed mass decreases by 50 % from the initial time step
+! in a cell, change the marsh_mask and only do this calculation for
+! the original marsh mask for now (so no new creation of marsh mask)
 !
+            crit_bed_mass=0.5_r8*bed_ini(i,j,ised)
+            IF (bed_mass(i,j,1,nstp,ised).lt.crit_bed_mass) THEN
               marsh_mask(i,j)=0.0_r8
             ENDIF
           END DO
