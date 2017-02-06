@@ -311,17 +311,10 @@
           depth_all=h(i,j)+zeta(i,j,1)
 !
 !---------------------------------------------------------------------
-!  Make the thrust mask =0
-!---------------------------------------------------------------------
-!
-          IF (depth_all.le.0.0_r8) THEN 
-            cff=0.0_r8
-!
-!---------------------------------------------------------------------
 !  Reduce thrust to 45% the thrust when 0.1< depth <0.2
 !---------------------------------------------------------------------
 !
-          ELSEIF (depth_all.gt.0.0_r8.and.depth_all.lt.0.2_r8) THEN
+          IF (depth_all.gt.0.0_r8.and.depth_all.lt.0.2_r8) THEN
             cff=1.0_r8-0.45_r8*depth_all*5.0_r8
 !
 !---------------------------------------------------------------------
@@ -338,21 +331,14 @@
           ELSEIF (depth_all>0.4_r8) THEN 
             cff=0.275_r8
           ENDIF
-          mask_thrust(i,j)=cff
 !
 !---------------------------------------------------------------------
-! The total thrust computed only at cell centers if they are all wet.
+! When the marsh is wet then use a reduction mask
 !---------------------------------------------------------------------
+! 
+          mask_thrust(i,j)=cff 
 !
-#  ifdef MASKING
-#   ifdef WET_DRY
-          FX(i,j)=FX(i,j)*rmask_wet(i,j)
-          FY(i,j)=FY(i,j)*rmask_wet(i,j)
-#   else
-          FX(i,j)=FX(i,j)*rmask(i,j)
-          FY(i,j)=FY(i,j)*rmask(i,j)
-#   endif
-#  endif
+!
         END DO
       END DO
 !
@@ -370,16 +356,17 @@
 ! and use only negative values for East. 
 !---------------------------------------------------------------------
 !
+         
           cff=half*(1.0_r8+SIGN(1.0_r8,FX(i-1,j)))
           Thrust_loc_w=umask_marsh(i,j)*FX(i-1,j)*cff*                  &
-                       mask_thrust(i-1,j)*marsh_mask(i,j)
+                       marsh_mask(i-1,j)
 #  ifdef MARSH_SED_BEDLOAD 
           Thrust_w(i,j)=Thrust_loc_w
 #  endif
 !
           cff=half*(1.0_r8-SIGN(1.0_r8,FX(i+1,j)))
           Thrust_loc_e=umask_marsh(i+1,j)*FX(i+1,j)*cff*                &
-                       mask_thrust(i+1,j)*marsh_mask(i,j)
+                       marsh_mask(i+1,j)
 #  ifdef MARSH_SED_BEDLOAD 
           Thrust_e(i+1,j)=Thrust_loc_e
 #  endif
@@ -391,19 +378,19 @@
 !
           cff=half*(1.0_r8-SIGN(1.0_r8,FY(i,j+1)))
           Thrust_loc_n=vmask_marsh(i,j+1)*FY(i,j+1)*cff*                &
-                       mask_thrust(i,j+1)*marsh_mask(i,j)
+                       marsh_mask(i,j+1)
 #  ifdef MARSH_SED_BEDLOAD 
           Thrust_n(i,j+1)=Thrust_loc_n
 #  endif
 !
           cff=half*(1.0_r8+SIGN(1.0_r8,FY(i,j-1)))
           Thrust_loc_s=vmask_marsh(i,j)*FY(i,j-1)*cff*                  &
-                       mask_thrust(i,j-1)*marsh_mask(i,j)
+                       marsh_mask(i,j-1)
 !
 #  ifdef MARSH_SED_BEDLOAD 
           Thrust_s(i,j)=Thrust_loc_s
 #  endif
-
+!
           Thrust_tonelli(i,j)=ABS(Thrust_loc_w)+ABS(Thrust_loc_e)+      &
      &                        ABS(Thrust_loc_n)+ABS(Thrust_loc_s)
          
