@@ -231,6 +231,8 @@
 
       real(r8) :: cff, cff1, F_asl, F_bsl, F_msl
 
+      real(r8) :: mask_thrust_n, mask_thrust_s
+      real(r8) :: mask_thrust_e, mask_thrust_w
       real(r8) :: thrust_loc_n, thrust_loc_s
       real(r8) :: thrust_loc_e, thrust_loc_w
 
@@ -253,6 +255,10 @@
       vmask_marsh=Inival
       FX=Inival
       FY=Inival
+      mask_thrust_w=Inival
+      mask_thrust_e=Inival
+      mask_thrust_n=Inival
+      mask_thrust_s=Inival
 !
       DO j=JstrR,JendR
         DO i=Istr,IendR
@@ -304,41 +310,6 @@
           FX(i,j)=F_msl*cos(cff)
           FY(i,j)=F_msl*sin(cff)
 !
-!---------------------------------------------------------------------
-!  Compute total water column depth to reduce thrust based on depth.
-!---------------------------------------------------------------------
-!
-          depth_all=h(i,j)+zeta(i,j,1)
-!
-!---------------------------------------------------------------------
-!  Reduce thrust to 45% the thrust when 0.1< depth <0.2
-!---------------------------------------------------------------------
-!
-          IF (depth_all.gt.0.0_r8.and.depth_all.lt.0.2_r8) THEN
-            cff=1.0_r8-0.45_r8*depth_all*5.0_r8
-!
-!---------------------------------------------------------------------
-!  Reduce thrust to 27.5% when 0.2<depth<0.4
-!---------------------------------------------------------------------
-!
-          ELSEIF (depth_all.gt.0.2_r8.and.depth_all.lt.0.4_r8) THEN
-            cff=0.55_r8*(1.0_r8-2.5_r8*(depth_all-0.2_r8))
-!
-!---------------------------------------------------------------------
-! Constant reduction when the depth is higher than 0.4
-!---------------------------------------------------------------------
-!
-          ELSEIF (depth_all>0.4_r8) THEN 
-            cff=0.275_r8
-          ENDIF
-!
-!---------------------------------------------------------------------
-! When the marsh is wet then use a reduction mask
-!---------------------------------------------------------------------
-! 
-          mask_thrust(i,j)=cff 
-!
-!
         END DO
       END DO
 !
@@ -356,17 +327,24 @@
 ! and use only negative values for East. 
 !---------------------------------------------------------------------
 !
-         
+          mask_thrust_w=IniVal
+          depth_all=ABS(h(i,j)+zeta(i-1,j,1))
+          CALL depth_mask(depth_all,mask_thrust_w)
+!
           cff=half*(1.0_r8+SIGN(1.0_r8,FX(i-1,j)))
           Thrust_loc_w=umask_marsh(i,j)*FX(i-1,j)*cff*                  &
-                       marsh_mask(i-1,j)
+                       mask_thrust_w
 #  ifdef MARSH_SED_BEDLOAD 
           Thrust_w(i,j)=Thrust_loc_w
 #  endif
 !
+          mask_thrust_e=IniVal
+          depth_all=ABS(h(i,j)+zeta(i+1,j,1))
+          CALL depth_mask(depth_all,mask_thrust_e)
+!
           cff=half*(1.0_r8-SIGN(1.0_r8,FX(i+1,j)))
           Thrust_loc_e=umask_marsh(i+1,j)*FX(i+1,j)*cff*                &
-                       marsh_mask(i+1,j)
+                       mask_thrust_e
 #  ifdef MARSH_SED_BEDLOAD 
           Thrust_e(i+1,j)=Thrust_loc_e
 #  endif
@@ -375,22 +353,33 @@
 ! Use sign of thrust and use only positive values for South
 ! and use only negative values for North.
 !---------------------------------------------------------------------
+! 
+          mask_thrust_n=IniVal
+          depth_all=ABS(h(i,j)+zeta(i,j+1,1))
+          CALL depth_mask(depth_all,mask_thrust_n)
 !
           cff=half*(1.0_r8-SIGN(1.0_r8,FY(i,j+1)))
           Thrust_loc_n=vmask_marsh(i,j+1)*FY(i,j+1)*cff*                &
-                       marsh_mask(i,j+1)
+                       mask_thrust_n
 #  ifdef MARSH_SED_BEDLOAD 
           Thrust_n(i,j+1)=Thrust_loc_n
 #  endif
 !
+          mask_thrust_s=IniVal
+          depth_all=ABS(h(i,j)+zeta(i,j-1,1))
+          CALL depth_mask(depth_all,mask_thrust_s)
+!
           cff=half*(1.0_r8+SIGN(1.0_r8,FY(i,j-1)))
           Thrust_loc_s=vmask_marsh(i,j)*FY(i,j-1)*cff*                  &
-                       marsh_mask(i,j-1)
+                       mask_thrust_s
 !
 #  ifdef MARSH_SED_BEDLOAD 
           Thrust_s(i,j)=Thrust_loc_s
 #  endif
 !
+          mask_thrust(i,j)=mask_thrust_w+mask_thrust_e+                 &
+     &                     mask_thrust_n+mask_thrust_s
+!         
           Thrust_tonelli(i,j)=ABS(Thrust_loc_w)+ABS(Thrust_loc_e)+      &
      &                        ABS(Thrust_loc_n)+ABS(Thrust_loc_s)
          
@@ -429,5 +418,52 @@
 !     &                    mask_thrust, Thrust_tonelli)  
 !# endif
       END SUBROUTINE marsh_wave_thrust_tile
+
+      SUBROUTINE depth_mask (depth_all, mask_thrust_eachdir)
+!
+!=======================================================================
+! Compute marsh mask with respect to water column depth to reduce      ! 
+! thrust based on depth.                                               ! 
+!                                                                      !
+!=======================================================================
+!
+      USE mod_scalars
+!
+!  Imported variable declarations.
+!
+      real(r8), intent(in) :: depth_all
+      real(r8), intent(out) :: mask_thrust_eachdir
+!
+!  Local variable declarations.
+!
+
+      real(r8) :: cff
+                          
+!---------------------------------------------------------------------
+!  Reduce thrust to 45% the thrust when 0.1< depth <0.2
+!---------------------------------------------------------------------
+!
+      IF (depth_all.ge.0.0_r8.and.depth_all.lt.0.2_r8) THEN
+        cff=1.0_r8-0.45_r8*depth_all*5.0_r8
+!
+!---------------------------------------------------------------------
+!  Reduce thrust to 27.5% when 0.2<depth<0.4
+!---------------------------------------------------------------------
+!
+      ELSEIF (depth_all.ge.0.2_r8.and.depth_all.lt.0.4_r8) THEN
+        cff=0.55_r8*(1.0_r8-2.5_r8*(depth_all-0.2_r8))
+!
+!---------------------------------------------------------------------
+! Constant reduction when the depth is higher than 0.4
+!---------------------------------------------------------------------
+!
+      ELSEIF (depth_all.ge.0.4_r8) THEN 
+        cff=0.275_r8
+!
+      ENDIF   
+!
+      mask_thrust_eachdir=cff 
+!
+      END SUBROUTINE depth_mask
 #endif
       END MODULE marsh_wave_thrust_mod
