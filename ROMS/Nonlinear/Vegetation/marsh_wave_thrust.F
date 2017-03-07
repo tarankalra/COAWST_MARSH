@@ -309,6 +309,8 @@
           F_msl=F_asl+F_bsl
           FX(i,j)=F_msl*cos(cff)
           FY(i,j)=F_msl*sin(cff)
+! 
+! Find a way of making 10-16 cos,sin to zero
 !
         END DO
       END DO
@@ -355,7 +357,7 @@
 !---------------------------------------------------------------------
 ! 
           mask_thrust_n=IniVal
-          depth_all=ABS(h(i,j)+zeta(i,j+1,1))
+          depth_all=(h(i,j)+zeta(i,j+1,1))
           CALL depth_mask(depth_all,mask_thrust_n)
 !
           cff=half*(1.0_r8-SIGN(1.0_r8,FY(i,j+1)))
@@ -376,10 +378,11 @@
 #  ifdef MARSH_SED_BEDLOAD 
           Thrust_s(i,j)=Thrust_loc_s
 #  endif
+   
 !
           mask_thrust(i,j)=mask_thrust_w+mask_thrust_e+                 &
      &                     mask_thrust_n+mask_thrust_s
-!         
+!  
           Thrust_tonelli(i,j)=ABS(Thrust_loc_w)+ABS(Thrust_loc_e)+      &
      &                        ABS(Thrust_loc_n)+ABS(Thrust_loc_s)
          
@@ -437,32 +440,20 @@
 !  Local variable declarations.
 !
 
-      real(r8) :: cff
-                          
+      real(r8) :: cff, fac
+      fac=0.60_r8
+!
 !---------------------------------------------------------------------
 !  Reduce thrust to 45% the thrust when 0.1< depth <0.2
 !---------------------------------------------------------------------
-!
-      IF (depth_all.ge.0.0_r8.and.depth_all.lt.0.2_r8) THEN
-        cff=1.0_r8-0.45_r8*depth_all*5.0_r8
-!
-!---------------------------------------------------------------------
-!  Reduce thrust to 27.5% when 0.2<depth<0.4
-!---------------------------------------------------------------------
-!
-      ELSEIF (depth_all.ge.0.2_r8.and.depth_all.lt.0.4_r8) THEN
-        cff=0.55_r8*(1.0_r8-2.5_r8*(depth_all-0.2_r8))
-!
-!---------------------------------------------------------------------
-! Constant reduction when the depth is higher than 0.4
-!---------------------------------------------------------------------
-!
-      ELSEIF (depth_all.ge.0.4_r8) THEN 
-        cff=0.275_r8
-!
+! 
+      IF(depth_all.lt.0.0_r8) THEN 
+        cff=1.0_r8
+      ELSEIF (depth_all.ge.0.0_r8) THEN
+        cff=exp(-depth_all*3.0_r8)
       ENDIF   
 !
-      mask_thrust_eachdir=cff 
+      mask_thrust_eachdir=cff*fac
 !
       END SUBROUTINE depth_mask
 #endif
