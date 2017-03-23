@@ -41,6 +41,10 @@
 # ifdef BBL_MODEL
       USE mod_bbl
 # endif
+# if defined MARSH_SED_BEDLOAD
+      USE mod_vegarr
+      USE marsh_sed_bedload_mod, ONLY : marsh_sed_bedload
+# endif
 !
 !  Imported variable declarations.
 !
@@ -49,6 +53,15 @@
 !  Local variable declarations.
 !
 # include "tile.h"
+!
+# if defined MARSH_WAVE_THRUST && defined MARSH_SED_BEDLOAD
+!
+!-----------------------------------------------------------------------
+!  Add the bed mass change in bottom cell due to marsh erosion.
+!-----------------------------------------------------------------------
+!
+      CALL marsh_sed_bedload (ng, tile)
+# endif
 !
 # ifdef PROFILE
       CALL wclock_on (ng, iNLM, 16)
@@ -78,6 +91,9 @@
 # endif
 # if defined SED_MORPH
      &                   SEDBED(ng) % bed_thick,                        &
+# endif
+# if defined MARSH_SED_BEDLOAD 
+     &                       VEG(ng) % marsh_mask,                      &
 # endif
      &                   SEDBED(ng) % bed,                              &
      &                   SEDBED(ng) % bed_frac,                         &
@@ -110,6 +126,9 @@
 # endif
 # if defined SED_MORPH
      &                         bed_thick,                               &
+# endif
+# if defined MARSH_SED_BEDLOAD 
+     &                         marsh_mask,                              &
 # endif
      &                         bed, bed_frac, bed_mass,                 &
      &                         bottom)
@@ -150,6 +169,9 @@
 #  if defined SED_MORPH
       real(r8), intent(inout):: bed_thick(LBi:,LBj:,:)
 #  endif
+#  if defined MARSH_SED_BEDLOAD
+      real(r8), intent(in):: marsh_mask(LBi:,LBj:)
+#  endif
       real(r8), intent(inout) :: t(LBi:,LBj:,:,:,:)
 #  ifdef SUSPLOAD
       real(r8), intent(inout) :: ero_flux(LBi:,LBj:,:)
@@ -176,6 +198,9 @@
 #  endif
 #  if defined SED_MORPH
       real(r8), intent(inout):: bed_thick(LBi:UBi,LBj:UBj,2)
+#  endif
+#  if defined MARSH_SED_BEDLOAD 
+      real(r8), intent(inout):: marsh_mask(LBi:UBi,LBj:UBj)
 #  endif
       real(r8), intent(inout) :: t(LBi:UBi,LBj:UBj,N(ng),3,NT(ng))
 #  ifdef SUSPLOAD
@@ -384,6 +409,9 @@
 !
           bottom(i,j,iactv)=MAX(bottom(i,j,iactv)*morph_fac(1,ng),      &
      &                          bottom(i,j,iactv))
+#  if defined MARSH_SED_BEDLOAD
+          bottom(i,j,iactv)=bottom(i,j,iactv)*(1.0_r8-marsh_mask(i,j)) 
+#  endif
 # endif
 !
           IF (bottom(i,j,iactv).gt.bed(i,j,1,ithck)) THEN
