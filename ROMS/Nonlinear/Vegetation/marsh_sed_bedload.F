@@ -59,7 +59,6 @@
      &                       VEG(ng) % Thrust_e,                        &
      &                       VEG(ng) % Thrust_n,                        &
      &                       VEG(ng) % Thrust_s,                        &
-     &                    SEDBED(ng) % bed_thick,                       &
      &                    SEDBED(ng) % bed_frac,                        &
      &                    SEDBED(ng) % bed,                             &
      &                    SEDBED(ng) % bed_mass,                        &
@@ -78,8 +77,7 @@
      &                             nstp, nnew,                          &
      &                             Thrust_w, Thrust_e,                  &
      &                             Thrust_n, Thrust_s,                  &
-     &                             bed_thick, bed_frac,                 & 
-     &                             bed, bed_mass,                       &
+     &                             bed_frac, bed, bed_mass,             &
      &                             marsh_mask)
 !***********************************************************************
 !
@@ -112,7 +110,6 @@
       real(r8), intent(in) :: om_r(LBi:,LBj:)
       real(r8), intent(in) :: on_r(LBi:,LBj:)
 
-      real(r8), intent(inout):: bed_thick(LBi:,LBj:,:)
       real(r8), intent(inout) :: bed(LBi:,LBj:,:,:)
       real(r8), intent(inout) :: bed_frac(LBi:,LBj:,:,:)
       real(r8), intent(inout) :: bed_mass(LBi:,LBj:,:,:,:)
@@ -126,7 +123,6 @@
       real(r8), intent(in) :: om_r(LBi:UBi,LBj:UBj)
       real(r8), intent(in) :: on_r(LBi:UBi,LBj:UBj)
 
-      real(r8), intent(inout):: bed_thick(LBi:UBi,LBj:UBj,2)
       real(r8), intent(inout) :: bed(LBi:UBi,LBj:UBj,Nbed,MBEDP)
       real(r8), intent(inout) :: bed_frac(LBi:UBi,LBj:UBj,Nbed,NST)
       real(r8), intent(inout) :: bed_mass(LBi:UBi,LBj:UBj,Nbed,1:2,NST)
@@ -147,7 +143,7 @@
       real(r8), dimension(IminS:ImaxS,JminS:JmaxS,NST) :: bed_ini
       real(r8) :: kfac, Thrust_crit, crit_bed_mass
       real(r8) :: Eff_thrust 
-      real(r8), parameter :: eps = 1.0E-14_r8
+      real(r8), parameter :: eps = 1.0E-14_r8, dcrit_marsh=0.01_r8 
 !
 # include "set_bounds.h"
 !
@@ -191,7 +187,31 @@
 !
 ! Thrust from West cell face leads to sediment addition on left cell
 !
+            cff=on_r(i,j)*dt(ng)
 !
+            Eff_thrust=MAX((ABS(Thrust_w(i,j))-Thrust_crit),0.0_r8)
+            cff1=MIN(Eff_thrust*kfac*cff*bed_mass(i,j,1,nstp,ised),     &
+                                         bed_mass(i,j,1,nstp,ised))
+            bed_mass(i-1,j,1,nstp,ised)=bed_mass(i-1,j,1,nstp,ised)+cff1
+!
+            IF(Eff_thrust.gt.0.0_r8) THEN
+              cff2=1.0_r8
+              bed_mass(i,j,1,nstp,ised)=MAX(bed_mass(i,j,1,nstp,ised)-  &
+     &                                                 cff1*cff2,0.0)
+            ENDIF
+!
+! Thrust from East cell face leads to sediment addition on right cell
+!
+            Eff_thrust=MAX((ABS(Thrust_e(i+1,j))-Thrust_crit),0.0_r8)
+            cff1=MIN(Eff_thrust*kfac*cff*bed_mass(i,j,1,nstp,ised),     &
+                                         bed_mass(i,j,1,nstp,ised))
+            bed_mass(i+1,j,1,nstp,ised)=bed_mass(i+1,j,1,nstp,ised)+cff1
+!
+            IF(Eff_thrust.gt.0.0_r8) THEN
+              cff2=1.0_r8
+              bed_mass(i,j,1,nstp,ised)=MAX(bed_mass(i,j,1,nstp,ised)- &
+     &                                                 cff1*cff2,0.0)
+            ENDIF
 !
 ! Thrust from North cell face leads to sediment addition on cell above
 !
@@ -205,7 +225,20 @@
             IF(Eff_thrust.gt.0.0_r8) THEN
               cff2=1.0_r8
               bed_mass(i,j,1,nstp,ised)=MAX((bed_mass(i,j,1,nstp,ised)- &
-     &                                               cff1*cff2),0.0)
+     &                                                 cff1*cff2),0.0)
+            ENDIF
+!
+! Thrust from South cell face leads to sediment addition on cell below
+!
+            Eff_thrust=MAX((ABS(Thrust_s(i,j))-Thrust_crit),0.0_r8)
+            cff1=MIN(Eff_thrust*kfac*cff*bed_mass(i,j,1,nstp,ised),     &
+                                         bed_mass(i,j,1,nstp,ised))
+            bed_mass(i,j-1,1,nstp,ised)=bed_mass(i,j-1,1,nstp,ised)+cff1
+!
+            IF(Eff_thrust.gt.0.0_r8) THEN
+              cff2=1.0_r8
+              bed_mass(i,j,1,nstp,ised)=MAX((bed_mass(i,j,1,nstp,ised)- &
+                                                       cff1*cff2),0.0)
             ENDIF
 !
           END DO
@@ -239,11 +272,11 @@
      &                         bed_mass(i,j,k,nnew,ised)/               &
      &                         (Srho(ised,ng)*                          &
      &                          (1.0_r8-bed(i,j,k,iporo))),0.0_r8)
-              IF (bed(i,j,k,ithck).le.0.05_r8) THEN 
+              IF (bed(i,j,k,ithck).le.dcrit_marsh) THEN 
                 marsh_mask(i,j)=0.0_r8
               END IF 
             END DO
-            
+!            
           END DO
         END DO 
       END DO 
