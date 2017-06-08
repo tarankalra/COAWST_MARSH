@@ -146,9 +146,9 @@
       USE mod_vegetation
       USE mod_vegarr
       USE bc_2d_mod
-!#ifdef DISTRIBUTE
-!      USE mp_exchange_mod, ONLY : mp_exchange2d
-!#endif
+#ifdef DISTRIBUTE
+      USE mp_exchange_mod, ONLY : mp_exchange2d
+#endif
 
 !  Imported variable declarations.
 !
@@ -225,6 +225,7 @@
 
       real(r8), parameter :: Inival=0.0_r8
       real(r8), parameter :: half=0.5_r8
+      real(r8), parameter :: eps=1.0e-12_r8
 
       real(r8) :: Kw, Integral_Kp 
       real(r8) :: depth_all, mask_local_tonelli
@@ -307,8 +308,8 @@
 !---------------------------------------------------------------------
 !
           F_msl=F_asl+F_bsl
-          FX(i,j)=F_msl*cos(cff)
-          FY(i,j)=F_msl*sin(cff)
+          FX(i,j)=F_msl*MIN(cos(cff),eps)
+          FY(i,j)=F_msl*MIN(sin(cff),eps)
 ! 
 ! Find a way of making 10-16 cos,sin to zero
 !
@@ -396,7 +397,22 @@
       CALL bc_r2d_tile (ng, tile,                                       &
      &                  LBi, UBi, LBj, UBj,                             &
      &                  mask_thrust)
-#  ifdef MARSH_SED_BEDLOAD
+     CALL bc_r2d_tile (ng, tile,                                        &
+     &                  LBi, UBi, LBj, UBj,                             &
+     &                  Thrust_tonelli)
+# ifdef DISTRIBUTE
+! 
+! Exchange boundary data 
+!
+      CALL mp_exchange2d (ng, tile, iNLM, 2,                            &
+     &                    LBi, UBi, LBj, UBj,                           &
+     &                    NghostPoints,                                 &
+     &                    EWperiodic(ng), NSperiodic(ng),               &
+     &                    mask_thrust,                                  &
+     &                    Thrust_tonelli)  
+# endif
+!
+# ifdef MARSH_SED_BEDLOAD
      CALL bc_u2d_tile (ng, tile,                                        &
      &                  LBi, UBi, LBj, UBj,                             &
      &                  Thrust_w)
@@ -409,17 +425,21 @@
      CALL bc_v2d_tile (ng, tile,                                        &
      &                 LBi, UBi, LBj, UBj,                              &
      &                  Thrust_s)
-#  endif 
-     CALL bc_r2d_tile (ng, tile,                                        &
-     &                  LBi, UBi, LBj, UBj,                             &
-     &                  Thrust_tonelli)
-!# ifdef DISTRIBUTE
-!      CALL mp_exchange2d (ng, tile, iNLM, 4,                            &
-!     &                    LBi, UBi, LBj, UBj,                           &
-!     &                    NghostPoints,                                 &
-!     &                    EWperiodic(ng), NSperiodic(ng),               &
-!     &                    mask_thrust, Thrust_tonelli)  
-!# endif
+#  ifdef DISTRIBUTE
+! 
+! Exchange boundary data 
+!
+      CALL mp_exchange2d (ng, tile, iNLM, 4,                            &
+     &                    LBi, UBi, LBj, UBj,                           &
+     &                    NghostPoints,                                 &
+     &                    EWperiodic(ng), NSperiodic(ng),               &
+     &                    Thrust_w,                                     &
+     &                    Thrust_e,                                     &
+     &                    Thrust_n,                                     &
+     &                    Thrust_s)  
+#  endif
+# endif
+!
       END SUBROUTINE marsh_wave_thrust_tile
 
       SUBROUTINE depth_mask (depth_all, mask_thrust_eachdir)
@@ -444,7 +464,8 @@
       fac=0.60_r8
 !
 !---------------------------------------------------------------------
-!  Reduce thrust to 45% the thrust when 0.1< depth <0.2
+!  Constant value of masking below the mrsh
+!  Exponential reduction above the marsh (depth=zeta+marsh elevation)
 !---------------------------------------------------------------------
 ! 
       IF(depth_all.lt.0.0_r8) THEN 

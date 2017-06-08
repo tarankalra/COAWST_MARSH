@@ -27,6 +27,7 @@
       integer :: decode_line, load_i, load_l, load_lbc, load_r
 !
       real(r8), dimension(200) :: Rval
+      real(r8), allocatable :: Rmarsh(:)
       real(r8), allocatable :: Rveg(:,:)
 !
       character (len=40 ) :: KeyWord
@@ -78,7 +79,7 @@
                 END DO 
               END DO
             CASE ('VEGHMIXCOEF') 
-              IF (.not.allocated(VEGHMIXCOEF))                         &
+              IF (.not.allocated(VEGHMIXCOEF))                          &
      &                 allocate(VEGHMIXCOEF(NVEG,Ngrids)) 
               Npts=load_r(Nval, Rval, NVEG*Ngrids, Rveg)
               DO ng=1,Ngrids
@@ -87,6 +88,23 @@
                 END DO 
               END DO
 #endif
+#ifdef MARSH_SED_BEDLOAD 
+            IF (.not.allocated(Rmarsh)) allocate(Rmarsh(Ngrids)) 
+            CASE ('KFAC_MARSH') 
+              IF (.not.allocated(KFAC_MARSH))                          &
+     &                 allocate(KFAC_MARSH(Ngrids)) 
+              Npts=load_r(Nval, Rval, Ngrids, Rmarsh)
+              DO ng=1,Ngrids
+                KFAC_MARSH(ng)=Rmarsh(ng)
+              END DO
+            CASE ('DCRIT_MARSH') 
+              IF (.not.allocated(DCRIT_MARSH))                          &
+     &                 allocate(DCRIT_MARSH(Ngrids)) 
+              Npts=load_r(Nval, Rval, Ngrids, Rmarsh)
+              DO ng=1,Ngrids
+                DCRIT_MARSH(ng)=Rmarsh(ng)
+              END DO
+#endif 
 !
 !-----------------------------------------------------------------------
 !  Read output ids from vegetation.in
@@ -185,13 +203,16 @@
       IF (Lwrite) THEN
         DO ng=1,Ngrids
             WRITE (out,50) ng
-#if defined VEG_DRAG || defined VEG_BIOMASS 
             WRITE (out,60)
+#if defined VEG_DRAG || defined VEG_BIOMASS 
             DO iveg=1,NVEG
               WRITE (out,70) NVEG, CD_VEG(iveg,ng), E_VEG(iveg,ng),     &
      &                       VEG_MASSDENS(iveg,ng), VEGHMIXCOEF(iveg,ng)
             END DO 
 #endif 
+!#if defined MARSH_SED_BEDLOAD 
+!            WRITE (out,80) KFAC_MARSH(ng), DCRIT_MARSH(ng)
+!#endif 
         END DO 
 !     END IF 
 !
