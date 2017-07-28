@@ -379,13 +379,14 @@
 #  ifdef MARSH_SED_BEDLOAD 
           Thrust_s(i,j)=Thrust_loc_s
 #  endif
-   
 !
           mask_thrust(i,j)=mask_thrust_w+mask_thrust_e+                 &
      &                     mask_thrust_n+mask_thrust_s
 !  
           Thrust_tonelli(i,j)=ABS(Thrust_loc_w)+ABS(Thrust_loc_e)+      &
      &                        ABS(Thrust_loc_n)+ABS(Thrust_loc_s)
+!
+          Thrust_tonelli(i,j)=Thrust_tonelli(i,j)*marsh_mask(i,j)
          
         END DO
       END DO
