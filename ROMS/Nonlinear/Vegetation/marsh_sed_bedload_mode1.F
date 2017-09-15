@@ -1,6 +1,6 @@
 #include "cppdefs.h"
 
-      MODULE marsh_sed_bedload_mod
+      MODULE marsh_sed_bedload_mode1_mod
 
 #if defined SEDIMENT && defined BEDLOAD && defined MARSH_WAVE_THRUST \
     && defined MARSH_SED_BEDLOAD 
@@ -21,12 +21,12 @@
       implicit none
 
       PRIVATE
-      PUBLIC  :: marsh_sed_bedload
+      PUBLIC  :: marsh_sed_bedload_mode1
 
       CONTAINS
 !
 !***********************************************************************
-      SUBROUTINE marsh_sed_bedload (ng, tile)
+      SUBROUTINE marsh_sed_bedload_mode1 (ng, tile)
 !***********************************************************************
 !
       USE mod_param
@@ -50,7 +50,7 @@
 # ifdef PROFILE
       CALL wclock_on (ng, iNLM, 16)
 # endif
-      CALL marsh_sed_bedload_tile (ng, tile,                            &
+      CALL marsh_sed_bedload_mode1_tile (ng, tile,                      &
      &                       LBi, UBi, LBj, UBj,                        &
      &                       IminS, ImaxS, JminS, JmaxS,                &
      &                       GRID(ng) % om_r,                           &
@@ -71,7 +71,7 @@
       END SUBROUTINE marsh_sed_bedload
 !
 !***********************************************************************
-      SUBROUTINE marsh_sed_bedload_tile (ng, tile,                      &
+      SUBROUTINE marsh_sed_bedload_mode1_tile (ng, tile,                &
      &                             LBi, UBi, LBj, UBj,                  &
      &                             IminS, ImaxS, JminS, JmaxS,          &
      &                             om_r, on_r,                          &
@@ -373,7 +373,7 @@
 # endif
 !
       RETURN
-      END SUBROUTINE marsh_sed_bedload_tile
+      END SUBROUTINE marsh_sed_bedload_mode1_tile
 !
       SUBROUTINE update_bed_thickness (ng, tile, LBi, UBi, LBj, UBj,    & 
      &                                  Istr, Iend, Jstr, Jend,         &
@@ -431,4 +431,4 @@
 !
       END SUBROUTINE update_bed_thickness
 #endif
-      END MODULE marsh_sed_bedload_mod
+      END MODULE marsh_sed_bedload_mode1_mod

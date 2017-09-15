@@ -1,9 +1,9 @@
 #include "cppdefs.h"
 
-      MODULE marsh_sed_bedload_mod
+      MODULE marsh_sed_bedload_mode2_mod
 
 #if defined SEDIMENT && defined BEDLOAD && defined MARSH_WAVE_THRUST \
-    && defined MARSH_SED_BEDLOAD 
+    && defined MARSH_SED_BEDLOAD_MODE2
 !
 !svn $Id: marsh_wave_thrust.F 429 2015-04-20 17:30:26Z arango $
 !=======================================================================
@@ -15,18 +15,18 @@
 !==============================================John C. Warner==========!
 !                                                                      ! 
 !  References:                                                         !
-!                                                                      !
+!    Root scalp based failure mode, working on the bed porosity        !
 !=======================================================================
 !
       implicit none
 
       PRIVATE
-      PUBLIC  :: marsh_sed_bedload
+      PUBLIC  :: marsh_sed_bedload_mode2
 
       CONTAINS
 !
 !***********************************************************************
-      SUBROUTINE marsh_sed_bedload (ng, tile)
+      SUBROUTINE marsh_sed_bedload_mode2 (ng, tile)
 !***********************************************************************
 !
       USE mod_param
@@ -50,7 +50,7 @@
 # ifdef PROFILE
       CALL wclock_on (ng, iNLM, 16)
 # endif
-      CALL marsh_sed_bedload_tile (ng, tile,                            &
+      CALL marsh_sed_bedload_mode2_tile (ng, tile,                      &
      &                       LBi, UBi, LBj, UBj,                        &
      &                       IminS, ImaxS, JminS, JmaxS,                &
      &                       GRID(ng) % om_r,                           &
@@ -68,10 +68,10 @@
       CALL wclock_off (ng, iNLM, 16)
 # endif
       RETURN
-      END SUBROUTINE marsh_sed_bedload
+      END SUBROUTINE marsh_sed_bedload_mode2
 !
 !***********************************************************************
-      SUBROUTINE marsh_sed_bedload_tile (ng, tile,                      &
+      SUBROUTINE marsh_sed_bedload_mode2_tile (ng, tile,                &
      &                             LBi, UBi, LBj, UBj,                  &
      &                             IminS, ImaxS, JminS, JmaxS,          &
      &                             om_r, on_r,                          &
@@ -88,7 +88,7 @@
       USE mod_vegetation 
       USE mod_vegarr
       USE mod_sediment
-      USE marsh_wave_thrust_mod
+      USE marsh_wave_thrust_mode2_mod
       USE bc_2d_mod, ONLY : bc_r2d_tile
       USE bc_3d_mod, ONLY : bc_r3d_tile
 
@@ -373,7 +373,7 @@
 # endif
 !
       RETURN
-      END SUBROUTINE marsh_sed_bedload_tile
+      END SUBROUTINE marsh_sed_bedload_mode2_tile
 !
       SUBROUTINE update_bed_thickness (ng, tile, LBi, UBi, LBj, UBj,    & 
      &                                  Istr, Iend, Jstr, Jend,         &
@@ -431,4 +431,4 @@
 !
       END SUBROUTINE update_bed_thickness
 #endif
-      END MODULE marsh_sed_bedload_mod
+      END MODULE marsh_sed_bedload_mode2_mod

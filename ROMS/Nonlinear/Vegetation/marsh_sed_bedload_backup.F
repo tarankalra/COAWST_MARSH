@@ -200,11 +200,11 @@
 !
 ! Save the updated bed mass from the eroded cell
 ! 
-              bed_mass(i,j,1,nnew,ised)=cff1
+              bed_mass(i,j,1,nnew,ised)=cff1 
 !
 !  Get the updated bed thickness 
 !
-                CALL update_bed_thickness (ng, tile, LBi, UBi, LBj, UBj,& 
+              CALL update_bed_thickness (ng, tile, LBi, UBi, LBj, UBj,  & 
      &                                   Istr, Iend, Jstr, Jend,        &
      &                                   nnew, bed , bed_frac, bed_mass)
 !
@@ -212,11 +212,11 @@
 !   Then make the marsh cell as a wet cell i.e. marsh_mask=0.0  
 !   Then the sediment is not supplied indefinitely to a cell infront 
 !
-                cff4=(bed(i,j,1,ithck)-bed(i-1,j,1,ithck))*marsh_mask(i,j)
-                IF (cff4.gt.0.0) THEN 
-                  marsh_mask(i,j)=0.0_r8
-                END IF 
-              ENDIF
+              cff4=(bed(i,j,1,ithck)-bed(i-1,j,1,ithck))*marsh_mask(i,j)
+              IF (cff4.gt.0.0) THEN 
+                marsh_mask(i,j)=0.0_r8
+              END IF 
+            ENDIF
 !
 !-----------------------------------------------------------------------
 ! Thrust from East cell face leads to sediment addition on right cell

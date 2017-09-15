@@ -88,23 +88,23 @@
                 END DO 
               END DO
 #endif
-#ifdef MARSH_SED_BEDLOAD 
-            IF (.not.allocated(Rmarsh)) allocate(Rmarsh(Ngrids)) 
-            CASE ('KFAC_MARSH') 
+#ifdef MARSH_SED_BEDLOAD
+            IF (.not.allocated(Rmarsh)) allocate(Rmarsh(Ngrids))
+            CASE ('KFAC_MARSH')
               IF (.not.allocated(KFAC_MARSH))                          &
-     &                 allocate(KFAC_MARSH(Ngrids)) 
+     &                 allocate(KFAC_MARSH(Ngrids))
               Npts=load_r(Nval, Rval, Ngrids, Rmarsh)
               DO ng=1,Ngrids
                 KFAC_MARSH(ng)=Rmarsh(ng)
               END DO
-            CASE ('DCRIT_MARSH') 
+            CASE ('DCRIT_MARSH')
               IF (.not.allocated(DCRIT_MARSH))                          &
-     &                 allocate(DCRIT_MARSH(Ngrids)) 
+     &                 allocate(DCRIT_MARSH(Ngrids))
               Npts=load_r(Nval, Rval, Ngrids, Rmarsh)
               DO ng=1,Ngrids
                 DCRIT_MARSH(ng)=Rmarsh(ng)
               END DO
-#endif 
+#endif
 !
 !-----------------------------------------------------------------------
 !  Read output ids from vegetation.in
