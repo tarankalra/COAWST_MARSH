@@ -202,9 +202,9 @@
 ! 
               bed_mass(i,j,1,nnew,ised)=cff1
 !
-!  Get the updated bed thickness 
+!  Get the updated bed porosity 
 !
-                CALL update_bed_thickness (ng, tile, LBi, UBi, LBj, UBj,& 
+                CALL update_bed_porosity (ng, tile, LBi, UBi, LBj, UBj,& 
      &                                   Istr, Iend, Jstr, Jend,        &
      &                                   nnew, bed , bed_frac, bed_mass)
 !
@@ -212,11 +212,11 @@
 !   Then make the marsh cell as a wet cell i.e. marsh_mask=0.0  
 !   Then the sediment is not supplied indefinitely to a cell infront 
 !
-                cff4=(bed(i,j,1,ithck)-bed(i-1,j,1,ithck))*marsh_mask(i,j)
-                IF (cff4.gt.0.0) THEN 
-                  marsh_mask(i,j)=0.0_r8
-                END IF 
-              ENDIF
+!                cff4=(bed(i,j,1,ithck)-bed(i-1,j,1,ithck))*marsh_mask(i,j)
+!                IF (cff4.gt.0.0) THEN 
+!                  marsh_mask(i,j)=0.0_r8
+!                END IF 
+!              ENDIF
 !
 !-----------------------------------------------------------------------
 ! Thrust from East cell face leads to sediment addition on right cell
@@ -235,9 +235,9 @@
 ! 
               bed_mass(i,j,1,nnew,ised)=cff1 
 !
-!  Get the updated bed thickness 
+!  Get the updated bed porosity 
 !
-              CALL update_bed_thickness (ng, tile, LBi, UBi, LBj, UBj,  & 
+              CALL update_bed_porosity (ng, tile, LBi, UBi, LBj, UBj,   & 
      &                                   Istr, Iend, Jstr, Jend,        &
      &                                   nnew, bed , bed_frac, bed_mass)
 !
@@ -245,11 +245,11 @@
 !   Then make the marsh cell as a wet cell i.e. marsh_mask=0.0  
 !   Then the sediment is not supplied indefinitely to a cell infront 
 !
-              cff4=(bed(i+1,j,1,ithck)-bed(i,j,1,ithck))*marsh_mask(i,j)
-              IF (cff4.gt.0.0) THEN 
-                marsh_mask(i,j)=0.0_r8
-              END IF 
-            ENDIF
+!              cff4=(bed(i+1,j,1,ithck)-bed(i,j,1,ithck))*marsh_mask(i,j)
+!              IF (cff4.gt.0.0) THEN 
+!                marsh_mask(i,j)=0.0_r8
+!              END IF 
+!            ENDIF
 !
 !-----------------------------------------------------------------------
 ! Thrust from North cell face leads to sediment addition on cell above
@@ -270,7 +270,7 @@
 ! 
               bed_mass(i,j,1,nnew,ised)=cff1 
 !
-              CALL update_bed_thickness (ng, tile, LBi, UBi, LBj, UBj,  & 
+              CALL update_bed_porosity  (ng, tile, LBi, UBi, LBj, UBj,  & 
      &                                   Istr, Iend, Jstr, Jend,        &
      &                                   nnew, bed , bed_frac, bed_mass)
 !
@@ -278,10 +278,10 @@
 !   Then make the marsh cell as a wet cell i.e. marsh_mask=0.0  
 !   Then the sediment is not supplied indefinitely to a cell infront 
 !
-              cff4=(bed(i,j+1,1,ithck)-bed(i,j,1,ithck))*marsh_mask(i,j)
-              IF (cff4.gt.0.0) THEN 
-                marsh_mask(i,j)=0.0_r8
-              END IF 
+!              cff4=(bed(i,j+1,1,ithck)-bed(i,j,1,ithck))*marsh_mask(i,j)
+!              IF (cff4.gt.0.0) THEN 
+!                marsh_mask(i,j)=0.0_r8
+!              END IF 
 !
             ENDIF
 !
@@ -302,9 +302,9 @@
 ! 
               bed_mass(i,j,1,nnew,ised)=cff1 
 !
-!  Get the updated bed thickness 
+!  Get the updated bed porosity 
 !
-              CALL update_bed_thickness (ng, tile, LBi, UBi, LBj, UBj,  & 
+              CALL update_bed_porosity  (ng, tile, LBi, UBi, LBj, UBj,  & 
      &                                   Istr, Iend, Jstr, Jend,        &
      &                                   nnew, bed , bed_frac, bed_mass)
 !
@@ -312,16 +312,16 @@
 !   Then make the marsh cell as a wet cell i.e. marsh_mask=0.0  
 !   Then the sediment is not supplied indefinitely to a cell infront 
 !
-              cff4=(bed(i,j-1,1,ithck)-bed(i,j,1,ithck))*marsh_mask(i,j)
-              IF (cff4.gt.0.0) THEN 
-                marsh_mask(i,j)=0.0_r8
-              END IF 
+!              cff4=(bed(i,j-1,1,ithck)-bed(i,j,1,ithck))*marsh_mask(i,j)
+!              IF (cff4.gt.0.0) THEN 
+!                marsh_mask(i,j)=0.0_r8
+!              END IF 
 !
             ENDIF
 !
 ! First criteria of converting marsh cell to wet cell 
 ! 
-            IF (bed(i,j,1,ithck).le.dcrit_marsh(ng)) THEN 
+            IF (bed(i,j,1,iporo).le.dcrit_poro_marsh(ng)) THEN 
               marsh_mask(i,j)=0.0_r8
             END IF 
 !
@@ -375,7 +375,7 @@
       RETURN
       END SUBROUTINE marsh_sed_bedload_mode2_tile
 !
-      SUBROUTINE update_bed_thickness (ng, tile, LBi, UBi, LBj, UBj,    & 
+      SUBROUTINE update_bed_porosity  (ng, tile, LBi, UBi, LBj, UBj,    & 
      &                                  Istr, Iend, Jstr, Jend,         &
      &                                 nnew, bed, bed_frac, bed_mass)
 ! 
@@ -404,7 +404,7 @@
 !  Local variable declarations.
 !
       integer :: i, ised, j, k
-      real(r8) :: cff3
+      real(r8) :: cff3, cff4
       real(r8), parameter :: eps = 1.0E-14_r8 !
 !
 ! recalculate thickness and fractions for all layers.
@@ -421,10 +421,13 @@
           bed(i,j,1,ithck)=0.0_r8
           DO ised=1,NST
             bed_frac(i,j,1,ised)=bed_mass(i,j,1,nnew,ised)/cff3
-            bed(i,j,1,ithck)=MAX(bed(i,j,1,ithck)+                      &
-     &                       bed_mass(i,j,1,nnew,ised)/                 &
-     &                       (Srho(ised,ng)*                            &
-     &                        (1.0_r8-bed(i,j,1,iporo))),0.0_r8)
+!            bed(i,j,1,ithck)=MAX(bed(i,j,1,ithck)+                      &
+!     &                       bed_mass(i,j,1,nnew,ised)/                 &
+!     &                       (Srho(ised,ng)*                            &
+!     &                        (1.0_r8-bed(i,j,1,iporo))),0.0_r8)
+            cff4=bed_mass(i,j,1,nnew,ised)/(Srho(ised,ng)*               &
+      &                                     bed(i,j,1,ithck))
+            bed(i,j,1,poro)=MAX(1.0_r8-cff4,1.0_r8)
           END DO
         END DO 
       END DO 
