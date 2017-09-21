@@ -271,7 +271,6 @@
      &                   cff5)
             temp1=MAX(0.0_r8,cff2*(cff*tau_w(i,j)-1.0_r8))
             temp2=MIN(cff3*bottom(i,j,iactv),cff4,cff5)
-            write(60,*) temp1,temp2
            
 !  
 !  Update global tracer variables (mT units) for erosive flux.

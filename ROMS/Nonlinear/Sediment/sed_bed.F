@@ -103,6 +103,7 @@
 # endif
 # if defined SED_MORPH
      &                   SEDBED(ng) % bed_thick,                        &
+     &                   SEDBED(ng) % bed_poros,                        &
 # endif
 # if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
      &                       VEG(ng) % marsh_mask,                      &
@@ -138,6 +139,7 @@
 # endif
 # if defined SED_MORPH
      &                         bed_thick,                               &
+     &                         bed_poros,                               &
 # endif
 # if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
      &                         marsh_mask,                              &
@@ -180,6 +182,7 @@
 #  endif
 #  if defined SED_MORPH
       real(r8), intent(inout):: bed_thick(LBi:,LBj:,:)
+      real(r8), intent(inout):: bed_poros(LBi:,LBj:)
 #  endif
 #  if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
       real(r8), intent(in):: marsh_mask(LBi:,LBj:)
@@ -210,6 +213,7 @@
 #  endif
 #  if defined SED_MORPH
       real(r8), intent(inout):: bed_thick(LBi:UBi,LBj:UBj,2)
+      real(r8), intent(inout):: bed_poros(LBi:UBi,LBj:UBj)
 #  endif
 #  if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
       real(r8), intent(inout):: marsh_mask(LBi:UBi,LBj:UBj)
@@ -232,7 +236,7 @@
 
       real(r8), parameter :: eps = 1.0E-14_r8
 
-      real(r8) :: cff, cff1, cff2, cff3
+      real(r8) :: cff, cff1, cff2, cff3, cff4
       real(r8) :: thck_avail, thck_to_add
 
       real(r8), dimension(IminS:ImaxS,NST) :: dep_mass
@@ -397,8 +401,8 @@
 ! TSK added this 
 ! Recalculate bed porosity for all bed layers at each cell. 
 !             
-              bed(i,j,k,iporos)=bed(i,j,k,iporos)*bed_frac(i,j,k,ised)+ &
-     &                          cff4
+              bed(i,j,k,iporo)=bed(i,j,k,iporo)*bed_frac(i,j,k,ised)+   &
+     &                         cff4
             END DO
           END DO
         END DO
@@ -528,17 +532,33 @@
 # if defined SED_MORPH
       DO j=JstrR,JendR
         DO i=IstrR,IendR
-            bed_thick(i,j,nnew)=0.0_r8
-            DO k=1,Nbed
-              bed_thick(i,j,nnew)=bed_thick(i,j,nnew)+                  &
+          bed_thick(i,j,nnew)=0.0_r8
+          DO k=1,Nbed
+            bed_thick(i,j,nnew)=bed_thick(i,j,nnew)+                  &
      &                            bed(i,j,k,ithck)
-            END DO
           END DO
         END DO
+      END DO
+!
+! Effective bed porosity for all the bed layers added up
+! 
+      DO j=JstrR,JendR
+        DO i=IstrR,IendR
+          bed_poros(i,j)=0.0_r8
+          DO k=1,Nbed
+            bed_poros(i,j)=bed_poros(i,j)+                              &
+     &                            bed(i,j,k,iporo)
+          END DO
+        END DO
+      END DO
+!
         IF (EWperiodic(ng).or.NSperiodic(ng)) THEN
           CALL exchange_r2d_tile (ng, tile,                             &
      &                            LBi, UBi, LBj, UBj,                   &
      &                            bed_thick(:,:,nnew))
+          CALL exchange_r2d_tile (ng, tile,                             &
+     &                            LBi, UBi, LBj, UBj,                   &
+     &                            bed_poros(:,:))
         END IF
 # endif
 !

@@ -113,7 +113,7 @@
 #if defined SEDIMENT && defined SED_MORPH
         real(r8), pointer :: bed_thick0(:,:)
         real(r8), pointer :: bed_thick(:,:,:)
-        real(r8), pointer :: bed_poros(:,:,:)
+        real(r8), pointer :: bed_poros(:,:)
 #endif
 #ifdef BEDLOAD
         real(r8), pointer :: bedldu(:,:,:)
