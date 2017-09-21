@@ -177,7 +177,7 @@
       integer :: bnew
 
       real(r8) :: cff, cff1, cff2, cff3, cff4, cff5
-
+      real(r8) :: temp1, temp2 
       real(r8), dimension(IminS:ImaxS,JminS:JmaxS) :: tau_w
 
 # include "set_bounds.h"
@@ -269,7 +269,11 @@
      &               MIN(MAX(0.0_r8,cff2*(cff*tau_w(i,j)-1.0_r8)),      &
      &                   MIN(cff3*bottom(i,j,iactv),cff4)+              &
      &                   cff5)
-!
+            temp1=MAX(0.0_r8,cff2*(cff*tau_w(i,j)-1.0_r8))
+            temp2=MIN(cff3*bottom(i,j,iactv),cff4,cff5)
+            write(60,*) temp1,temp2
+           
+!  
 !  Update global tracer variables (mT units) for erosive flux.
 !
             t(i,j,1,nnew,indx)=t(i,j,1,nnew,indx)+ero_flux(i,j,ised)

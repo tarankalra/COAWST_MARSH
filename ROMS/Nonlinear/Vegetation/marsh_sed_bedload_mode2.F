@@ -88,7 +88,7 @@
       USE mod_vegetation 
       USE mod_vegarr
       USE mod_sediment
-      USE marsh_wave_thrust_mode2_mod
+      USE marsh_wave_thrust_mod
       USE bc_2d_mod, ONLY : bc_r2d_tile
       USE bc_3d_mod, ONLY : bc_r3d_tile
 
@@ -143,7 +143,6 @@
 ! The change in marsh erosion uses this array
 !-----------------------------------------------------------------------
 !
-      real(r8), dimension(IminS:ImaxS,JminS:JmaxS,NST) :: bed_ini
       real(r8) :: Thrust_crit, crit_bed_mass
       real(r8) :: Eff_thrust 
       real(r8), parameter :: eps = 1.0E-14_r8 ! , dcrit_marsh=0.5_r8 
@@ -191,8 +190,7 @@
             cff1=bed_mass(i,j,1,nnew,ised)
             Eff_thrust=MAX((ABS(Thrust_w(i,j))-Thrust_crit),0.0_r8)
             cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff*cff1,cff1)
-            bed_mass(i-1,j,1,nnew,ised)=bed_mass(i-1,j,1,nnew,ised)+    &
-                                        cff2
+            bed_mass(i-1,j,1,nnew,ised)=bed_mass(i-1,j,1,nnew,ised)+cff2
 
             IF(Eff_thrust.gt.0.0_r8) THEN
               cff3=1.0_r8
@@ -204,7 +202,7 @@
 !
 !  Get the updated bed porosity 
 !
-                CALL update_bed_porosity (ng, tile, LBi, UBi, LBj, UBj,& 
+              CALL update_bed_porosity (ng, tile, LBi, UBi, LBj, UBj,   & 
      &                                   Istr, Iend, Jstr, Jend,        &
      &                                   nnew, bed , bed_frac, bed_mass)
 !
@@ -216,7 +214,7 @@
 !                IF (cff4.gt.0.0) THEN 
 !                  marsh_mask(i,j)=0.0_r8
 !                END IF 
-!              ENDIF
+              ENDIF
 !
 !-----------------------------------------------------------------------
 ! Thrust from East cell face leads to sediment addition on right cell
@@ -224,8 +222,7 @@
 !
             Eff_thrust=MAX((ABS(Thrust_e(i+1,j))-Thrust_crit),0.0_r8)   
             cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff*cff1,cff1)
-            bed_mass(i+1,j,1,nnew,ised)=bed_mass(i+1,j,1,nnew,ised)+    &
-                                        cff2
+            bed_mass(i+1,j,1,nnew,ised)=bed_mass(i+1,j,1,nnew,ised)+cff2
 
             IF(Eff_thrust.gt.0.0_r8) THEN
               cff3=1.0_r8
@@ -249,7 +246,7 @@
 !              IF (cff4.gt.0.0) THEN 
 !                marsh_mask(i,j)=0.0_r8
 !              END IF 
-!            ENDIF
+            ENDIF
 !
 !-----------------------------------------------------------------------
 ! Thrust from North cell face leads to sediment addition on cell above
@@ -259,8 +256,7 @@
 !
             Eff_thrust=MAX((ABS(Thrust_n(i,j+1))-Thrust_crit),0.0_r8)
             cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff*cff1,cff1)
-            bed_mass(i,j+1,1,nnew,ised)=bed_mass(i,j+1,1,nnew,ised)+    &
-                                        cff2
+            bed_mass(i,j+1,1,nnew,ised)=bed_mass(i,j+1,1,nnew,ised)+cff2
 !
             IF(Eff_thrust.gt.0.0_r8) THEN
               cff3=1.0_r8
@@ -291,8 +287,7 @@
 !
             Eff_thrust=MAX((ABS(Thrust_s(i,j))-Thrust_crit),0.0_r8)
             cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff*cff1,cff1)
-            bed_mass(i,j-1,1,nnew,ised)=bed_mass(i,j-1,1,nnew,ised)+    &
-                                        cff2
+            bed_mass(i,j-1,1,nnew,ised)=bed_mass(i,j-1,1,nnew,ised)+cff2
 !
             IF(Eff_thrust.gt.0.0_r8) THEN
               cff3=1.0_r8
@@ -427,11 +422,11 @@
 !     &                        (1.0_r8-bed(i,j,1,iporo))),0.0_r8)
             cff4=bed_mass(i,j,1,nnew,ised)/(Srho(ised,ng)*               &
       &                                     bed(i,j,1,ithck))
-            bed(i,j,1,poro)=MAX(1.0_r8-cff4,1.0_r8)
+            bed(i,j,1,iporo)=MAX(1.0_r8-cff4,1.0_r8)
           END DO
         END DO 
       END DO 
 !
-      END SUBROUTINE update_bed_thickness
+      END SUBROUTINE update_bed_porosity
 #endif
       END MODULE marsh_sed_bedload_mode2_mod

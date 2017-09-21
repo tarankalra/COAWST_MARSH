@@ -41,9 +41,13 @@
 # ifdef BBL_MODEL
       USE mod_bbl
 # endif
-# if defined MARSH_SED_BEDLOAD
+# if defined MARSH_SED_BEDLOAD_MODE1 
       USE mod_vegarr
-      USE marsh_sed_bedload_mod, ONLY : marsh_sed_bedload
+      USE marsh_sed_bedload_mode1_mod, ONLY : marsh_sed_bedload_mode1
+# endif
+# if defined MARSH_SED_BEDLOAD_MODE2
+      USE mod_vegarr
+      USE marsh_sed_bedload_mode2_mod, ONLY : marsh_sed_bedload_mode2
 # endif
 !
 !  Imported variable declarations.
@@ -54,13 +58,21 @@
 !
 # include "tile.h"
 !
-# if defined MARSH_WAVE_THRUST && defined MARSH_SED_BEDLOAD
+#if defined MARSH_WAVE_THRUST && defined MARSH_SED_BEDLOAD_MODE1 
 !
 !-----------------------------------------------------------------------
 !  Add the bed mass change in bottom cell due to marsh erosion.
 !-----------------------------------------------------------------------
 !
-      CALL marsh_sed_bedload (ng, tile)
+      CALL marsh_sed_bedload_mode1 (ng, tile)
+#endif 
+#if defined MARSH_WAVE_THRUST && defined MARSH_SED_BEDLOAD_MODE2
+!
+!-----------------------------------------------------------------------
+!  Add the bed mass change in bottom cell due to marsh erosion.
+!-----------------------------------------------------------------------
+!
+      CALL marsh_sed_bedload_mode2 (ng, tile)
 # endif
 !
 # ifdef PROFILE
@@ -92,7 +104,7 @@
 # if defined SED_MORPH
      &                   SEDBED(ng) % bed_thick,                        &
 # endif
-# if defined MARSH_SED_BEDLOAD 
+# if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
      &                       VEG(ng) % marsh_mask,                      &
 # endif
      &                   SEDBED(ng) % bed,                              &
@@ -127,7 +139,7 @@
 # if defined SED_MORPH
      &                         bed_thick,                               &
 # endif
-# if defined MARSH_SED_BEDLOAD 
+# if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
      &                         marsh_mask,                              &
 # endif
      &                         bed, bed_frac, bed_mass,                 &
@@ -169,7 +181,7 @@
 #  if defined SED_MORPH
       real(r8), intent(inout):: bed_thick(LBi:,LBj:,:)
 #  endif
-#  if defined MARSH_SED_BEDLOAD
+#  if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
       real(r8), intent(in):: marsh_mask(LBi:,LBj:)
 #  endif
       real(r8), intent(inout) :: t(LBi:,LBj:,:,:,:)
@@ -199,7 +211,7 @@
 #  if defined SED_MORPH
       real(r8), intent(inout):: bed_thick(LBi:UBi,LBj:UBj,2)
 #  endif
-#  if defined MARSH_SED_BEDLOAD 
+#  if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
       real(r8), intent(inout):: marsh_mask(LBi:UBi,LBj:UBj)
 #  endif
       real(r8), intent(inout) :: t(LBi:UBi,LBj:UBj,N(ng),3,NT(ng))
@@ -367,6 +379,7 @@
 !
           DO k=1,Nbed
             cff3=0.0_r8
+            cff4=0.0_r8 
             DO ised=1,NST
               cff3=cff3+bed_mass(i,j,k,nnew,ised)
             END DO
@@ -380,6 +393,12 @@
      &                         bed_mass(i,j,k,nnew,ised)/               &
      &                         (Srho(ised,ng)*                          &
      &                          (1.0_r8-bed(i,j,k,iporo))),0.0_r8)
+!
+! TSK added this 
+! Recalculate bed porosity for all bed layers at each cell. 
+!             
+              bed(i,j,k,iporos)=bed(i,j,k,iporos)*bed_frac(i,j,k,ised)+ &
+     &                          cff4
             END DO
           END DO
         END DO
@@ -409,7 +428,7 @@
 !
           bottom(i,j,iactv)=MAX(bottom(i,j,iactv)*morph_fac(1,ng),      &
      &                          bottom(i,j,iactv))
-#  if defined MARSH_SED_BEDLOAD
+#  if defined MARSH_SED_BEDLOAD1 || defined MARSH_SED_BEDLOAD2
           bottom(i,j,iactv)=bottom(i,j,iactv)*(1.0_r8-marsh_mask(i,j)) 
 #  endif
 # endif

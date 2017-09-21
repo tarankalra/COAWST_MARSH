@@ -52,7 +52,7 @@
 !  marsh_mask     User input of marsh masking at MSL                   ! 
 !  mask_thrust    Tonellis masking wave thrust on marshes              !
 !  Thrust_tonelli Net magnitude of Tonelli thrust                      !
-#  ifdef MARSH_SED_BEDLOAD 
+#  if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
 !  Thrust_w       Tonelli thrust on West marsh face                    ! 
 !  Thrust_e       Tonelli thrust on East marsh face                    ! 
 !  Thrust_n       Tonelli thrust on North marsh face                   ! 
@@ -105,7 +105,7 @@
         real(r8), pointer :: marsh_mask(:,:)
         real(r8), pointer :: mask_thrust(:,:)
         real(r8), pointer :: Thrust_tonelli(:,:)
-#  ifdef MARSH_SED_BEDLOAD 
+#  if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
         real(r8), pointer :: Thrust_e(:,:)
         real(r8), pointer :: Thrust_w(:,:)
         real(r8), pointer :: Thrust_n(:,:)
@@ -178,7 +178,7 @@
       allocate ( VEG(ng) % marsh_mask(LBi:UBi,LBj:UBj) )
       allocate ( VEG(ng) % mask_thrust(LBi:UBi,LBj:UBj) )
       allocate ( VEG(ng) % Thrust_tonelli(LBi:UBi,LBj:UBj) )
-#  ifdef MARSH_SED_BEDLOAD 
+#  if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
       allocate ( VEG(ng) % Thrust_e(LBi:UBi,LBj:UBj) )
       allocate ( VEG(ng) % Thrust_w(LBi:UBi,LBj:UBj) )
       allocate ( VEG(ng) % Thrust_n(LBi:UBi,LBj:UBj) )
@@ -364,7 +364,7 @@
             VEG(ng) % Thrust_tonelli(i,j) = IniVal
           END DO 
         END DO
-#  ifdef MARSH_SED_BEDLOAD 
+#  if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
         DO j=Jmin,Jmax
           DO i=Imin,Imax
             VEG(ng) % Thrust_e(i,j) = IniVal

@@ -27,8 +27,12 @@
       integer :: decode_line, load_i, load_l, load_lbc, load_r
 !
       real(r8), dimension(200) :: Rval
+#if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
       real(r8), allocatable :: Rmarsh(:)
+#endif 
+#ifdef VEG_DRAG 
       real(r8), allocatable :: Rveg(:,:)
+#endif 
 !
       character (len=40 ) :: KeyWord
       character (len=256) :: line 
@@ -88,7 +92,7 @@
                 END DO 
               END DO
 #endif
-#ifdef MARSH_SED_BEDLOAD
+#if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
             IF (.not.allocated(Rmarsh)) allocate(Rmarsh(Ngrids))
             CASE ('KFAC_MARSH')
               IF (.not.allocated(KFAC_MARSH))                          &
@@ -103,6 +107,13 @@
               Npts=load_r(Nval, Rval, Ngrids, Rmarsh)
               DO ng=1,Ngrids
                 DCRIT_MARSH(ng)=Rmarsh(ng)
+              END DO
+            CASE ('DCRIT_PORO_MARSH')
+              IF (.not.allocated(DCRIT_PORO_MARSH))                     &
+     &                 allocate(DCRIT_PORO_MARSH(Ngrids))
+              Npts=load_r(Nval, Rval, Ngrids, Rmarsh)
+              DO ng=1,Ngrids
+                DCRIT_PORO_MARSH(ng)=Rmarsh(ng)
               END DO
 #endif
 !
@@ -210,8 +221,9 @@
      &                       VEG_MASSDENS(iveg,ng), VEGHMIXCOEF(iveg,ng)
             END DO 
 #endif 
-!#if defined MARSH_SED_BEDLOAD 
-!            WRITE (out,80) KFAC_MARSH(ng), DCRIT_MARSH(ng)
+!#if defined MARSH_SED_BEDLOAD_MODE1
+!            WRITE (out,80) KFAC_MARSH(ng), DCRIT_MARSH(ng),            &
+!    &                        DCRIT_PORO_MARSH(ng)
 !#endif 
         END DO 
 !     END IF 

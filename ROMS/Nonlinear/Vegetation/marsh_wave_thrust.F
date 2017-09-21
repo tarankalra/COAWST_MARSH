@@ -89,7 +89,7 @@
      &                        VEG(ng) % marsh_mask,                     &
      &                        VEG(ng) % mask_thrust,                    &
      &                        VEG(ng) % Thrust_tonelli,                 &
-# ifdef MARSH_SED_BEDLOAD 
+# if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
      &                        VEG(ng) % Thrust_w,                       &
      &                        VEG(ng) % Thrust_e,                       &
      &                        VEG(ng) % Thrust_n,                       &
@@ -128,7 +128,7 @@
      &                              marsh_mask,                         &
      &                              mask_thrust,                        &
      &                              Thrust_tonelli,                     & 
-# ifdef MARSH_SED_BEDLOAD 
+# if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
      &                              Thrust_w,                           &
      &                              Thrust_e,                           &
      &                              Thrust_n,                           &
@@ -146,6 +146,8 @@
       USE mod_vegetation
       USE mod_vegarr
       USE bc_2d_mod
+      USE exchange_2d_mod
+
 #ifdef DISTRIBUTE
       USE mp_exchange_mod, ONLY : mp_exchange2d
 #endif
@@ -180,7 +182,7 @@
       real(r8), intent(in)    :: marsh_mask(LBi:,LBj:)
       real(r8), intent(inout) :: mask_thrust(LBi:,LBj:)
       real(r8), intent(inout) :: Thrust_tonelli(LBi:,LBj:)
-#  if defined MARSH_SED_BEDLOAD 
+# if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
       real(r8), intent(inout) :: Thrust_w(LBi:,LBj:)
       real(r8), intent(inout) :: Thrust_e(LBi:,LBj:)
       real(r8), intent(inout) :: Thrust_n(LBi:,LBj:)
@@ -261,6 +263,8 @@
       mask_thrust_n=Inival
       mask_thrust_s=Inival
 !
+! Marsh boundary mask at u-points
+! 
       DO j=JstrR,JendR
         DO i=Istr,IendR
           umask_marsh(i,j)=marsh_mask(i-1,j)+marsh_mask(i,j)
@@ -272,6 +276,8 @@
         END DO
       END DO
 !
+! Marsh boundary mask at v-points
+!
       DO j=Jstr,JendR
         DO i=IstrR,IendR
           vmask_marsh(i,j)=marsh_mask(i,j-1)+marsh_mask(i,j)
@@ -282,6 +288,26 @@
           END IF
         END DO
       END DO
+!      
+      IF (EWperiodic(ng).or.NSperiodic(ng)) THEN   
+      CALL exchange_u2d_tile (ng, tile,                                 &
+     &                  LBi, UBi, LBj, UBj,                             &
+     &                  umask_marsh)
+      CALL exchange_v2d_tile (ng, tile,                                 &
+     &                  LBi, UBi, LBj, UBj,                             &
+     &                  vmask_marsh)
+       ENDIF 
+!
+# ifdef DISTRIBUTE
+! 
+! Exchange boundary data 
+!
+      CALL mp_exchange2d (ng, tile, iNLM, 2,                            &
+     &                    LBi, UBi, LBj, UBj,                           &
+     &                    NghostPoints,                                 &
+     &                    EWperiodic(ng), NSperiodic(ng),               &
+     &                    umask_marsh, vmask_marsh)                     
+# endif 
 !
 !----------------------------------------------------------------------
 !  Compute tonelli thrust mask and net thrust on all cell centers
@@ -337,7 +363,7 @@
           cff=half*(1.0_r8+SIGN(1.0_r8,FX(i-1,j)))
           Thrust_loc_w=umask_marsh(i,j)*FX(i-1,j)*cff*                  &
                        mask_thrust_w
-#  ifdef MARSH_SED_BEDLOAD 
+# if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
           Thrust_w(i,j)=Thrust_loc_w
 #  endif
 !
@@ -348,7 +374,7 @@
           cff=half*(1.0_r8-SIGN(1.0_r8,FX(i+1,j)))
           Thrust_loc_e=umask_marsh(i+1,j)*FX(i+1,j)*cff*                &
                        mask_thrust_e
-#  ifdef MARSH_SED_BEDLOAD 
+# if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
           Thrust_e(i+1,j)=Thrust_loc_e
 #  endif
 !
@@ -364,7 +390,7 @@
           cff=half*(1.0_r8-SIGN(1.0_r8,FY(i,j+1)))
           Thrust_loc_n=vmask_marsh(i,j+1)*FY(i,j+1)*cff*                &
                        mask_thrust_n
-#  ifdef MARSH_SED_BEDLOAD 
+# if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
           Thrust_n(i,j+1)=Thrust_loc_n
 #  endif
 !
@@ -376,12 +402,12 @@
           Thrust_loc_s=vmask_marsh(i,j)*FY(i,j-1)*cff*                  &
                        mask_thrust_s
 !
-#  ifdef MARSH_SED_BEDLOAD 
+# if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
           Thrust_s(i,j)=Thrust_loc_s
 #  endif
 !
-          mask_thrust(i,j)=mask_thrust_w+mask_thrust_e+                 &
-     &                     mask_thrust_n+mask_thrust_s
+!          mask_thrust(i,j)=mask_thrust_w+mask_thrust_e+                 &
+!     &                     mask_thrust_n+mask_thrust_s
 !  
           Thrust_tonelli(i,j)=ABS(Thrust_loc_w)+ABS(Thrust_loc_e)+      &
      &                        ABS(Thrust_loc_n)+ABS(Thrust_loc_s)
@@ -395,25 +421,21 @@
 !  Apply periodic or gradient boundary conditions for output
 !  purposes only.
 !---------------------------------------------------------------------
+!
       CALL bc_r2d_tile (ng, tile,                                       &
      &                  LBi, UBi, LBj, UBj,                             &
      &                  mask_thrust)
-     CALL bc_r2d_tile (ng, tile,                                        &
+      CALL bc_r2d_tile (ng, tile,                                       &
      &                  LBi, UBi, LBj, UBj,                             &
      &                  Thrust_tonelli)
-# ifdef DISTRIBUTE
-! 
-! Exchange boundary data 
+!      CALL bc_u2d_tile (ng, tile,                                       &
+!     &                  LBi, UBi, LBj, UBj,                             &
+!     &                  umask_marsh)
+!      CALL bc_v2d_tile (ng, tile,                                       &
+!     &                  LBi, UBi, LBj, UBj,                             &
+!     &                  vmask_marsh)
 !
-      CALL mp_exchange2d (ng, tile, iNLM, 2,                            &
-     &                    LBi, UBi, LBj, UBj,                           &
-     &                    NghostPoints,                                 &
-     &                    EWperiodic(ng), NSperiodic(ng),               &
-     &                    mask_thrust,                                  &
-     &                    Thrust_tonelli)  
-# endif
-!
-# ifdef MARSH_SED_BEDLOAD
+# if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
      CALL bc_u2d_tile (ng, tile,                                        &
      &                  LBi, UBi, LBj, UBj,                             &
      &                  Thrust_w)
@@ -426,7 +448,9 @@
      CALL bc_v2d_tile (ng, tile,                                        &
      &                 LBi, UBi, LBj, UBj,                              &
      &                  Thrust_s)
-#  ifdef DISTRIBUTE
+!
+# endif
+# ifdef DISTRIBUTE
 ! 
 ! Exchange boundary data 
 !
@@ -434,10 +458,19 @@
      &                    LBi, UBi, LBj, UBj,                           &
      &                    NghostPoints,                                 &
      &                    EWperiodic(ng), NSperiodic(ng),               &
+!     &                    umask_marsh, vmask_marsh,                     &
+     &                    mask_thrust, Thrust_tonelli)  
+!
+#  if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
+      CALL mp_exchange2d (ng, tile, iNLM, 4,                            &
+     &                    LBi, UBi, LBj, UBj,                           &
+     &                    NghostPoints,                                 &
+     &                    EWperiodic(ng), NSperiodic(ng),               &
      &                    Thrust_w,                                     &
      &                    Thrust_e,                                     &
      &                    Thrust_n,                                     &
-     &                    Thrust_s)  
+     &                    Thrust_s)                                   
+!
 #  endif
 # endif
 !

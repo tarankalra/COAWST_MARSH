@@ -58,9 +58,13 @@
 # ifdef BBL_MODEL
       USE mod_bbl
 # endif
-# if defined MARSH_SED_BEDLOAD
+# if defined MARSH_SED_BEDLOAD_MODE1
       USE mod_vegarr
-      USE marsh_sed_bedload_mod, ONLY : marsh_sed_bedload
+      USE marsh_sed_bedload_mode1_mod, ONLY : marsh_sed_bedload_mode1
+# endif
+# if defined MARSH_SED_BEDLOAD_MODE2
+      USE mod_vegarr
+      USE marsh_sed_bedload_mode2_mod, ONLY : marsh_sed_bedload_mode2
 # endif
 !
 !  Imported variable declarations.
@@ -71,13 +75,18 @@
 !
 # include "tile.h"
 !
-# if defined MARSH_WAVE_THRUST && defined MARSH_SED_BEDLOAD
+# if defined MARSH_WAVE_THRUST 
+#  ifdef MARSH_SED_BEDLOAD_MODE1
 !
 !-----------------------------------------------------------------------
-!  Add the bed mass change in bottom cell due to marsh erosion.
+!  Compute marsh presence with marsh mask and marsh sediment erosion.
 !-----------------------------------------------------------------------
 !
-      CALL marsh_sed_bedload (ng, tile)
+      CALL marsh_sed_bedload_mode1 (ng, tile)
+#  endif 
+#  ifdef MARSH_SED_BEDLOAD_MODE2
+      CALL marsh_sed_bedload_mode2 (ng, tile)
+#  endif 
 # endif
 !
 # ifdef PROFILE
@@ -118,7 +127,7 @@
 # if defined SED_MORPH
      &                       SEDBED(ng) % bed_thick,                    &
 # endif
-# if defined MARSH_SED_BEDLOAD 
+# if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
      &                       VEG(ng) % marsh_mask,                      &
 # endif
 # if defined BEDLOAD_MPM || defined BEDLOAD_SOULSBY
@@ -167,7 +176,7 @@
 # if defined SED_MORPH
      &                             bed_thick,                           &
 # endif
-# if defined MARSH_SED_BEDLOAD 
+# if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
      &                             marsh_mask,                          &
 # endif
 # if defined BEDLOAD_MPM || defined BEDLOAD_SOULSBY
@@ -230,7 +239,7 @@
 #  if defined SED_MORPH
       real(r8), intent(inout):: bed_thick(LBi:,LBj:,:)
 #  endif
-#  if defined MARSH_SED_BEDLOAD
+#  if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
       real(r8), intent(in):: marsh_mask(LBi:,LBj:)
 #  endif
 #  if defined BEDLOAD_MPM || defined BEDLOAD_SOULSBY
@@ -278,7 +287,7 @@
 #  if defined SED_MORPH
       real(r8), intent(inout):: bed_thick(LBi:UBi,LBj:UBj,2)
 #  endif
-#  if defined MARSH_SED_BEDLOAD 
+#  if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
       real(r8), intent(inout):: marsh_mask(LBi:UBi,LBj:UBj)
 #  endif
 #  if defined BEDLOAD_MPM || defined BEDLOAD_SOULSBY
@@ -529,7 +538,6 @@
             FX_r(i,j)=bedld*on_r(i,j)*dt(ng)
             bedld=8.0_r8*(MAX((ABS(tau_wE(i,j))*osmgd-0.047_r8),        &
      &                        0.0_r8)**1.5_r8)*smgdr*                   &
-     &                        SIGN(1.0_r8,tau_wE(i,j))
             FE_r(i,j)=bedld*om_r(i,j)*dt(ng)
 #   else
 !
@@ -590,7 +598,7 @@
             FX_r(i,j)=FX_r(i,j)*morph_fac(ised,ng)
             FE_r(i,j)=FE_r(i,j)*morph_fac(ised,ng)
 #  endif
-#  ifdef MARSH_SED_BEDLOAD
+#  if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
 !
 ! if marsh then the bedload is not available for resuspension
 ! marsh_mask=1.0 indicates presence of marsh

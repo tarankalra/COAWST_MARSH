@@ -77,9 +77,10 @@
       real(r8), allocatable :: VEG_MASSDENS(:,:)
       real(r8), allocatable :: VEGHMIXCOEF(:,:)
 #endif 
-#if defined MARSH_SED_BEDLOAD 
+#if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
       real(r8), allocatable :: KFAC_MARSH(:)
       real(r8), allocatable :: DCRIT_MARSH(:)
+      real(r8), allocatable :: DCRIT_PORO_MARSH(:)
 #endif 
 !
       CONTAINS 

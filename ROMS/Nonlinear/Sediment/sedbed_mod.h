@@ -31,6 +31,7 @@
 #if defined SEDIMENT && defined SED_MORPH
 !  bed_thick0     Sum all initial bed layer thicknesses (m).           !
 !  bed_thick      Instantaneous total bed thickness (m).               !
+!  bed_poros      Instantaneous total bed porosity                     ! 
 #endif
 #ifdef BEDLOAD
 !  bedldu         Bed load u-transport (kg/m/s).                       !
@@ -112,6 +113,7 @@
 #if defined SEDIMENT && defined SED_MORPH
         real(r8), pointer :: bed_thick0(:,:)
         real(r8), pointer :: bed_thick(:,:,:)
+        real(r8), pointer :: bed_poros(:,:,:)
 #endif
 #ifdef BEDLOAD
         real(r8), pointer :: bedldu(:,:,:)
@@ -225,6 +227,7 @@
 #if defined SEDIMENT && defined SED_MORPH
       allocate ( SEDBED(ng) % bed_thick0(LBi:UBi,LBj:UBj) )
       allocate ( SEDBED(ng) % bed_thick(LBi:UBi,LBj:UBj,1:2) )
+      allocate ( SEDBED(ng) % bed_poros(LBi:UBi,LBj:UBj) )
 #endif
 #ifdef BEDLOAD
       allocate ( SEDBED(ng) % bedldu(LBi:UBi,LBj:UBj,NST) )
@@ -405,6 +408,7 @@
             SEDBED(ng) % bed_thick0(i,j) = IniVal
             SEDBED(ng) % bed_thick(i,j,1) = IniVal
             SEDBED(ng) % bed_thick(i,j,2) = IniVal
+            SEDBED(ng) % bed_poros(i,j) = IniVal
           END DO
 #endif
 #ifdef BEDLOAD

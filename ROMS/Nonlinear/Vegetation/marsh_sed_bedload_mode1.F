@@ -3,7 +3,7 @@
       MODULE marsh_sed_bedload_mode1_mod
 
 #if defined SEDIMENT && defined BEDLOAD && defined MARSH_WAVE_THRUST \
-    && defined MARSH_SED_BEDLOAD 
+    && defined MARSH_SED_BEDLOAD_MODE1 
 !
 !svn $Id: marsh_wave_thrust.F 429 2015-04-20 17:30:26Z arango $
 !=======================================================================
@@ -68,7 +68,7 @@
       CALL wclock_off (ng, iNLM, 16)
 # endif
       RETURN
-      END SUBROUTINE marsh_sed_bedload
+      END SUBROUTINE marsh_sed_bedload_mode1
 !
 !***********************************************************************
       SUBROUTINE marsh_sed_bedload_mode1_tile (ng, tile,                &
