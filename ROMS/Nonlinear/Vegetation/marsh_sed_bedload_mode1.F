@@ -183,40 +183,38 @@
 !|
 !
 !
+            cff=on_r(i,j)*dt(ng)
+            cff1=bed_mass(i,j,1,nnew,ised)
+!
 !-----------------------------------------------------------------------
 ! Thrust from West cell face leads to sediment addition on left cell
 !-----------------------------------------------------------------------
 !
-            cff=on_r(i,j)*dt(ng)
-            cff1=bed_mass(i,j,1,nnew,ised)
             Eff_thrust=MAX((ABS(Thrust_w(i,j))-Thrust_crit),0.0_r8)
             cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff*cff1,cff1)
+            marsh_flux_w(i,j)=cff2 
             bed_mass(i-1,j,1,nnew,ised)=bed_mass(i-1,j,1,nnew,ised)+    &
-                                        cff2
-
-            IF(Eff_thrust.gt.0.0_r8) THEN
-              cff3=1.0_r8
-              cff1=MAX(cff1-cff2*cff3,0.0_r8)
+                                                               cff2
+!
+            cff1=MAX(cff1-cff2,0.0_r8)
 !
 ! Save the updated bed mass from the eroded cell
 ! 
-              bed_mass(i,j,1,nnew,ised)=cff1
+            bed_mass(i,j,1,nnew,ised)=cff1
 !
 !  Get the updated bed thickness 
 !
-                CALL update_bed_thickness (ng, tile, LBi, UBi, LBj, UBj,& 
-     &                                   Istr, Iend, Jstr, Jend,        &
-     &                                   nnew, bed , bed_frac, bed_mass)
+            CALL update_bed_thickness (ng, tile, LBi, UBi, LBj, UBj,    & 
+     &                                 Istr, Iend, Jstr, Jend,          &
+     &                                 nnew, bed , bed_frac, bed_mass)
 !
 !   If the marsh cell bed thickness is equal to wet cell infront of it
 !   Then make the marsh cell as a wet cell i.e. marsh_mask=0.0  
 !   Then the sediment is not supplied indefinitely to a cell infront 
 !
-                cff4=(bed(i,j,1,ithck)-bed(i-1,j,1,ithck))*marsh_mask(i,j)
-                IF (cff4.gt.0.0) THEN 
-                  marsh_mask(i,j)=0.0_r8
-                END IF 
-              ENDIF
+            cff3=(bed(i,j,1,ithck)-bed(i-1,j,1,ithck))*marsh_mask(i,j)
+            cff4=half*(1.0_r8+SIGN(1.0_r8,cff3))
+            marsh_mask(i,j)=cff4*marsh_mask(i,j)
 !
 !-----------------------------------------------------------------------
 ! Thrust from East cell face leads to sediment addition on right cell
@@ -224,32 +222,29 @@
 !
             Eff_thrust=MAX((ABS(Thrust_e(i+1,j))-Thrust_crit),0.0_r8)   
             cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff*cff1,cff1)
+            marsh_flux_e(i+1,j)=cff2 
             bed_mass(i+1,j,1,nnew,ised)=bed_mass(i+1,j,1,nnew,ised)+    &
-                                        cff2
-
-            IF(Eff_thrust.gt.0.0_r8) THEN
-              cff3=1.0_r8
-              cff1=MAX(cff1-cff2*cff3,0.0_r8)
+                                                               cff2
+!             
+            cff1=MAX(cff1-cff2,0.0_r8)
 !
 ! Save the updated bed mass from the eroded cell
 ! 
-              bed_mass(i,j,1,nnew,ised)=cff1 
+            bed_mass(i,j,1,nnew,ised)=cff1 
 !
 !  Get the updated bed thickness 
 !
-              CALL update_bed_thickness (ng, tile, LBi, UBi, LBj, UBj,  & 
-     &                                   Istr, Iend, Jstr, Jend,        &
-     &                                   nnew, bed , bed_frac, bed_mass)
+            CALL update_bed_thickness (ng, tile, LBi, UBi, LBj, UBj,    & 
+     &                                 Istr, Iend, Jstr, Jend,          &
+     &                                 nnew, bed , bed_frac, bed_mass)
 !
 !   If the marsh cell bed thickness is equal to wet cell infront of it
 !   Then make the marsh cell as a wet cell i.e. marsh_mask=0.0  
 !   Then the sediment is not supplied indefinitely to a cell infront 
 !
-              cff4=(bed(i+1,j,1,ithck)-bed(i,j,1,ithck))*marsh_mask(i,j)
-              IF (cff4.gt.0.0) THEN 
-                marsh_mask(i,j)=0.0_r8
-              END IF 
-            ENDIF
+            cff3=(bed(i+1,j,1,ithck)-bed(i,j,1,ithck))*marsh_mask(i,j)
+            cff4=half*(1.0_r8+SIGN(1.0_r8,cff3))
+            marsh_mask(i,j)=cff4*marsh_mask(i,j)
 !
 !-----------------------------------------------------------------------
 ! Thrust from North cell face leads to sediment addition on cell above
@@ -259,31 +254,27 @@
 !
             Eff_thrust=MAX((ABS(Thrust_n(i,j+1))-Thrust_crit),0.0_r8)
             cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff*cff1,cff1)
+            marsh_flux_n(i,j+1)=cff2 
             bed_mass(i,j+1,1,nnew,ised)=bed_mass(i,j+1,1,nnew,ised)+    &
                                         cff2
 !
-            IF(Eff_thrust.gt.0.0_r8) THEN
-              cff3=1.0_r8
-              cff1=MAX((cff1-cff2*cff3),0.0_r8)
+            cff1=MAX((cff1-cff2),0.0_r8)
 !
 ! Save the updated bed mass from the eroded cell
 ! 
-              bed_mass(i,j,1,nnew,ised)=cff1 
+            bed_mass(i,j,1,nnew,ised)=cff1 
 !
-              CALL update_bed_thickness (ng, tile, LBi, UBi, LBj, UBj,  & 
-     &                                   Istr, Iend, Jstr, Jend,        &
-     &                                   nnew, bed , bed_frac, bed_mass)
+            CALL update_bed_thickness (ng, tile, LBi, UBi, LBj, UBj,    & 
+     &                                 Istr, Iend, Jstr, Jend,          &
+     &                                 nnew, bed , bed_frac, bed_mass)
 !
 !   If the marsh cell bed thickness is equal to wet cell infront of it
 !   Then make the marsh cell as a wet cell i.e. marsh_mask=0.0  
 !   Then the sediment is not supplied indefinitely to a cell infront 
 !
-              cff4=(bed(i,j+1,1,ithck)-bed(i,j,1,ithck))*marsh_mask(i,j)
-              IF (cff4.gt.0.0) THEN 
-                marsh_mask(i,j)=0.0_r8
-              END IF 
-!
-            ENDIF
+            cff3=(bed(i,j+1,1,ithck)-bed(i,j,1,ithck))*marsh_mask(i,j)
+            cff4=half*(1.0_r8+SIGN(1.0_r8,cff3))
+            marsh_mask(i,j)=cff4*marsh_mask(i,j)
 !
 !-----------------------------------------------------------------------
 ! Thrust from South cell face leads to sediment addition on cell below
@@ -291,33 +282,29 @@
 !
             Eff_thrust=MAX((ABS(Thrust_s(i,j))-Thrust_crit),0.0_r8)
             cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff*cff1,cff1)
+            marsh_flux_s(i,j)=cff2 
             bed_mass(i,j-1,1,nnew,ised)=bed_mass(i,j-1,1,nnew,ised)+    &
                                         cff2
 !
-            IF(Eff_thrust.gt.0.0_r8) THEN
-              cff3=1.0_r8
-              cff1=MAX((cff1-cff2*cff3),0.0_r8)
+            cff1=MAX((cff1-cff2),0.0_r8)
 !
 ! Save the updated bed mass from the eroded cell
 ! 
-              bed_mass(i,j,1,nnew,ised)=cff1 
+            bed_mass(i,j,1,nnew,ised)=cff1 
 !
 !  Get the updated bed thickness 
 !
-              CALL update_bed_thickness (ng, tile, LBi, UBi, LBj, UBj,  & 
-     &                                   Istr, Iend, Jstr, Jend,        &
-     &                                   nnew, bed , bed_frac, bed_mass)
+            CALL update_bed_thickness (ng, tile, LBi, UBi, LBj, UBj,    & 
+     &                                  Istr, Iend, Jstr, Jend,         &
+     &                                  nnew, bed , bed_frac, bed_mass)
 !
 !   If the marsh cell bed thickness is equal to wet cell infront of it
 !   Then make the marsh cell as a wet cell i.e. marsh_mask=0.0  
 !   Then the sediment is not supplied indefinitely to a cell infront 
 !
-              cff4=(bed(i,j-1,1,ithck)-bed(i,j,1,ithck))*marsh_mask(i,j)
-              IF (cff4.gt.0.0) THEN 
-                marsh_mask(i,j)=0.0_r8
-              END IF 
-!
-            ENDIF
+            cff4=(bed(i,j-1,1,ithck)-bed(i,j,1,ithck))*marsh_mask(i,j)
+            cff4=half*(1.0_r8+SIGN(1.0_r8,cff3))
+            marsh_mask(i,j)=cff4*marsh_mask(i,j)
 !
 ! First criteria of converting marsh cell to wet cell 
 ! 
