@@ -44,19 +44,25 @@
 !  BWDXL_veg      Wave streaming effect due to vegetation              !
 !  BWDYL_veg      Wave streaming effect due to vegetation              !
 # endif
-# ifdef VEG_HMIXING
-!  visc2d_r_veg   Effect of viscosity change at vegetation interface   ! 
-!  visc3d_r_veg   Effect of viscosity change at vegetation interface   ! 
-# endif
-# ifdef MARSH_WAVE_THRUST
+# ifdef MARSH_WAVE_EROSION 
+#  if defined MARSH_WAVE_THRUST
 !  marsh_mask     User input of marsh masking at MSL                   ! 
 !  mask_thrust    Tonellis masking wave thrust on marshes              !
 !  Thrust_tonelli Net magnitude of Tonelli thrust                      !
-#  if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
-!  Thrust_w       Tonelli thrust on West marsh face                    ! 
-!  Thrust_e       Tonelli thrust on East marsh face                    ! 
-!  Thrust_n       Tonelli thrust on North marsh face                   ! 
-!  Thrust_s       Tonelli thrust on South marsh face                   ! 
+#   if defined MARSH_SED_BEDLOAD_MODE1 ||  
+     \\ defined MARSH_SED_BEDLOAD_MODE2
+!   Thrust_w       Tonelli thrust on West marsh face                   ! 
+!   Thrust_e       Tonelli thrust on East marsh face                   ! 
+!   Thrust_n       Tonelli thrust on North marsh face                  ! 
+!   Thrust_s       Tonelli thrust on South marsh face                  !
+#   endif                                                            
+#   if defined MARSH_LAT_RETREAT
+!   marsh_flux_w   Marsh flux from West marsh face                     ! 
+!   marsh_flux_e   Marsh flux from East marsh face                     ! 
+!   marsh_flux_n   Marsh flux from North marsh face                    ! 
+!   marsh_flux_s   Marsh flux from South marsh face                    !
+!   marsh_retreat  Amount of marsh retreat                             !
+#   endif 
 #  endif                                                               ! 
 # endif                                                                ! 
 !                                                                      !
@@ -101,15 +107,24 @@
         real(r8), pointer :: BWDXL_veg(:,:,:)
         real(r8), pointer :: BWDYL_veg(:,:,:)
 # endif 
-# ifdef MARSH_WAVE_THRUST
+# ifdef MARSH_WAVE_EROSION 
+#  ifdef MARSH_WAVE_THRUST
         real(r8), pointer :: marsh_mask(:,:)
         real(r8), pointer :: mask_thrust(:,:)
         real(r8), pointer :: Thrust_tonelli(:,:)
-#  if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
+#   if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
         real(r8), pointer :: Thrust_e(:,:)
         real(r8), pointer :: Thrust_w(:,:)
         real(r8), pointer :: Thrust_n(:,:)
         real(r8), pointer :: Thrust_s(:,:)
+#   endif 
+#   if defined MARSH_LAT_RETREAT 
+        real(r8), pointer :: marsh_flux_e(:,:)
+        real(r8), pointer :: marsh_flux_w(:,:)
+        real(r8), pointer :: marsh_flux_n(:,:)
+        real(r8), pointer :: marsh_flux_s(:,:)
+        real(r8), pointer :: marsh_retreat(:,:)
+#   endif 
 #  endif
 # endif
 !
@@ -174,16 +189,25 @@
       allocate ( VEG(ng) % BWDXL_veg(LBi:UBi,LBj:UBj,N(ng)) )
       allocate ( VEG(ng) % BWDYL_veg(LBi:UBi,LBj:UBj,N(ng)) )
 #  endif
-# ifdef MARSH_WAVE_THRUST
+# ifdef MARSH_WAVE_EROSION
+#  ifdef MARSH_WAVE_THRUST
       allocate ( VEG(ng) % marsh_mask(LBi:UBi,LBj:UBj) )
       allocate ( VEG(ng) % mask_thrust(LBi:UBi,LBj:UBj) )
       allocate ( VEG(ng) % Thrust_tonelli(LBi:UBi,LBj:UBj) )
-#  if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
+#   if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
       allocate ( VEG(ng) % Thrust_e(LBi:UBi,LBj:UBj) )
       allocate ( VEG(ng) % Thrust_w(LBi:UBi,LBj:UBj) )
       allocate ( VEG(ng) % Thrust_n(LBi:UBi,LBj:UBj) )
       allocate ( VEG(ng) % Thrust_s(LBi:UBi,LBj:UBj) )
-#  endif 
+#   endif 
+#   if defined MARSH_LAT_RETREAT
+      allocate ( VEG(ng) % marsh_flux_e(LBi:UBi,LBj:UBj) )
+      allocate ( VEG(ng) % marsh_flux_w(LBi:UBi,LBj:UBj) )
+      allocate ( VEG(ng) % marsh_flux_n(LBi:UBi,LBj:UBj) )
+      allocate ( VEG(ng) % marsh_flux_s(LBi:UBi,LBj:UBj) )
+      allocate ( VEG(ng) % marsh_retreat(LBi:UBi,LBj:UBj) )
+#   endif
+#  endif
 # endif
 !
 !-----------------------------------------------------------------------
@@ -286,6 +310,7 @@
             END DO 
           END DO 
         END DO 
+!
         DO iveg=1,NVEG
           DO k=1,N(ng)
             DO j=Jmin,Jmax
@@ -294,14 +319,15 @@
                 VEG(ng) % rv_loc_veg(i,j,k,iveg) = IniVal
               END DO 
             END DO 
-          END DO 
-	END DO 
-	DO j=Jmin,Jmax
-	  DO i=Imin,Imax
+          END DO
+        END DO
+!
+        DO j=Jmin,Jmax
+          DO i=Imin,Imax
             VEG(ng) % step2d_uveg(i,j) = IniVal
             VEG(ng) % step2d_vveg(i,j) = IniVal
-	  END DO 
-	END DO 
+          END DO
+        END DO 
 !
 #  ifdef VEG_FLEX 
         DO iveg=1,NVEG
@@ -324,21 +350,6 @@
         END DO 
 #  endif
 !  
-#  ifdef VEG_HMIXING
-        DO j=Jmin,Jmax
-          DO i=Imin,Imax
-            VEG(ng) % visc2d_r_veg(i,j) = IniVal
-          END DO 
-        END DO
-        DO k=1,N(ng)
-          DO j=Jmin,Jmax
-            DO i=Imin,Imax
-              VEG(ng) % visc3d_r_veg(i,j,k) = IniVal
-            END DO 
-          END DO
-        END DO 
-#  endif
-!  
 #  if defined VEG_SWAN_COUPLING && defined VEG_STREAMING 
         DO j=Jmin,Jmax
           DO i=Imin,Imax
@@ -356,7 +367,8 @@
 #  endif
 # endif
 !
-# ifdef MARSH_WAVE_THRUST
+# ifdef MARSH_WAVE_EROSION
+#  ifdef MARSH_WAVE_THRUST
         DO j=Jmin,Jmax
           DO i=Imin,Imax
             VEG(ng) % marsh_mask(i,j) = IniVal
@@ -364,6 +376,7 @@
             VEG(ng) % Thrust_tonelli(i,j) = IniVal
           END DO 
         END DO
+!
 #  if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
         DO j=Jmin,Jmax
           DO i=Imin,Imax
@@ -374,6 +387,19 @@
           END DO 
         END DO
 #  endif 
+!
+#  if defined MARSH_LAT_RETREAT
+        DO j=Jmin,Jmax
+          DO i=Imin,Imax
+            VEG(ng) % marsh_flux_e(i,j) = IniVal
+            VEG(ng) % marsh_flux_w(i,j) = IniVal
+            VEG(ng) % marsh_flux_n(i,j) = IniVal
+            VEG(ng) % marsh_flux_s(i,j) = IniVal
+            VEG(ng) % marsh_retreat(i,j) = IniVal
+          END DO 
+        END DO
+#   endif 
+#  endif
 # endif
 !
       END IF

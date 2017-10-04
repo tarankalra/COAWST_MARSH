@@ -42,11 +42,12 @@
 !  ipdwbm         Id to output below ground biomass                    !
 !  idWdvg         Id to output wave dissipation from vegetation        !
 !                                                                      !
-!  Wave Thrust on Marsh Output:                                        !
+!  Marsh wave induced erosion Output:                                  !
 !  ==========================                                          !
 !  idTims        Initial masking for the marsh                         ! 
 !  idTmsk        Reducing masking value due to depth                   ! 
 !  idTton        Tonelli thrust from all directions due to waves       !
+!  idTmmr        Amount of marsh retreat from all directions           !
 !=======================================================================
 !
       USE mod_param
@@ -66,9 +67,13 @@
 #ifdef VEG_STREAMING 
       integer :: idWdvg
 #endif 
-      integer, allocatable :: idvprp(:)    
+      integer, allocatable :: idvprp(:)
+!    
 #ifdef MARSH_WAVE_THRUST 
       integer ::  idTims, idTmsk, idTton
+# if defined MARSH_LAT_RETREAT
+      integer ::  idTmmr
+# endif 
 #endif 
 !
 #if defined VEG_DRAG || defined VEG_BIOMASS  
@@ -76,7 +81,8 @@
       real(r8), allocatable :: CD_VEG(:,:)
       real(r8), allocatable :: VEG_MASSDENS(:,:)
       real(r8), allocatable :: VEGHMIXCOEF(:,:)
-#endif 
+#endif
+! 
 #if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
       real(r8), allocatable :: KFAC_MARSH(:)
       real(r8), allocatable :: DCRIT_MARSH(:)

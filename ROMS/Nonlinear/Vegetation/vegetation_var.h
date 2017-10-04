@@ -38,11 +38,17 @@
             CASE ('idWdvg')
               idWdvg=varid
 #endif 
-#if defined MARSH_WAVE_THRUST
+#if defined MARSH_WAVE_EROSION
+# if defined MARSH_WAVE_THRUST
             CASE ('idTims')
               idTims=varid
             CASE ('idTmsk')
               idTmsk=varid
             CASE ('idTton')
               idTton=varid
+#  if defined MARSH_LAT_RETREAT
+            CASE ('idTmmr')
+              idTmmr=varid
+#  endif 
+# endif 
 #endif 

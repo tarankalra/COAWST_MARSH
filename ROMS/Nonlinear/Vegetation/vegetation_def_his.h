@@ -56,7 +56,8 @@
           IF (exit_flag.ne.NoError) RETURN
         END IF 
 #endif 
-#ifdef MARSH_WAVE_THRUST
+#ifdef MARSH_WAVE_EROSION
+# ifdef MARSH_WAVE_THRUST
 !
 !  Store initial masking marsh 
 !
@@ -66,9 +67,9 @@
           Vinfo( 3)=Vname(3,idTims)
           Vinfo(14)=Vname(4,idTims)
           Vinfo(16)=Vname(1,idTims)
-# if defined WRITE_WATER && defined MASKING
+#  if defined WRITE_WATER && defined MASKING
           Vinfo(20)='mask_rho'
-# endif
+#  endif
           Vinfo(22)='coordinates'
           Aval(5)=REAL(Iinfo(1,idTims,ng),r8)
           status=def_var(ng, iNLM, HIS(ng)%ncid, HIS(ng)%Vid(idTims),   &
@@ -84,9 +85,9 @@
           Vinfo( 3)=Vname(3,idTmsk)
           Vinfo(14)=Vname(4,idTmsk)
           Vinfo(16)=Vname(1,idTmsk)
-# if defined WRITE_WATER && defined MASKING
+#  if defined WRITE_WATER && defined MASKING
           Vinfo(20)='mask_rho'
-# endif
+#  endif
           Vinfo(22)='coordinates'
           Aval(5)=REAL(Iinfo(1,idTmsk,ng),r8)
           status=def_var(ng, iNLM, HIS(ng)%ncid, HIS(ng)%Vid(idTmsk),   &
@@ -102,13 +103,35 @@
           Vinfo( 3)=Vname(3,idTton)
           Vinfo(14)=Vname(4,idTton)
           Vinfo(16)=Vname(1,idTton)
-# if defined WRITE_WATER && defined MASKING
+#  if defined WRITE_WATER && defined MASKING
           Vinfo(20)='mask_rho'
-# endif
+#  endif
           Vinfo(22)='coordinates'
           Aval(5)=REAL(Iinfo(1,idTton,ng),r8)
           status=def_var(ng, iNLM, HIS(ng)%ncid, HIS(ng)%Vid(idTton),   &
      &                   NF_FOUT, nvd3, t2dgrd, Aval, Vinfo, ncname)
           IF (exit_flag.ne.NoError) RETURN
-        END IF 
+        END IF
+!
+#  ifdef MARSH_LAT_RETREAT 
+!
+!  Amount of marsh retreat from all directions.
+!
+        IF (Hout(idTmmr,ng)) THEN 
+          Vinfo( 1)=Vname(1,idTmmr)
+          Vinfo( 2)=Vname(2,idTmmr)
+          Vinfo( 3)=Vname(3,idTmmr)
+          Vinfo(14)=Vname(4,idTmmr)
+          Vinfo(16)=Vname(1,idTmmr)
+#  if defined WRITE_WATER && defined MASKING
+          Vinfo(20)='mask_rho'
+#  endif
+          Vinfo(22)='coordinates'
+          Aval(5)=REAL(Iinfo(1,idTmmr,ng),r8)
+          status=def_var(ng, iNLM, HIS(ng)%ncid, HIS(ng)%Vid(idTmmr),   &
+     &                   NF_FOUT, nvd3, t2dgrd, Aval, Vinfo, ncname)
+          IF (exit_flag.ne.NoError) RETURN
+        END IF
+#  endif
+# endif 
 #endif 

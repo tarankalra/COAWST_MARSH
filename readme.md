@@ -1,24 +1,40 @@
 					Notes on marsh erosion
 			Written by Tarandeep S. Kalra, Neil K. Ganju, John C. Warner 
 
-Introducing new CPP flags
-#WAVE_MARSH_THRUST
-#WAVE_MARSH_SEDBEDLOAD
+This routine calls three sub-routines.                              
+ 1. Compute wave thrust on marshes.                                 
+    --> marsh_wave_thrust.F                                         
+ 2. Obtain sediment erosion from one of the two user defined methods
+    --> marsh_sed_bedload_mode1.F                                   
+    --> marsh_sed_bedload_mode2.F                                   
+ 3. Get the amount of lateral retreat based on mass flux.           
+    --> marsh_lat_retreat.F                                         
+
+CPP Flags list
+#MARSH_WAVE_EROSION
+# MARSH_WAVE_THRUST
+# MARSH_SED_BEDLOAD_MODE1
+# MARSH_SED_BEDLOAD_MODE2
+# MARSH_LAT_RETREAT
+#
 
 The vegetation test case present in COAWST/Projects/Veg_test has been modified to test the wave effect on marsh boundary and marsh erosion. Details of the test case setup can be found in section 4.3.9 in the COAWST manual. 
 
 Test case has been modified to have the marsh boundary close to the Southern boundary. The marsh extends from the Southern boundary to 2000 meters North (covering 20 grid cells).  
 
-#WAVE_MARSH_THRUST
+# MARSH_WAVE_THRUST 
 The presence of marsh is felt through a marsh masking. This is an input to the model. It can get modified if the marsh is considered fully eroded. The thrust on the the marsh is reduced based on the depth of the cell. This is output in variable name “mask_thrust”. The output thrust in the history file is the net thrust added from all the four adjacent cell faces (Thrust_tonelli).
 
-#WAVE_MARSH_SEDBEDLOAD
+# MARSH_SED_BEDLOAD_MODE1
 Only one sediment class has been used in the test case and is a cohesive class of sediment. The marsh  contains sediment bed and the properties of this bed can be modified through a combination of initial files (input netcdf file and sediment.in). When the thrust acts on the marsh boundary, the marsh erosion takes place that leads to accretion of sediment bedload on the adjacent cell face that causes the thrust. This sediment that moves to adjacent cells is available for resuspension. 
 
 COAWST files edited for setup: 
-a. ROMS/Nonlinear/Vegetation/marsh_wave_thrust.f
-b. ROMS/Nonlinear/Vegetation/marsh_sed_bedload.f
-c. ROMS/Nonlinear/Sediment/sed_bedload.f
+a. ROMS/Nonlinear/Vegetation/marsh_wave_erosion.f
+b. ROMS/Nonlinear/Vegetation/marsh_wave_thrust.f
+c. ROMS/Nonlinear/Vegetation/marsh_sed_bedload_mode1.f
+d. ROMS/Nonlinear/Vegetation/marsh_sed_bedload_mode2.f
+e. ROMS/Nonlinear/Sediment/sed_bedload.f
+f. ROMS/Nonlinear/Vegetation/marsh_lat_retreat.f
 
 Other modified files include declarations of some arrays for I/O but that would not alter the algorithmic component of the code. 
 

@@ -100,7 +100,6 @@
       USE mod_vegarr
       USE vegetation_drag_mod
 !
-!
 !  Imported variable declarations.
 !
       integer, intent(in) :: ng, tile

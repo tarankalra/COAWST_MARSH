@@ -30,13 +30,26 @@
 **                                                                    **
 **        vegetation_stream.F                                         **
 **                                                                    **
-**   *  Wave Thrust on Marsh calculation:                             **
-**                                                                    **
-**        marsh_wave_thrust.F                                         ** 
-**                                                                    **
 **   *  Vegetation biomass calculation:                               **
 **                                                                    **
 **        vegetation_biomass.F                                        **
+**                                                                    **
+**   *  Marsh wave induced erosion calculation:                       **
+**                                                                    **
+**        marsh_wave_erosion.F                                        **
+**                                                                    **
+**   *  Marsh wave thrust calculation:                                **
+**                                                                    **
+**        marsh_wave_thrust.F                                         **
+**                                                                    **
+**   *  Marsh sediment erosion calculations:                          **
+**                                                                    **
+**        marsh_sed_bedload_mode1.F                                   **
+**        marsh_sed_bedload_mode2.F                                   **
+**                                                                    **
+**   *  Marsh lateral retreat calculation:                            **
+**                                                                    **
+**        marsh_lat_retreat.F                                         **
 **                                                                    **
 **   *  Internal model parameters declarations:                       **
 **                                                                    **
