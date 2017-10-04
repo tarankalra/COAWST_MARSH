@@ -2,8 +2,8 @@
 
       MODULE marsh_lat_retreat_mod
 
-#if defined SEDIMENT && defined BEDLOAD && defined MARSH_WAVE_THRUST \
-    && defined MARSH_LAT_RETREAT_MODE1 
+#if defined MARSH_WAVE_EROSION && defined MARSH_WAVE_THRUST \
+ && defined MARSH_LAT_RETREAT 
 !
 !svn $Id: marsh_wave_thrust.F 429 2015-04-20 17:30:26Z arango $
 !=======================================================================
@@ -21,22 +21,19 @@
       implicit none
 
       PRIVATE
-      PUBLIC  :: marsh_lat_retreat_mode1
+      PUBLIC  :: marsh_lat_retreat
 
       CONTAINS
 !
 !***********************************************************************
-      SUBROUTINE marsh_lat_retreat_mode1 (ng, tile)
+      SUBROUTINE marsh_lat_retreat (ng, tile)
 !***********************************************************************
 !
-      USE mod_param
-      USE mod_forces
       USE mod_grid
       USE mod_ocean
       USE mod_vegetation 
       USE mod_vegarr
       USE mod_sedbed
-      USE mod_stepping
       USE marsh_wave_thrust_mod
 !
 !  Imported variable declarations.
@@ -47,10 +44,7 @@
 !
 # include "tile.h"
 !
-# ifdef PROFILE
-      CALL wclock_on (ng, iNLM, 16)
-# endif
-      CALL marsh_lat_retreat_mode1_tile (ng, tile,                      &
+      CALL marsh_lat_retreat_tile (ng, tile,                            & 
      &                       LBi, UBi, LBj, UBj,                        &
      &                       IminS, ImaxS, JminS, JmaxS,                &
      &                       GRID(ng) % om_r,                           &
@@ -64,15 +58,12 @@
      &                       VEG(ng) % marsh_flux_s,                    & 
      &                       SEDBED(ng) % bed,                          &
      &                       VEG(ng) % marsh_retreat)
-# ifdef PROFILE
-      CALL wclock_off (ng, iNLM, 16)
-# endif
       RETURN
-      END SUBROUTINE marsh_lat_retreat_mode1
+      END SUBROUTINE marsh_lat_retreat
 !
 !***********************************************************************
 !
-      SUBROUTINE marsh_lat_retreat_mode1_tile (ng, tile,                &
+      SUBROUTINE marsh_lat_retreat_tile (ng, tile,                &
      &                             LBi, UBi, LBj, UBj,                  &
      &                             IminS, ImaxS, JminS, JmaxS,          &
      &                             om_r, on_r,                          &
@@ -91,7 +82,7 @@
       USE mod_vegetation 
       USE mod_vegarr
       USE mod_sediment
-      USE marsh_wave_erode_mod
+      USE marsh_wave_erosion_mod
       USE bc_2d_mod, ONLY : bc_r2d_tile
       USE bc_3d_mod, ONLY : bc_r3d_tile
 
@@ -232,6 +223,6 @@
 # endif
 !
       RETURN
-      END SUBROUTINE marsh_lat_retreat_mode1_tile
+      END SUBROUTINE marsh_lat_retreat_tile
 #endif
-      END MODULE marsh_lat_retreat_mode1_mod
+      END MODULE marsh_lat_retreat_mod

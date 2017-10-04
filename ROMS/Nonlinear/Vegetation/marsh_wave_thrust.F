@@ -1,7 +1,7 @@
 #include "cppdefs.h"
  
        MODULE marsh_wave_thrust_mod
-#if defined VEGETATION && defined MARSH_WAVE_THRUST
+#if defined MARSH_WAVE_EROSION && defined MARSH_WAVE_THRUST
 !
 !svn $Id: marsh_wave_thrust.F 429 2015-04-20 17:30:26Z arango $
 !=======================================================================
@@ -59,10 +59,6 @@
 !
 # include "tile.h"
 !
-
-# ifdef PROFILE
-      CALL wclock_on (ng, iNLM, 16)
-# endif
       CALL marsh_wave_thrust_tile  (ng, tile,                           &
      &                        LBi, UBi, LBj, UBj,                       &
      &                        IminS, ImaxS, JminS, JmaxS,               &
@@ -97,9 +93,6 @@
 # endif 
      &                        OCEAN(ng)  % zeta)
               
-# ifdef PROFILE
-      CALL wclock_off (ng, iNLM, 16)
-# endif
       RETURN
       END SUBROUTINE marsh_wave_thrust
 !
@@ -147,11 +140,11 @@
       USE mod_vegarr
       USE bc_2d_mod
       USE exchange_2d_mod
-
+!
 #ifdef DISTRIBUTE
       USE mp_exchange_mod, ONLY : mp_exchange2d
 #endif
-
+!
 !  Imported variable declarations.
 !
       integer, intent(in) :: ng, tile
@@ -512,4 +505,5 @@
 !
       END SUBROUTINE depth_mask
 #endif
+!
       END MODULE marsh_wave_thrust_mod

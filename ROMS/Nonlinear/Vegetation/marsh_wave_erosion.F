@@ -12,8 +12,27 @@
 !================================================Neil K. Ganju  ========
 !==============================================Tarandeep S. Kalra=======
 !                                                                      ! 
-!  This routine calls three sub-routines.                              !
-!  1. Compute wave thrust on marshes.                                  !
+!  This routine is the main driver for marsh sediment transport and    !
+!  calls three sub-routines.                                           !
+!                                                                      !
+!  |           | Thrust North|           |                             !
+!  |-----------|-------------|-----------|                             !
+!  |Thrust West|   Marsh     |Thrust East|                             !
+!  |-----------|-------------|-----------|                             !
+!  |           |Thrust South |           |                             !
+!                                                                      !
+! A fraction of bed mass moves from marsh cell to either               !
+!  of the four neighboring cells                                       !
+!  |           |             |           |                             !
+!  |-----------|-------------|-----------|                             !
+!  |  <----    |   marsh     | ---->     |                             !
+!  | add sed   |  <----->    | add sed   |                             !
+!  |           | remove sed  |           |                             !
+!  |-----------|-------------|-----------|                             !
+!  |           |             |           |                             !
+!                                                                      !
+!                                                                      !
+!  1. Compute wave thrust on marshes.                                  !  
 !     --> marsh_wave_thrust.F                                          !
 !  2. Obtain sediment erosion from one of the two user defined methods.!
 !     --> marsh_sed_bedload_mode1.F                                    !
@@ -38,8 +57,9 @@
 !
 !***********************************************************************
 !
+      USE mod_stepping 
 # if defined MARSH_WAVE_THRUST 
-      USE mod_marsh_wave_thrust, ONLY : marsh_wave_thrust
+      USE marsh_wave_thrust_mod, ONLY : marsh_wave_thrust
 #  if defined MARSH_SED_BEDLOAD_MODE1
        USE mod_marsh_sed_bedload_mode1, ONLY : marsh_sed_bedload_mode1 
 #  endif 
@@ -66,7 +86,7 @@
 ! Wave induced thrust calculation on marsh boundary.
 !***********************************************************************
 !
-      CALL marsh_wave_thrust_mod(ng, tile)
+      CALL marsh_wave_thrust(ng, tile)
 !
 #  if defined MARSH_SED_BEDLOAD_MODE1
 !
@@ -76,6 +96,8 @@
 !
       CALL marsh_sed_bedload_mode1_mod(ng, tile) 
 !
+#  endif 
+!
 #  if defined MARSH_SED_BEDLOAD_MODE2
 !
 !***********************************************************************
@@ -83,6 +105,8 @@
 !***********************************************************************
 !
       CALL marsh_sed_bedload_mode2_mod(ng, tile) 
+!
+#  endif 
 !
 #  if defined MARSH_LAT_RETREAT
 !
@@ -93,6 +117,7 @@
       CALL marsh_lat_retreat_mod(ng, tile) 
 !
 #  endif 
+# endif 
               
 # ifdef PROFILE
       CALL wclock_off (ng, iNLM, 16)
