@@ -28,7 +28,8 @@
 !
       real(r8), dimension(200) :: Rval
 #if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
-      real(r8), allocatable :: Rmarsh(:)
+!      real(r8), allocatable :: Rmarsh(:)
+      real(r8), dimension(Ngrids) :: Rmarsh
 #endif 
 #ifdef VEG_DRAG 
       real(r8), allocatable :: Rveg(:,:)
@@ -92,29 +93,29 @@
                 END DO 
               END DO
 #endif
+!            IF (.not.allocated(Rmarsh)) allocate(Rmarsh(Ngrids))
 #if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
-            IF (.not.allocated(Rmarsh)) allocate(Rmarsh(Ngrids))
-            CASE ('KFAC_MARSH')
-              IF (.not.allocated(KFAC_MARSH))                          &
+              CASE ('KFAC_MARSH')
+                IF (.not.allocated(KFAC_MARSH))                         &
      &                 allocate(KFAC_MARSH(Ngrids))
-              Npts=load_r(Nval, Rval, Ngrids, Rmarsh)
-              DO ng=1,Ngrids
-                KFAC_MARSH(ng)=Rmarsh(ng)
-              END DO
-            CASE ('DCRIT_MARSH')
-              IF (.not.allocated(DCRIT_MARSH))                          &
+                Npts=load_r(Nval, Rval, Ngrids, Rmarsh)
+                DO ng=1,Ngrids
+                  KFAC_MARSH(ng)=Rmarsh(ng)
+                END DO
+              CASE ('DCRIT_MARSH')
+                IF (.not.allocated(DCRIT_MARSH))                        &
      &                 allocate(DCRIT_MARSH(Ngrids))
-              Npts=load_r(Nval, Rval, Ngrids, Rmarsh)
-              DO ng=1,Ngrids
-                DCRIT_MARSH(ng)=Rmarsh(ng)
-              END DO
-            CASE ('DCRIT_PORO_MARSH')
-              IF (.not.allocated(DCRIT_PORO_MARSH))                     &
+                  Npts=load_r(Nval, Rval, Ngrids, Rmarsh)
+                  DO ng=1,Ngrids
+                    DCRIT_MARSH(ng)=Rmarsh(ng)
+                  END DO
+              CASE ('DCRIT_PORO_MARSH')
+                IF (.not.allocated(DCRIT_PORO_MARSH))                   &
      &                 allocate(DCRIT_PORO_MARSH(Ngrids))
-              Npts=load_r(Nval, Rval, Ngrids, Rmarsh)
-              DO ng=1,Ngrids
-                DCRIT_PORO_MARSH(ng)=Rmarsh(ng)
-              END DO
+                  Npts=load_r(Nval, Rval, Ngrids, Rmarsh)
+                DO ng=1,Ngrids
+                  DCRIT_PORO_MARSH(ng)=Rmarsh(ng)
+                END DO
 #endif
 !
 !-----------------------------------------------------------------------
