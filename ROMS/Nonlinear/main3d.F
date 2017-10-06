@@ -131,10 +131,11 @@
 # ifdef SEDIMENT
       USE sediment_mod, ONLY : sediment
 # endif
-# if defined VEGETATION && defined MARSH_WAVE_THRUST
+# if defined VEGETATION && defined MARSH_WAVE_EROSION
       USE mod_vegetation 
       USE mod_vegarr
-      USE marsh_wave_thrust_mod, ONLY : marsh_wave_thrust
+      USE marsh_wave_erosion_mod, ONLY : marsh_wave_erosion
+!      USE marsh_wave_thrust_mod, ONLY : marsh_wave_thrust
 # endif
 # ifdef AVERAGES
       USE set_avg_mod, ONLY : set_avg
@@ -488,19 +489,7 @@
               CALL seaice
             END IF
 # endif
-# if defined VEGETATION && defined MARSH_WAVE_THRUST
 !
-!-----------------------------------------------------------------------
-!  Calculate thrust on marsh due to waves. 
-!-----------------------------------------------------------------------
-!
-            DO ig=1,GridsInLayer(nl)
-              ng=GridNumber(ig,nl)
-              DO tile=first_tile(ng),last_tile(ng),+1
-                CALL marsh_wave_thrust (ng, tile)
-              END DO
-            END DO
-# endif 
 # ifdef ADJUST_BOUNDARY
 !
 !-----------------------------------------------------------------------
@@ -895,6 +884,19 @@
 !$OMP BARRIER
             END DO
 
+# if defined VEGETATION && defined MARSH_WAVE_EROSION 
+!
+!-----------------------------------------------------------------------
+!  Calculate marsh erosion due to wave thrust. 
+!-----------------------------------------------------------------------
+!
+            DO ig=1,GridsInLayer(nl)
+              ng=GridNumber(ig,nl)
+              DO tile=first_tile(ng),last_tile(ng),+1
+                CALL marsh_wave_erosion (ng, tile)
+              END DO
+            END DO
+# endif 
 # ifndef TS_FIXED
 !
 !-----------------------------------------------------------------------

@@ -78,9 +78,9 @@
         status=nf_fwrite2d(ng, iNLM, HIS(ng)%ncid, HIS(ng)%Vid(idTims), &
      &                     HIS(ng)%Rindex, gtype,                       &
      &                     LBi, UBi, LBj, UBj, scale,                   &
-# ifdef MASKING
+#   ifdef MASKING
      &                     GRID(ng) % rmask,                            &
-# endif
+#   endif
      &                     VEG(ng)%marsh_mask,                          & 
      &                     SetFillVal= .FALSE.)
         IF (status.ne.nf90_noerr) THEN 
@@ -101,9 +101,9 @@
         status=nf_fwrite2d(ng, iNLM, HIS(ng)%ncid, HIS(ng)%Vid(idTmsk), &
      &                     HIS(ng)%Rindex, gtype,                       &
      &                     LBi, UBi, LBj, UBj, scale,                   &
-# ifdef MASKING
+#   ifdef MASKING
      &                     GRID(ng) % rmask,                            &
-# endif
+#   endif
      &                     VEG(ng)%mask_thrust,                         &
      &                     SetFillVal= .FALSE.)
         IF (status.ne.nf90_noerr) THEN 
@@ -124,9 +124,9 @@
         status=nf_fwrite2d(ng, iNLM, HIS(ng)%ncid, HIS(ng)%Vid(idTton), &
      &                     HIS(ng)%Rindex, gtype,                       &
      &                     LBi, UBi, LBj, UBj, scale,                   &
-# ifdef MASKING
+#   ifdef MASKING
      &                     GRID(ng) % rmask,                            &
-# endif
+#   endif
      &                     VEG(ng)%Thrust_tonelli,                      & 
      &                     SetFillVAl= .FALSE.)
         IF (status.ne.nf90_noerr) THEN
@@ -138,8 +138,9 @@
           RETURN
         END IF
       END IF
+# endif 
 !
-#    if defined MARSH_LAT_RETREAT
+# if defined MARSH_LAT_RETREAT
 !
 !  Amount of marsh lateral retreat.
 !
@@ -149,9 +150,9 @@
         status=nf_fwrite2d(ng, iNLM, HIS(ng)%ncid, HIS(ng)%Vid(idTmmr), &
      &                     HIS(ng)%Rindex, gtype,                       &
      &                     LBi, UBi, LBj, UBj, scale,                   &
-# ifdef MASKING
+#  ifdef MASKING
      &                     GRID(ng) % rmask,                            &
-# endif
+#  endif
      &                     VEG(ng)%marsh_retreat,                       & 
      &                     SetFillVAl= .FALSE.)
         IF (status.ne.nf90_noerr) THEN
@@ -162,7 +163,7 @@
           ioerror=status
           RETURN
         END IF
-#    endif 
+      END IF 
 #  endif 
 # endif 
 

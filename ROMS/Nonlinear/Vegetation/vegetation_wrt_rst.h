@@ -73,9 +73,9 @@
         status=nf_fwrite2d(ng, iNLM, RST(ng)%ncid, RST(ng)%Vid(idTims), &
      &                     RST(ng)%Rindex, gtype,                       &
      &                     LBi, UBi, LBj, UBj, scale,                   &
-# ifdef MASKING
+#   ifdef MASKING
      &                     GRID(ng) % rmask,                            &
-# endif
+#   endif
      &                     VEG(ng)%marsh_mask)
         IF (status.ne.nf90_noerr) THEN 
           IF (Master) THEN 
@@ -93,9 +93,9 @@
         status=nf_fwrite2d(ng, iNLM, RST(ng)%ncid, RST(ng)%Vid(idTmsk), &
      &                     RST(ng)%Rindex, gtype,                       &
      &                     LBi, UBi, LBj, UBj, scale,                   &
-# ifdef MASKING
+#   ifdef MASKING
      &                     GRID(ng) % rmask,                            &
-# endif
+#   endif
      &                     VEG(ng)%mask_thrust)
         IF (status.ne.nf90_noerr) THEN 
           IF (Master) THEN 
@@ -113,9 +113,9 @@
         status=nf_fwrite2d(ng, iNLM, RST(ng)%ncid, RST(ng)%Vid(idTton), &
      &                     RST(ng)%Rindex, gtype,                       &    
      &                     LBi, UBi, LBj, UBj, scale,                   &
-# ifdef MASKING
+#   ifdef MASKING
      &                     GRID(ng) % rmask,                            &
-# endif
+#   endif
      &                     VEG(ng)%Thrust_tonelli)
         IF (status.ne.nf90_noerr) THEN
           IF (Master) THEN
@@ -125,8 +125,9 @@
           ioerror=status
           RETURN
         END IF
+#  endif 
 !
-#    ifdef MARSH_LAT_RETREAT
+#  ifdef MARSH_LAT_RETREAT
 !
 !  Amount of marsh retreat from all directions. 
 !
@@ -135,9 +136,9 @@
         status=nf_fwrite2d(ng, iNLM, RST(ng)%ncid, RST(ng)%Vid(idTmmr), &
      &                     RST(ng)%Rindex, gtype,                       &    
      &                     LBi, UBi, LBj, UBj, scale,                   &
-# ifdef MASKING
+#   ifdef MASKING
      &                     GRID(ng) % rmask,                            &
-# endif
+#   endif
      &                     VEG(ng)%marsh_retreat)
         IF (status.ne.nf90_noerr) THEN
           IF (Master) THEN
@@ -148,7 +149,6 @@
           RETURN
         END IF
 !
-#    endif
-#  endif 
+#  endif
 # endif 
 

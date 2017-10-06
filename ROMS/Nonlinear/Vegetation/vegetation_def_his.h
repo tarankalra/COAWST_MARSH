@@ -112,8 +112,9 @@
      &                   NF_FOUT, nvd3, t2dgrd, Aval, Vinfo, ncname)
           IF (exit_flag.ne.NoError) RETURN
         END IF
+# endif 
 !
-#  ifdef MARSH_LAT_RETREAT 
+# ifdef MARSH_LAT_RETREAT 
 !
 !  Amount of marsh retreat from all directions.
 !
@@ -132,6 +133,5 @@
      &                   NF_FOUT, nvd3, t2dgrd, Aval, Vinfo, ncname)
           IF (exit_flag.ne.NoError) RETURN
         END IF
-#  endif
-# endif 
+# endif
 #endif 
