@@ -60,6 +60,12 @@
      &                       VEG(ng) % Thrust_e,                        &
      &                       VEG(ng) % Thrust_n,                        &
      &                       VEG(ng) % Thrust_s,                        &
+# ifdef MARSH_LAT_RETREAT
+     &                       VEG(ng) % marsh_flux_e,                    &
+     &                       VEG(ng) % marsh_flux_w,                    &
+     &                       VEG(ng) % marsh_flux_n,                    &
+     &                       VEG(ng) % marsh_flux_s,                    &
+# endif 
      &                    SEDBED(ng) % bed_frac,                        &
      &                    SEDBED(ng) % bed,                             &
      &                    SEDBED(ng) % bed_mass,                        &
@@ -78,6 +84,10 @@
      &                             nstp, nnew,                          &
      &                             Thrust_w, Thrust_e,                  &
      &                             Thrust_n, Thrust_s,                  &
+# ifdef MARSH_LAT_RETREAT
+     &                             marsh_flux_e, marsh_flux_w,          &
+     &                             marsh_flux_n, marsh_flux_s,          &
+# endif 
      &                             bed_frac, bed, bed_mass,             &
      &                             marsh_mask)
 !***********************************************************************
@@ -105,31 +115,44 @@
       integer, intent(in) :: IminS, ImaxS, JminS, JmaxS
       integer, intent(in) :: nstp, nnew
 !
+      real(r8), intent(in) :: om_r(LBi:,LBj:)
+      real(r8), intent(in) :: on_r(LBi:,LBj:)
 # ifdef ASSUMED_SHAPE
       real(r8), intent(in) :: Thrust_w(LBi:,LBj:)
       real(r8), intent(in) :: Thrust_e(LBi:,LBj:)
       real(r8), intent(in) :: Thrust_n(LBi:,LBj:)
       real(r8), intent(in) :: Thrust_s(LBi:,LBj:)
-      real(r8), intent(in) :: om_r(LBi:,LBj:)
-      real(r8), intent(in) :: on_r(LBi:,LBj:)
-
+# ifdef MARSH_LAT_RETREAT
+      real(r8), intent(inout) :: marsh_flux_w(LBi:,LBj:)
+      real(r8), intent(inout) :: marsh_flux_e(LBi:,LBj:)
+      real(r8), intent(inout) :: marsh_flux_n(LBi:,LBj:)
+      real(r8), intent(inout) :: marsh_flux_s(LBi:,LBj:)
+# endif 
+!
       real(r8), intent(inout) :: bed(LBi:,LBj:,:,:)
       real(r8), intent(inout) :: bed_frac(LBi:,LBj:,:,:)
       real(r8), intent(inout) :: bed_mass(LBi:,LBj:,:,:,:)
-
+!
       real(r8), intent(inout) :: marsh_mask(LBi:,LBj:)
 # else
+      real(r8), intent(in) :: om_r(LBi:UBi,LBj:UBj)
+      real(r8), intent(in) :: on_r(LBi:UBi,LBj:UBj)
+!
       real(r8), intent(in) :: Thrust_w(LBi:UBi,LBj:UBj)
       real(r8), intent(in) :: Thrust_e(LBi:UBi,LBj:UBj)
       real(r8), intent(in) :: Thrust_n(LBi:UBi,LBj:UBj)
       real(r8), intent(in) :: Thrust_s(LBi:UBi,LBj:UBj)
-      real(r8), intent(in) :: om_r(LBi:UBi,LBj:UBj)
-      real(r8), intent(in) :: on_r(LBi:UBi,LBj:UBj)
-
+# ifdef MARSH_LAT_RETREAT
+      real(r8), intent(inout) :: marsh_flux_w(LBi:UBi,LBj:UBj)
+      real(r8), intent(inout) :: marsh_flux_e(LBi:UBi,LBj:UBj)
+      real(r8), intent(inout) :: marsh_flux_n(LBi:UBi,LBj:UBj)
+      real(r8), intent(inout) :: marsh_flux_s(LBi:UBi,LBj:UBj)
+# endif 
+!
       real(r8), intent(inout) :: bed(LBi:UBi,LBj:UBj,Nbed,MBEDP)
       real(r8), intent(inout) :: bed_frac(LBi:UBi,LBj:UBj,Nbed,NST)
       real(r8), intent(inout) :: bed_mass(LBi:UBi,LBj:UBj,Nbed,1:2,NST)
-
+!
       real(r8), intent(inout) :: marsh_mask(LBi:UBi,LBj:UBj)
 # endif
 !
@@ -137,13 +160,6 @@
 !
       integer :: i, ised, iveg, j, k
       real(r8) :: cff, cff1, cff2, cff3, cff4
-!
-!-----------------------------------------------------------------------
-! Save the initial in a local array bed_ini 
-! The change in marsh erosion uses this array
-!-----------------------------------------------------------------------
-!
-      real(r8), dimension(IminS:ImaxS,JminS:JmaxS,NST) :: bed_ini
       real(r8) :: Thrust_crit, crit_bed_mass
       real(r8) :: Eff_thrust 
       real(r8), parameter :: eps = 1.0E-14_r8 ! , dcrit_marsh=0.5_r8 
@@ -183,17 +199,24 @@
 !|
 !
 !
+            cff1=bed_mass(i,j,1,nnew,ised)
 !-----------------------------------------------------------------------
 ! Thrust from West cell face leads to sediment addition on left cell
 !-----------------------------------------------------------------------
 !
             cff=on_r(i,j)*dt(ng)
-            cff1=bed_mass(i,j,1,nnew,ised)
             Eff_thrust=MAX((ABS(Thrust_w(i,j))-Thrust_crit),0.0_r8)
             cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff*cff1,cff1)
             bed_mass(i-1,j,1,nnew,ised)=bed_mass(i-1,j,1,nnew,ised)+    &
                                         cff2
-
+!
+# if defined MARSH_LAT_RETREAT
+!
+! Save the marsh flux 
+!
+            marsh_flux_w(i,j)=cff2
+# endif 
+!
             IF(Eff_thrust.gt.0.0_r8) THEN
               cff3=1.0_r8
               cff1=MAX(cff1-cff2*cff3,0.0_r8)
@@ -225,8 +248,15 @@
             Eff_thrust=MAX((ABS(Thrust_e(i+1,j))-Thrust_crit),0.0_r8)   
             cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff*cff1,cff1)
             bed_mass(i+1,j,1,nnew,ised)=bed_mass(i+1,j,1,nnew,ised)+    &
-                                        cff2
-
+                                                               cff2
+!
+# if defined MARSH_LAT_RETREAT
+!
+! Save the marsh flux 
+!
+            marsh_flux_e(i+1,j)=cff2
+# endif 
+!
             IF(Eff_thrust.gt.0.0_r8) THEN
               cff3=1.0_r8
               cff1=MAX(cff1-cff2*cff3,0.0_r8)
@@ -260,7 +290,14 @@
             Eff_thrust=MAX((ABS(Thrust_n(i,j+1))-Thrust_crit),0.0_r8)
             cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff*cff1,cff1)
             bed_mass(i,j+1,1,nnew,ised)=bed_mass(i,j+1,1,nnew,ised)+    &
-                                        cff2
+                                                               cff2
+!
+# if defined MARSH_LAT_RETREAT
+!
+! Save the marsh flux
+! 
+            marsh_flux_n(i,j+1)=cff2
+# endif
 !
             IF(Eff_thrust.gt.0.0_r8) THEN
               cff3=1.0_r8
@@ -292,7 +329,14 @@
             Eff_thrust=MAX((ABS(Thrust_s(i,j))-Thrust_crit),0.0_r8)
             cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff*cff1,cff1)
             bed_mass(i,j-1,1,nnew,ised)=bed_mass(i,j-1,1,nnew,ised)+    &
-                                        cff2
+                                                               cff2
+!
+# if defined MARSH_LAT_RETREAT
+!
+! Save the marsh flux
+! 
+            marsh_flux_s(i,j)=cff2
+# endif 
 !
             IF(Eff_thrust.gt.0.0_r8) THEN
               cff3=1.0_r8

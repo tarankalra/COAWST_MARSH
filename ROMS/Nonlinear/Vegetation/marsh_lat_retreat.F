@@ -3,6 +3,7 @@
       MODULE marsh_lat_retreat_mod
 
 #if defined MARSH_WAVE_EROSION && defined MARSH_WAVE_THRUST \
+ && defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2 \
  && defined MARSH_LAT_RETREAT 
 !
 !svn $Id: marsh_wave_thrust.F 429 2015-04-20 17:30:26Z arango $
@@ -33,8 +34,10 @@
       USE mod_ocean
       USE mod_vegetation 
       USE mod_vegarr
+      USE mod_sediment
       USE mod_sedbed
-      USE marsh_wave_thrust_mod
+      USE marsh_sed_bedload_mode1_mod
+!      USE marsh_wave_thrust_mod
 !
 !  Imported variable declarations.
 !
@@ -77,15 +80,17 @@
 !***********************************************************************
 !
       USE mod_param
-      USE mod_ncparam
+!      USE mod_ncparam
       USE mod_scalars
       USE mod_vegetation 
       USE mod_vegarr
       USE mod_sediment
-      USE marsh_wave_erosion_mod
+      USE mod_sedbed
+!      USE marsh_wave_thrust_mod
+      USE marsh_sed_bedload_mode1_mod
       USE bc_2d_mod, ONLY : bc_r2d_tile
       USE bc_3d_mod, ONLY : bc_r3d_tile
-
+!
       USE exchange_2d_mod, ONLY : exchange_r2d_tile
 # ifdef DISTRIBUTE
       USE mp_exchange_mod, ONLY : mp_exchange2d, mp_exchange3d
@@ -97,7 +102,7 @@
       integer, intent(in) :: ng, tile
       integer, intent(in) :: LBi, UBi, LBj, UBj
       integer, intent(in) :: IminS, ImaxS, JminS, JmaxS
-      integer, intent(in) :: nstp, nnew
+!      integer, intent(in) :: nstp, nnew
 !
 # ifdef ASSUMED_SHAPE
       real(r8), intent(in) :: om_r(LBi:,LBj:)
@@ -133,18 +138,10 @@
 !
 !  Local variable declarations.
 !
-      integer :: i, ised, iveg, j, k
-      real(r8) :: cff, cff1, cff2, cff3, cff4
-!
-!-----------------------------------------------------------------------
-! Save the initial in a local array bed_ini 
-! The change in marsh erosion uses this array
-!-----------------------------------------------------------------------
-!
-      real(r8), dimension(IminS:ImaxS,JminS:JmaxS,NST) :: bed_ini
-      real(r8) :: Thrust_crit, crit_bed_mass
-      real(r8) :: Eff_thrust 
-      real(r8), parameter :: eps = 1.0E-14_r8 ! , dcrit_marsh=0.5_r8 
+      integer :: i, ised, j, k
+      real(r8) :: cff, cff1
+      real(r8) :: Vol_erod, scarp_height_eff
+      real(r8) :: dx_e, dx_w, dy_n, dy_s 
 !
 # include "set_bounds.h"
 !
@@ -152,10 +149,6 @@
 ! Compute some constant of marsh sediment (May be would be input). 
 !-----------------------------------------------------------------------
 !     
-! Critical thrust or erosion thrust value to be decided 
-!
-      Thrust_crit=0.0_r8
-!
       DO ised=NCS+1,NST
         DO j=Jstr,Jend
           DO i=Istr,Iend
@@ -163,7 +156,7 @@
 ! Get the area and effective density to obtain eroded volume 
 ! 
             cff=1.0_r8/(om_r(i,j)*on_r(i,j))
-            cff1=1.0_r8/(Srho(ised,ng)*(1.0_r8-bed_poros(i,j,1,ised)))
+            cff1=1.0_r8/(Srho(ised,ng)*(1.0_r8-bed(i,j,1,iporo)))
             scarp_height_eff=h(i,j)+zeta(i,j,3)
 !
 !  |           | Flux North  |         |
@@ -215,7 +208,7 @@
      &                  LBi, UBi, LBj, UBj,                             &
      &                  marsh_retreat)
 # ifdef DISTRIBUTE
-        CALL mp_exchange2d (ng, tile, iNLM, 2,                          &
+        CALL mp_exchange2d (ng, tile, iNLM, 1,                          &
      &                        LBi, UBi, LBj, UBj,                       &
      &                        NghostPoints,                             &
      &                        EWperiodic(ng), NSperiodic(ng),           &

@@ -49,8 +49,7 @@
 !  marsh_mask     User input of marsh masking at MSL                   ! 
 !  mask_thrust    Tonellis masking wave thrust on marshes              !
 !  Thrust_tonelli Net magnitude of Tonelli thrust                      !
-#   if defined MARSH_SED_BEDLOAD_MODE1 ||  
-     \\ defined MARSH_SED_BEDLOAD_MODE2
+#   if defined MARSH_SED_BEDLOAD_MODE1 ||  defined MARSH_SED_BEDLOAD_MODE2
 !   Thrust_w       Tonelli thrust on West marsh face                   ! 
 !   Thrust_e       Tonelli thrust on East marsh face                   ! 
 !   Thrust_n       Tonelli thrust on North marsh face                  ! 
