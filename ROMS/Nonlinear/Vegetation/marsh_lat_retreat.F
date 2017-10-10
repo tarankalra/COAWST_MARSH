@@ -155,7 +155,7 @@
 ! 
 ! Get the area and effective density to obtain eroded volume 
 ! 
-            cff=1.0_r8/(om_r(i,j)*on_r(i,j))
+            cff=(om_r(i,j)*on_r(i,j))
             cff1=1.0_r8/(Srho(ised,ng)*(1.0_r8-bed(i,j,1,iporo)))
             scarp_height_eff=h(i,j)+zeta(i,j,3)
 !
@@ -194,6 +194,7 @@
             dy_s=Vol_erod/(scarp_height_eff*om_r(i,j))
 !
             marsh_retreat(i,j)=marsh_mask(i,j)*(dx_e+dx_w+dy_n+dy_s)
+            write(61,*) i,j,marsh_retreat(i,j)
 !
           END DO
         END DO 
