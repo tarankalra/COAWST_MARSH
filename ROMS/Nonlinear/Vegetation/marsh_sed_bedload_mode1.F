@@ -164,10 +164,10 @@
 # include "set_bounds.h"
 !
 # if defined MARSH_LAT_RETREAT
-      marsh_flux_e=0.0_r8
-      marsh_flux_w=0.0_r8
-      marsh_flux_n=0.0_r8
-      marsh_flux_s=0.0_r8
+!      marsh_flux_e=0.0_r8
+!      marsh_flux_w=0.0_r8
+!      marsh_flux_n=0.0_r8
+!      marsh_flux_s=0.0_r8
 # endif 
 !
 !-----------------------------------------------------------------------
@@ -301,7 +301,6 @@
 ! Save the marsh flux
 ! 
             marsh_flux_n(i,j+1)=cff2+marsh_flux_n(i,j+1)
-            write(60,*) iic(ng),i,j,marsh_flux_n(i,j+1)
 # endif
 !
             IF(Eff_thrust.gt.0.0_r8) THEN
