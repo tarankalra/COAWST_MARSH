@@ -159,7 +159,7 @@
         DO i=Istr,Iend
           cff1=1.0_r8
           DO ised=NCS+1,NST
-            cff1=cff1*Srho(ised,ng)**bed_frac(i,j,1,ised)
+            cff1=cff1*Srho(ised,ng)*bed_frac(i,j,1,ised)
           END DO
           srho_mean(i,j)=MAX(cff1,1050.0_r8)
         END DO
@@ -173,7 +173,6 @@
 !  
           cff=(om_r(i,j)*on_r(i,j))
           cff1=1.0_r8/((srho_mean(i,j))*(1.0_r8-bed(i,j,1,iporo)))
-          scarp_height_eff=h(i,j)+zeta(i,j,3)
 !
 !  |           | Flux North  |         |
 !--|---------- |-------------|---------|-------------
@@ -185,30 +184,32 @@
 ! West cell face erosion volume
 !-----------------------------------------------------------------------
 !
-          Vol_erod=marsh_flux_w(i,j)*cff*cff1
-          dx_e=Vol_erod/(scarp_height_eff*on_r(i,j))
+          Vol_erod=marsh_flux_e(i+1,j)*cff*cff1
+          scarp_height_eff=ABS(h(i,j)+zeta(i+1,j,3))
+          dx_w=Vol_erod/(scarp_height_eff*on_r(i,j))
 !
 !-----------------------------------------------------------------------
 ! East cell face erosion volume
 !-----------------------------------------------------------------------
 !
-          Vol_erod=marsh_flux_e(i+1,j)*cff*cff1
-          dx_w=Vol_erod/(scarp_height_eff*on_r(i,j))
+          Vol_erod=marsh_flux_w(i,j)*cff*cff1
+          scarp_height_eff=ABS(h(i,j)+zeta(i-1,j,3))
+          dx_e=Vol_erod/(scarp_height_eff*on_r(i,j))
 !
 !-----------------------------------------------------------------------
 ! North cell face erosion volume
 !-----------------------------------------------------------------------
 !
           Vol_erod=marsh_flux_n(i,j+1)*cff*cff1
+          scarp_height_eff=ABS(h(i,j)+zeta(i,j+1,3))
           dy_n=Vol_erod/(scarp_height_eff*om_r(i,j))
-           write(60,*) iic(ng),i,j,dy_n
-           write(61,*) iic(ng),i,j,marsh_flux_n(i,j+1)
 !
 !-----------------------------------------------------------------------
 ! South cell face erosion volume
 !-----------------------------------------------------------------------
 !
           Vol_erod=marsh_flux_s(i,j)*cff*cff1
+          scarp_height_eff=ABS(h(i,j)+zeta(i,j-1,3))
           dy_s=Vol_erod/(scarp_height_eff*om_r(i,j))
 !
 !-----------------------------------------------------------------------
