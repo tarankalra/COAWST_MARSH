@@ -2,9 +2,10 @@
 
       MODULE marsh_lat_retreat_mod
 
-#if defined MARSH_WAVE_EROSION && defined MARSH_WAVE_THRUST \
- && defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2 \
- && defined MARSH_LAT_RETREAT 
+#if defined MARSH_WAVE_EROSION && defined MARSH_LAT_RETREAT
+!#if defined MARSH_WAVE_EROSION && defined MARSH_WAVE_THRUST \
+! && defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2 \
+! && defined MARSH_LAT_RETREAT 
 !
 !svn $Id: marsh_wave_thrust.F 429 2015-04-20 17:30:26Z arango $
 !=======================================================================
@@ -216,7 +217,8 @@
 ! Total amount of retreat from all four directions
 !-----------------------------------------------------------------------
 !
-          marsh_retreat(i,j)=marsh_mask(i,j)*(dx_e+dx_w+dy_n+dy_s)
+          marsh_retreat(i,j)=marsh_mask(i,j)*(dx_e+dx_w+dy_n+dy_s)+     &
+      &                      marsh_retreat(i,j)
 !
         END DO
       END DO 
