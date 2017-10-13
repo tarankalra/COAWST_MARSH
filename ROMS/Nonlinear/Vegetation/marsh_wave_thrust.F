@@ -355,7 +355,7 @@
 !
           cff=half*(1.0_r8+SIGN(1.0_r8,FX(i-1,j)))
           Thrust_loc_w=umask_marsh(i,j)*FX(i-1,j)*cff*                  &
-                       mask_thrust_w
+                       mask_thrust_w*marsh_mask(i,j)
 # if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
           Thrust_w(i,j)=Thrust_loc_w
 #  endif
@@ -366,7 +366,7 @@
 !
           cff=half*(1.0_r8-SIGN(1.0_r8,FX(i+1,j)))
           Thrust_loc_e=umask_marsh(i+1,j)*FX(i+1,j)*cff*                &
-                       mask_thrust_e
+                       mask_thrust_e*marsh_mask(i,j)
 # if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
           Thrust_e(i+1,j)=Thrust_loc_e
 #  endif
@@ -382,7 +382,7 @@
 !
           cff=half*(1.0_r8-SIGN(1.0_r8,FY(i,j+1)))
           Thrust_loc_n=vmask_marsh(i,j+1)*FY(i,j+1)*cff*                &
-                       mask_thrust_n
+                       mask_thrust_n*marsh_mask(i,j)
 # if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
           Thrust_n(i,j+1)=Thrust_loc_n
 #  endif
@@ -393,7 +393,7 @@
 !
           cff=half*(1.0_r8+SIGN(1.0_r8,FY(i,j-1)))
           Thrust_loc_s=vmask_marsh(i,j)*FY(i,j-1)*cff*                  &
-                       mask_thrust_s
+                       mask_thrust_s*marsh_mask(i,j)
 !
 # if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
           Thrust_s(i,j)=Thrust_loc_s
@@ -405,7 +405,7 @@
           Thrust_tonelli(i,j)=ABS(Thrust_loc_w)+ABS(Thrust_loc_e)+      &
      &                        ABS(Thrust_loc_n)+ABS(Thrust_loc_s)
 !
-          Thrust_tonelli(i,j)=Thrust_tonelli(i,j)*marsh_mask(i,j)
+          Thrust_tonelli(i,j)=Thrust_tonelli(i,j)
          
         END DO
       END DO
