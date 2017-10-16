@@ -186,8 +186,9 @@
 !
 ! 
 ! Thrust has units kNewton/m or kg/sec2 
-! kfac needs to have the units of kg-m/sec 
-! Thrust*kfac has to have units of kg 
+! Eroded mass (kg/m2)= thrust * dx * dt / (dx * dy)
+!    where dx is the along-marsh-edge distance
+! kfac needs to have the units of sec/m 
 !
 ! A fraction of bed mass moves from this cell to either
 ! of the four neighboring cells if a critical thrust exceeds 
@@ -206,7 +207,7 @@
 !
             cff=on_r(i,j)*dt(ng)
             Eff_thrust=MAX((ABS(Thrust_w(i,j))-Thrust_crit),0.0_r8)
-            cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff*cff1,cff1)
+            cff2=MIN(Eff_thrust*kfac_marsh(ng)*dt(ng)/on_r(i,j),cff1)
             bed_mass(i-1,j,1,nnew,ised)=bed_mass(i-1,j,1,nnew,ised)+    &
                                         cff2
 !
@@ -246,7 +247,7 @@
 !-----------------------------------------------------------------------
 !
             Eff_thrust=MAX((ABS(Thrust_e(i+1,j))-Thrust_crit),0.0_r8)   
-            cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff*cff1,cff1)
+            cff2=MIN(Eff_thrust*kfac_marsh(ng)*dt(ng)/on_r(i,j),cff1)
             bed_mass(i+1,j,1,nnew,ised)=bed_mass(i+1,j,1,nnew,ised)+    &
                                                                cff2
 !
@@ -288,7 +289,7 @@
             cff=om_r(i,j)*dt(ng)
 !
             Eff_thrust=MAX((ABS(Thrust_n(i,j+1))-Thrust_crit),0.0_r8)
-            cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff*cff1,cff1)
+            cff2=MIN(Eff_thrust*kfac_marsh(ng)*dt(ng)/om_r(i,j),cff1)
             bed_mass(i,j+1,1,nnew,ised)=bed_mass(i,j+1,1,nnew,ised)+    &
                                                                cff2
 !
@@ -327,7 +328,7 @@
 !-----------------------------------------------------------------------
 !
             Eff_thrust=MAX((ABS(Thrust_s(i,j))-Thrust_crit),0.0_r8)
-            cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff*cff1,cff1)
+            cff2=MIN(Eff_thrust*kfac_marsh(ng)*dt(ng)/om_r(i,j),cff1)
             bed_mass(i,j-1,1,nnew,ised)=bed_mass(i,j-1,1,nnew,ised)+    &
                                                                cff2
 !
