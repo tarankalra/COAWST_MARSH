@@ -247,6 +247,7 @@
 !  Marsh mask at U-points and V-points.
 !----------------------------------------------------------------------
 !
+      write(62,*) "Hello"
       umask_marsh=Inival
       vmask_marsh=Inival
       FX=Inival
@@ -319,8 +320,8 @@
           Integral_kp=sinh(kw*h(i,j))/(kw*cosh(h(i,j)*kw))
 !
           cff1=rho0*g*Hwave(i,j)
-          F_bsl=cff1*Integral_kp*0.001_r8
-          F_asl=cff1*Hwave(i,j)*0.5_r8*0.001_r8
+          F_bsl=cff1*Integral_kp
+          F_asl=cff1*Hwave(i,j)*0.5_r8
 !
 !---------------------------------------------------------------------
 !  Total wave thrust at mean sea level.
