@@ -199,6 +199,15 @@
                 RETURN
               END IF
               Npts=load_l(Nval, Cval, Ngrids, Hout(idTton,:))
+# ifdef MARSH_LAT_RETREAT
+            CASE ('Hout(idTmmr)')
+              IF (idTmmr.eq.0) THEN 
+                IF (Master) WRITE (out,30) 'idTmmr'
+                exit_flag=5
+                RETURN
+              END IF
+              Npts=load_l(Nval, Cval, Ngrids, Hout(idTmmr,:))
+# endif 
 #endif
           END SELECT
         END IF

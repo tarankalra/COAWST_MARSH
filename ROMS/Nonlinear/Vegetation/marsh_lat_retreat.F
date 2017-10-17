@@ -2,9 +2,10 @@
 
       MODULE marsh_lat_retreat_mod
 
-#if defined MARSH_WAVE_EROSION && defined MARSH_WAVE_THRUST \
- && defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2 \
- && defined MARSH_LAT_RETREAT 
+#if defined MARSH_WAVE_EROSION && defined MARSH_LAT_RETREAT
+!#if defined MARSH_WAVE_EROSION && defined MARSH_WAVE_THRUST \
+! && defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2 \
+! && defined MARSH_LAT_RETREAT 
 !
 !svn $Id: marsh_wave_thrust.F 429 2015-04-20 17:30:26Z arango $
 !=======================================================================
@@ -36,8 +37,12 @@
       USE mod_vegarr
       USE mod_sediment
       USE mod_sedbed
+# if defined MARSH_SED_BEDLOAD_MODE1 
       USE marsh_sed_bedload_mode1_mod
-!      USE marsh_wave_thrust_mod
+# endif 
+# if defined MARSH_SED_BEDLOAD_MODE2
+      USE marsh_sed_bedload_mode2_mod
+# endif 
 !
 !  Imported variable declarations.
 !
@@ -59,6 +64,7 @@
      &                       VEG(ng) % marsh_flux_w,                    &
      &                       VEG(ng) % marsh_flux_n,                    &
      &                       VEG(ng) % marsh_flux_s,                    & 
+     &                       SEDBED(ng) % bed_frac,                     &
      &                       SEDBED(ng) % bed,                          &
      &                       VEG(ng) % marsh_retreat)
       RETURN
@@ -66,7 +72,7 @@
 !
 !***********************************************************************
 !
-      SUBROUTINE marsh_lat_retreat_tile (ng, tile,                &
+      SUBROUTINE marsh_lat_retreat_tile (ng, tile,                      &
      &                             LBi, UBi, LBj, UBj,                  &
      &                             IminS, ImaxS, JminS, JmaxS,          &
      &                             om_r, on_r,                          &
@@ -74,20 +80,23 @@
      &                             marsh_mask,                          &
      &                             marsh_flux_e, marsh_flux_w,          &
      &                             marsh_flux_n, marsh_flux_s,          & 
-     &                             bed,                                 &
+     &                             bed_frac, bed,                       &
      &                             marsh_retreat)
 !
 !***********************************************************************
 !
       USE mod_param
-!      USE mod_ncparam
       USE mod_scalars
       USE mod_vegetation 
       USE mod_vegarr
       USE mod_sediment
       USE mod_sedbed
-!      USE marsh_wave_thrust_mod
+# if defined MARSH_SED_BEDLOAD_MODE1 
       USE marsh_sed_bedload_mode1_mod
+# endif 
+# if defined MARSH_SED_BEDLOAD_MODE2
+      USE marsh_sed_bedload_mode2_mod
+# endif 
       USE bc_2d_mod, ONLY : bc_r2d_tile
       USE bc_3d_mod, ONLY : bc_r3d_tile
 !
@@ -102,7 +111,6 @@
       integer, intent(in) :: ng, tile
       integer, intent(in) :: LBi, UBi, LBj, UBj
       integer, intent(in) :: IminS, ImaxS, JminS, JmaxS
-!      integer, intent(in) :: nstp, nnew
 !
 # ifdef ASSUMED_SHAPE
       real(r8), intent(in) :: om_r(LBi:,LBj:)
@@ -116,6 +124,7 @@
       real(r8), intent(in) :: marsh_flux_n(LBi:,LBj:)
       real(r8), intent(in) :: marsh_flux_s(LBi:,LBj:)
 ! 
+      real(r8), intent(in) :: bed_frac(LBi:,LBj:,:,:)
       real(r8), intent(in) :: bed(LBi:,LBj:,:,:)
 !
       real(r8), intent(inout) :: marsh_retreat(LBi:,LBj:)
@@ -131,6 +140,7 @@
       real(r8), intent(in) :: marsh_flux_n(LBi:UBi,LBj:UBj) 
       real(r8), intent(in) :: marsh_flux_s(LBi:UBi,LBj:UBj)
 !
+      real(r8), intent(in) :: bed_frac(LBi:UBi,LBj:UBj,Nbed,NST)
       real(r8), intent(in) :: bed(LBi:UBi,LBj:UBj,Nbed,MBEDP)
 !
       real(r8), intent(inout) :: marsh_retreat(LBi:UBi,LBj:UBj)
@@ -142,22 +152,28 @@
       real(r8) :: cff, cff1
       real(r8) :: Vol_erod, scarp_height_eff
       real(r8) :: dx_e, dx_w, dy_n, dy_s 
+      real(r8), dimension(IminS:ImaxS,JminS:JmaxS) :: srho_mean
 !
 # include "set_bounds.h"
 !
-!-----------------------------------------------------------------------
-! Compute some constant of marsh sediment (May be would be input). 
-!-----------------------------------------------------------------------
-!     
-      DO ised=NCS+1,NST
-        DO j=Jstr,Jend
-          DO i=Istr,Iend
-! 
-! Get the area and effective density to obtain eroded volume 
-! 
-            cff=1.0_r8/(om_r(i,j)*on_r(i,j))
-            cff1=1.0_r8/(Srho(ised,ng)*(1.0_r8-bed(i,j,1,iporo)))
-            scarp_height_eff=h(i,j)+zeta(i,j,3)
+      J_LOOP : DO j=Jstr,Jend
+        DO i=Istr,Iend
+          cff1=1.0_r8
+          DO ised=NCS+1,NST
+            cff1=cff1*Srho(ised,ng)*bed_frac(i,j,1,ised)
+          END DO
+          srho_mean(i,j)=MAX(cff1,1050.0_r8)
+        END DO
+      END DO J_LOOP
+!
+      DO j=Jstr,Jend
+        DO i=Istr,Iend
+!
+! Use an average Srho here and remove the sediment loop because 
+! marsh flux from each face already adds the sediment classes 
+!  
+          cff=(om_r(i,j)*on_r(i,j))
+          cff1=1.0_r8/((srho_mean(i,j))*(1.0_r8-bed(i,j,1,iporo)))
 !
 !  |           | Flux North  |         |
 !--|---------- |-------------|---------|-------------
@@ -169,35 +185,43 @@
 ! West cell face erosion volume
 !-----------------------------------------------------------------------
 !
-            Vol_erod=marsh_flux_w(i,j)*cff*cff1
-            dx_e=Vol_erod/(scarp_height_eff*on_r(i,j))
+          Vol_erod=marsh_flux_e(i+1,j)*cff*cff1
+          scarp_height_eff=ABS(h(i,j)+zeta(i+1,j,3))
+          dx_w=Vol_erod/(scarp_height_eff*on_r(i,j))
 !
 !-----------------------------------------------------------------------
 ! East cell face erosion volume
 !-----------------------------------------------------------------------
 !
-            Vol_erod=marsh_flux_e(i+1,j)*cff*cff1
-            dx_w=Vol_erod/(scarp_height_eff*on_r(i,j))
+          Vol_erod=marsh_flux_w(i,j)*cff*cff1
+          scarp_height_eff=ABS(h(i,j)+zeta(i-1,j,3))
+          dx_e=Vol_erod/(scarp_height_eff*on_r(i,j))
 !
 !-----------------------------------------------------------------------
 ! North cell face erosion volume
 !-----------------------------------------------------------------------
 !
-            Vol_erod=marsh_flux_n(i,j+1)*cff*cff1
-            dy_n=Vol_erod/(scarp_height_eff*om_r(i,j))
+          Vol_erod=marsh_flux_n(i,j+1)*cff*cff1
+          scarp_height_eff=ABS(h(i,j)+zeta(i,j+1,3))
+          dy_n=Vol_erod/(scarp_height_eff*om_r(i,j))
 !
 !-----------------------------------------------------------------------
 ! South cell face erosion volume
 !-----------------------------------------------------------------------
 !
-            Vol_erod=marsh_flux_s(i,j)*cff*cff1
-            dy_s=Vol_erod/(scarp_height_eff*om_r(i,j))
+          Vol_erod=marsh_flux_s(i,j)*cff*cff1
+          scarp_height_eff=ABS(h(i,j)+zeta(i,j-1,3))
+          dy_s=Vol_erod/(scarp_height_eff*om_r(i,j))
 !
-            marsh_retreat(i,j)=marsh_mask(i,j)*(dx_e+dx_w+dy_n+dy_s)
+!-----------------------------------------------------------------------
+! Total amount of retreat from all four directions
+!-----------------------------------------------------------------------
 !
-          END DO
-        END DO 
-      END DO
+          marsh_retreat(i,j)=marsh_mask(i,j)*(dx_e+dx_w+dy_n+dy_s)+     &
+      &                      marsh_retreat(i,j)
+!
+        END DO
+      END DO 
 !
 !---------------------------------------------------------------------
 !  Apply periodic or gradient boundary conditions for output
