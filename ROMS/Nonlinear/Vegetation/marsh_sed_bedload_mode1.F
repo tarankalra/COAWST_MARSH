@@ -157,9 +157,10 @@
 !
 !  Local variable declarations.
 !
-      integer :: i, j, k, ised 
+      integer :: i, j, k, ised
+      real(r8), parameter :: kN_N = 1000.0_r8 ! convert Thrust from kN to N 
       real(r8) :: cff, cff1, cff2, cff3, cff4
-      real(r8) :: Thrust_crit, Eff_thrust 
+      real(r8) :: Eff_thrust 
 !
 # include "set_bounds.h"
 !
@@ -170,27 +171,11 @@
       marsh_flux_s=0.0_r8
 # endif 
 !
-!-----------------------------------------------------------------------
-! Critical thrust or erosion thrust value to be decided 
-!-----------------------------------------------------------------------
-!
-      Thrust_crit=0.0_r8
-!-----------------------------------------------------------------------
-!
-      DO ised=NCS+1,NST
-        DO j=Jstr,Jend
-          DO i=Istr,Iend
-!
 !  |           |Thrust North |           |
 !--|---------- |-------------|---------  |-------------
 !  |Thrust West|   Marsh     |Thrust East| 
 !  |-----------|-------------|-----------|
 !  |           |Thrust South |           |    
-!
-! 
-! Thrust has units kNewton/m or kg/sec2 
-! kfac needs to have the units of kg-m/sec 
-! Thrust*kfac has to have units of kg 
 !
 ! A fraction of bed mass moves from this cell to either
 ! of the four neighboring cells if a critical thrust exceeds 
@@ -201,6 +186,9 @@
 !|      | add sed  | remove sed  | add sed |   
 !|
 !
+      DO ised=NCS+1,NST
+        DO j=Jstr,Jend
+          DO i=Istr,Iend
 !
             cff1=bed_mass(i,j,1,nnew,ised)
 !
@@ -209,8 +197,8 @@
 !-----------------------------------------------------------------------
 !
             cff=on_r(i,j)*dt(ng)
-            Eff_thrust=MAX((ABS(Thrust_w(i,j))-Thrust_crit),0.0_r8)
-            cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff*cff1,cff1)
+            Eff_thrust=kN_N*MAX((ABS(Thrust_w(i,j)),0.0_r8))
+            cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff,cff1)
             bed_mass(i-1,j,1,nnew,ised)=bed_mass(i-1,j,1,nnew,ised)+    &
                                                                cff2
 !
@@ -231,26 +219,26 @@
 !
 !  Get the updated bed thickness 
 !
-                CALL update_bed_thickness (ng, tile, LBi, UBi, LBj, UBj,& 
-     &                                   Istr, Iend, Jstr, Jend,        &
-     &                                   nnew, bed , bed_frac, bed_mass)
+              CALL update_bed_thickness (ng, tile, LBi, UBi, LBj, UBj,  & 
+     &                                 Istr, Iend, Jstr, Jend,          &
+     &                                 nnew, bed , bed_frac, bed_mass)
 !
 !   If the marsh cell bed thickness is equal to wet cell infront of it
 !   Then make the marsh cell as a wet cell i.e. marsh_mask=0.0  
 !   Then the sediment is not supplied indefinitely to a cell infront 
 !
-                cff4=(bed(i,j,1,ithck)-bed(i-1,j,1,ithck))*marsh_mask(i,j)
-                IF (cff4.gt.0.0) THEN 
-                  marsh_mask(i,j)=0.0_r8
-                END IF 
-              ENDIF
+              cff4=(bed(i,j,1,ithck)-bed(i-1,j,1,ithck))*marsh_mask(i,j)
+              IF (cff4.gt.0.0) THEN 
+                marsh_mask(i,j)=0.0_r8
+              END IF 
+            ENDIF
 !
 !-----------------------------------------------------------------------
 ! Thrust from East cell face leads to sediment addition on right cell
 !-----------------------------------------------------------------------
 !
-            Eff_thrust=MAX((ABS(Thrust_e(i+1,j))-Thrust_crit),0.0_r8)   
-            cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff*cff1,cff1)
+            Eff_thrust=kn_N*MAX((ABS(Thrust_e(i+1,j)),0.0_r8))  
+            cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff,cff1)
             bed_mass(i+1,j,1,nnew,ised)=bed_mass(i+1,j,1,nnew,ised)+    &
                                                                cff2
 !
@@ -292,8 +280,8 @@
 !
             cff=om_r(i,j)*dt(ng)
 !
-            Eff_thrust=MAX((ABS(Thrust_n(i,j+1))-Thrust_crit),0.0_r8)
-            cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff*cff1,cff1)
+            Eff_thrust=kN_N*MAX((ABS(Thrust_n(i,j+1)),0.0_r8))
+            cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff,cff1)
             bed_mass(i,j+1,1,nnew,ised)=bed_mass(i,j+1,1,nnew,ised)+    &
                                                                cff2
 !
@@ -332,8 +320,8 @@
 ! Thrust from South cell face leads to sediment addition on cell below
 !-----------------------------------------------------------------------
 !
-            Eff_thrust=MAX((ABS(Thrust_s(i,j))-Thrust_crit),0.0_r8)
-            cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff*cff1,cff1)
+            Eff_thrust=kN_N*MAX((ABS(Thrust_s(i,j)),0.0_r8))
+            cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff,cff1)
             bed_mass(i,j-1,1,nnew,ised)=bed_mass(i,j-1,1,nnew,ised)+    &
                                                                cff2
 !
