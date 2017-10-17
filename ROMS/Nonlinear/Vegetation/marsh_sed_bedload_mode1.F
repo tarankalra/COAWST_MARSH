@@ -186,6 +186,15 @@
 !|      | add sed  | remove sed  | add sed |   
 !|
 !
+!The amount of sediment removed from the marsh cell 
+!depends on wave thrust, an erodibility coefficient 
+!(kfac_marsh), such that:
+!sediment removed (kg/m2)=mass eroded (kg) / cell area (m2)
+!       =thrust (kg/s2) *kfac_marsh (s/m) 
+!        * dy (along-marsh distance, m) * dt (s)
+!        / [dx *dy (m2)]
+!       = thrust * kfac_marsh *dt / dx 
+!
       DO ised=NCS+1,NST
         DO j=Jstr,Jend
           DO i=Istr,Iend
@@ -196,7 +205,7 @@
 ! Thrust from West cell face leads to sediment addition on left cell
 !-----------------------------------------------------------------------
 !
-            cff=on_r(i,j)*dt(ng)
+            cff=dt(ng)/on_r(i,j)
             Eff_thrust=kN_N*MAX((ABS(Thrust_w(i,j)),0.0_r8))
             cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff,cff1)
             bed_mass(i-1,j,1,nnew,ised)=bed_mass(i-1,j,1,nnew,ised)+    &
@@ -279,7 +288,7 @@
 ! Thrust from North cell face leads to sediment addition on cell above
 !-----------------------------------------------------------------------
 !
-            cff=om_r(i,j)*dt(ng)
+            cff=dt(ng)/om_r(i,j)
 !
             Eff_thrust=kN_N*MAX((ABS(Thrust_n(i,j+1)),0.0_r8))
             cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff,cff1)
