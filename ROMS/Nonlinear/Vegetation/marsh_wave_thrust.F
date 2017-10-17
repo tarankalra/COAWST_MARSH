@@ -247,7 +247,6 @@
 !  Marsh mask at U-points and V-points.
 !----------------------------------------------------------------------
 !
-      write(62,*) "Hello"
       umask_marsh=Inival
       vmask_marsh=Inival
       FX=Inival
@@ -351,7 +350,7 @@
 !---------------------------------------------------------------------
 !
           mask_thrust_w=IniVal
-          depth_all=ABS(h(i,j)+zeta(i-1,j,1))
+          depth_all=(h(i,j)+zeta(i-1,j,1))
           CALL depth_mask(depth_all,mask_thrust_w)
 !
           cff=half*(1.0_r8+SIGN(1.0_r8,FX(i-1,j)))
@@ -362,7 +361,7 @@
 #  endif
 !
           mask_thrust_e=IniVal
-          depth_all=ABS(h(i,j)+zeta(i+1,j,1))
+          depth_all=(h(i,j)+zeta(i+1,j,1))
           CALL depth_mask(depth_all,mask_thrust_e)
 !
           cff=half*(1.0_r8-SIGN(1.0_r8,FX(i+1,j)))
@@ -389,7 +388,7 @@
 #  endif
 !
           mask_thrust_s=IniVal
-          depth_all=ABS(h(i,j)+zeta(i,j-1,1))
+          depth_all=(h(i,j)+zeta(i,j-1,1))
           CALL depth_mask(depth_all,mask_thrust_s)
 !
           cff=half*(1.0_r8+SIGN(1.0_r8,FY(i,j-1)))
