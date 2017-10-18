@@ -237,6 +237,9 @@
       real(r8), parameter :: eps = 1.0E-14_r8
 
       real(r8) :: cff, cff1, cff2, cff3, cff4
+# if defined MARSH_SED_BEDLOAD_MODE2
+      real(r8) :: cff5, cff6
+# endif
       real(r8) :: thck_avail, thck_to_add
 
       real(r8), dimension(IminS:ImaxS,NST) :: dep_mass
@@ -393,16 +396,35 @@
             bed(i,j,k,ithck)=0.0_r8
             DO ised=1,NST
               bed_frac(i,j,k,ised)=bed_mass(i,j,k,nnew,ised)/cff3
+!
+!# if defined MARSH_SED_BEDLOAD_MODE2
+!
+! If porosity mode of marsh erosion is used, do not alter bed thickness 
+! in marsh cells and store the old bed thickness 
+!
+!              cff5=bed(i,j,k,ithck)*(marsh_mask(i,j))
+!# endif 
+!
               bed(i,j,k,ithck)=MAX(bed(i,j,k,ithck)+                    &
      &                         bed_mass(i,j,k,nnew,ised)/               &
      &                         (Srho(ised,ng)*                          &
      &                          (1.0_r8-bed(i,j,k,iporo))),0.0_r8)
 !
-! TSK added this 
-! Recalculate bed porosity for all bed layers at each cell. 
+!# if defined MARSH_SED_BEDLOAD_MODE2
+!
+! If porosity mode of marsh erosion is used, do not alter bed thickness 
+! in marsh cells and use the old bed thickness, otherwise non-marsh cells
+! use the updated bed thickness
+!
+!              cff6=1.0_r8-marsh_mask(i,j)
+!              bed(i,j,k,ithck)=cff5+bed(i,j,k,ithck)*cff6 
+!# endif 
+!
+! Recalculate bed porosity for all sediment types in each bed layers
+! at each cell. 
 !             
-              bed(i,j,k,iporo)=bed(i,j,k,iporo)*bed_frac(i,j,k,ised)+   &
-     &                         cff4
+!              bed(i,j,k,iporo)=bed(i,j,k,iporo)*bed_frac(i,j,k,ised)+   &
+!     &                         cff4
             END DO
           END DO
         END DO
@@ -432,7 +454,11 @@
 !
           bottom(i,j,iactv)=MAX(bottom(i,j,iactv)*morph_fac(1,ng),      &
      &                          bottom(i,j,iactv))
-#  if defined MARSH_SED_BEDLOAD1 || defined MARSH_SED_BEDLOAD2
+!
+#  if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
+!
+! Apply marsh mask to prohibit marsh sediment from suspension
+!
           bottom(i,j,iactv)=bottom(i,j,iactv)*(1.0_r8-marsh_mask(i,j)) 
 #  endif
 # endif
@@ -534,8 +560,10 @@
         DO i=IstrR,IendR
           bed_thick(i,j,nnew)=0.0_r8
           DO k=1,Nbed
-            bed_thick(i,j,nnew)=bed_thick(i,j,nnew)+                  &
+!#  if !defined MARSH_SED_BEDLOAD_MODE2
+            bed_thick(i,j,nnew)=bed_thick(i,j,nnew)+                    &
      &                            bed(i,j,k,ithck)
+!#  endif
           END DO
         END DO
       END DO
