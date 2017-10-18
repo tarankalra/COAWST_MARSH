@@ -53,8 +53,8 @@
       CALL marsh_sed_bedload_mode1_tile (ng, tile,                      &
      &                       LBi, UBi, LBj, UBj,                        &
      &                       IminS, ImaxS, JminS, JmaxS,                &
-     &                       GRID(ng) % om_r,                           &
-     &                       GRID(ng) % on_r,                           &
+     &                       GRID(ng) % pm,                             &
+     &                       GRID(ng) % pn,                             &
      &                       nstp(ng), nnew(ng),                        &
      &                       VEG(ng) % Thrust_w,                        & 
      &                       VEG(ng) % Thrust_e,                        &
@@ -80,7 +80,7 @@
       SUBROUTINE marsh_sed_bedload_mode1_tile (ng, tile,                &
      &                             LBi, UBi, LBj, UBj,                  &
      &                             IminS, ImaxS, JminS, JmaxS,          &
-     &                             om_r, on_r,                          &
+     &                             pm, pn,                              &
      &                             nstp, nnew,                          &
      &                             Thrust_w, Thrust_e,                  &
      &                             Thrust_n, Thrust_s,                  &
@@ -114,8 +114,8 @@
       integer, intent(in) :: nstp, nnew
 !
 # ifdef ASSUMED_SHAPE
-      real(r8), intent(in) :: om_r(LBi:,LBj:)
-      real(r8), intent(in) :: on_r(LBi:,LBj:)
+      real(r8), intent(in) :: pm(LBi:,LBj:)
+      real(r8), intent(in) :: pn(LBi:,LBj:)
 !
       real(r8), intent(in) :: Thrust_w(LBi:,LBj:)
       real(r8), intent(in) :: Thrust_e(LBi:,LBj:)
@@ -134,8 +134,8 @@
 !
       real(r8), intent(inout) :: marsh_mask(LBi:,LBj:)
 # else
-      real(r8), intent(in) :: om_r(LBi:UBi,LBj:UBj)
-      real(r8), intent(in) :: on_r(LBi:UBi,LBj:UBj)
+      real(r8), intent(in) :: pm(LBi:UBi,LBj:UBj)
+      real(r8), intent(in) :: pn(LBi:UBi,LBj:UBj)
 !
       real(r8), intent(in) :: Thrust_w(LBi:UBi,LBj:UBj)
       real(r8), intent(in) :: Thrust_e(LBi:UBi,LBj:UBj)
@@ -199,18 +199,18 @@
         DO j=Jstr,Jend
           DO i=Istr,Iend
 !
-            cff1=bed_mass(i,j,1,nnew,ised)
+            cff1=bed_mass(i,j,1,nnew,ised)*pm(i,j)*pn(i,j)
 !
 !-----------------------------------------------------------------------
 ! Thrust from West cell face leads to sediment addition on left cell
 !-----------------------------------------------------------------------
 !
-            cff=dt(ng)/on_r(i,j)
+            cff=dt(ng)/pn(i,j)
             Eff_thrust=kN_N*MAX((ABS(Thrust_w(i,j)),0.0_r8))
             cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff,cff1)
             bed_mass(i-1,j,1,nnew,ised)=bed_mass(i-1,j,1,nnew,ised)+    &
             bed_mass(i-1,j,1,nnew,ised)=bed_mass(i-1,j,1,nnew,ised)+    &
-                                                               cff2
+                                             cff2*pm(i-1,j)*pn(i-1,j)
 !
 # if defined MARSH_LAT_RETREAT
 !
@@ -225,7 +225,7 @@
 !
 ! Save the updated bed mass from the eroded cell
 ! 
-              bed_mass(i,j,1,nnew,ised)=cff1
+              bed_mass(i,j,1,nnew,ised)=cff1*pm(i,j)*pn(i,j)
 !
 !  Get the updated bed thickness 
 !
@@ -250,7 +250,7 @@
             Eff_thrust=kn_N*MAX((ABS(Thrust_e(i+1,j)),0.0_r8))  
             cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff,cff1)
             bed_mass(i+1,j,1,nnew,ised)=bed_mass(i+1,j,1,nnew,ised)+    &
-                                                               cff2
+                                             cff2*pm(i+1,j)*pn(i+1,j)
 !
 # if defined MARSH_LAT_RETREAT
 !
@@ -266,7 +266,7 @@
 !
 ! Save the updated bed mass from the eroded cell
 ! 
-              bed_mass(i,j,1,nnew,ised)=cff1 
+              bed_mass(i,j,1,nnew,ised)=cff1*pm(i,j)*pn(i,j) 
 !
 !  Get the updated bed thickness 
 !
@@ -288,12 +288,12 @@
 ! Thrust from North cell face leads to sediment addition on cell above
 !-----------------------------------------------------------------------
 !
-            cff=dt(ng)/om_r(i,j)
+            cff=dt(ng)/pm(i,j)
 !
             Eff_thrust=kN_N*MAX((ABS(Thrust_n(i,j+1)),0.0_r8))
             cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff,cff1)
             bed_mass(i,j+1,1,nnew,ised)=bed_mass(i,j+1,1,nnew,ised)+    &
-                                                               cff2
+                                             cff2*pm(i,j+1)*pn(i,j+1)
 !
 # if defined MARSH_LAT_RETREAT
 !
@@ -309,7 +309,7 @@
 !
 ! Save the updated bed mass from the eroded cell
 ! 
-              bed_mass(i,j,1,nnew,ised)=cff1 
+              bed_mass(i,j,1,nnew,ised)=cff1*pm(i,j)*pn(i,j) 
 !
               CALL update_bed_thickness (ng, tile, LBi, UBi, LBj, UBj,  & 
      &                                   Istr, Iend, Jstr, Jend,        &
@@ -333,7 +333,7 @@
             Eff_thrust=kN_N*MAX((ABS(Thrust_s(i,j)),0.0_r8))
             cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff,cff1)
             bed_mass(i,j-1,1,nnew,ised)=bed_mass(i,j-1,1,nnew,ised)+    &
-                                                               cff2
+                                             cff2*pm(i,j-1)*pn(i,j-1)
 !
 # if defined MARSH_LAT_RETREAT
 !
@@ -348,7 +348,7 @@
 !
 ! Save the updated bed mass from the eroded cell
 ! 
-              bed_mass(i,j,1,nnew,ised)=cff1 
+              bed_mass(i,j,1,nnew,ised)=cff1*pm(i,j)*pn(i,j) 
 !
 !  Get the updated bed thickness 
 !
