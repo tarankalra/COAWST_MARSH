@@ -882,22 +882,22 @@
 ! Do not alter marsh thickness in marsh cells when the erosion occurs 
 ! through porosity change
 !           
-            cff=1.0_r8-marsh_mask(i,j)
-            IF(marsh_mask(i,j).eq.1) THEN 
-              bed(i,j,1,ithck)=bed(i,j,1,ithck)
-            ELSE
+!            cff=1.0_r8-marsh_mask(i,j)
+!            IF(marsh_mask(i,j).eq.1) THEN 
+!              bed(i,j,1,ithck)=bed(i,j,1,ithck)
+!            ELSE
               bed(i,j,1,ithck)=MAX(bed(i,j,1,ithck)-                    &
      &                           cff/(Srho(ised,ng)*                    &
      &                           (1.0_r8-bed(i,j,1,iporo))),            &
      &                           0.0_r8)
-            ENDIF 
+!            ENDIF 
 !       
-#  elif !defined MARSH_SED_BEDLOAD_MODE2   
-            bed(i,j,1,ithck)=MAX(bed(i,j,1,ithck)-                      &
-     &                           cff/(Srho(ised,ng)*                    &
-     &                           (1.0_r8-bed(i,j,1,iporo))),            &
-     &                           0.0_r8)
-#  endif 
+!#  elif !defined MARSH_SED_BEDLOAD_MODE2   
+!            bed(i,j,1,ithck)=MAX(bed(i,j,1,ithck)-                      &
+!     &                           cff/(Srho(ised,ng)*                    &
+!     &                           (1.0_r8-bed(i,j,1,iporo))),            &
+!     &                           0.0_r8)
+!#  endif 
 !#  ifdef MASKING
 !            bed(i,j,1,ithck)=bed(i,j,1,ithck)*rmask(i,j)
 !#  endif

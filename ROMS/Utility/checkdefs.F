@@ -884,9 +884,15 @@
 #endif
 #if defined VEGETATION && defined MARSH_WAVE_THRUST 
       IF (Master) WRITE (stdout,20) 'MARSH_WAVE_THRUST',                &
-     &   'Vegetation module containing wave thrust effect on marshes .'
+     &   'Vegetation module containing wave thrust effect on marshes. '
       is=LEN_TRIM(Coptions)+1
       Coptions(is:is+19)=' MARSH_WAVE_THRUST,'
+# ifdef MARSH_SED_BEDLOAD 
+      IF (Master) WRITE (stdout,20) 'MARSH_SED_BEDLOAD',                &
+     &   'Activate marsh erosion terms. '
+      is=LEN_TRIM(Coptions)+1
+      Coptions(is:is+19)=' MARSH_SED_BEDLOAD,'
+# endif
 #endif
 #ifdef DIAGNOSTICS_TS
       IF (Master) WRITE (stdout,20) 'DIAGNOSTICS_TS',                   &

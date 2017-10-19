@@ -9018,7 +9018,7 @@
   1.0d0
 !
 !------------------------------------------------------------------------------
-!  WAVE Thrust model for marshes variables.
+! Marsh wave induced erosion variables.
 !------------------------------------------------------------------------------
 !
 'marsh_mask'                                      ! Input/Output
@@ -9046,4 +9046,13 @@
   'ocean_time'
   'idTton'
   'r2dvar'
+  1.0d0
+
+'marsh_retreat'                                    ! Output
+  'Amount of marsh retreat from all directions.'
+  'm'     
+  'marsh_retreat, scalar, series'                  ! [m]
+  'ocean_time'
+  'idTmmr'
+  'r2dvar' 
   1.0d0

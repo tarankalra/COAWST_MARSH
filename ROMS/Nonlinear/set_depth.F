@@ -40,6 +40,10 @@
 # if defined SEDIMENT && defined SED_MORPH
       USE mod_sedbed
 # endif
+# if defined MARSH_SED_BEDLOAD_MODE2
+      USE mod_vegarr
+      USE marsh_sed_bedload_mode2_mod, ONLY : marsh_sed_bedload_mode2
+# endif
       USE mod_stepping
 !
 !  Imported variable declarations.
@@ -49,6 +53,15 @@
 !  Local variable declarations.
 !
 # include "tile.h"
+!
+#if defined MARSH_WAVE_THRUST && defined MARSH_SED_BEDLOAD_MODE2
+!
+!-----------------------------------------------------------------------
+!  Get the most recent marsh mask and not allow bathy to change in mode2.
+!-----------------------------------------------------------------------
+!
+      CALL marsh_sed_bedload_mode2 (ng, tile)
+# endif
 !
 # ifdef PROFILE
       CALL wclock_on (ng, iNLM, 12)
@@ -64,6 +77,9 @@
 # if defined SEDIMENT && defined SED_MORPH
      &                     SEDBED(ng) % bed_thick,                      &
 # endif
+# if defined MARSH_SED_BEDLOAD_MODE2
+     &                    VEG(ng) % marsh_mask,                         &
+# endif 
      &                     COUPLING(ng) % Zt_avg1,                      &
      &                     GRID(ng) % Hz,                               &
      &                     GRID(ng) % z_r,                              &
@@ -87,6 +103,9 @@
 # if defined SEDIMENT && defined SED_MORPH
      &                           bed_thick,                             &
 # endif
+# if defined MARSH_SED_BEDLOAD_MODE2
+     &                           marsh_mask,                            &
+# endif 
      &                           Zt_avg1,                               &
      &                           Hz, z_r, z_w)
 !***********************************************************************
@@ -114,6 +133,9 @@
 #  if defined SEDIMENT && defined SED_MORPH
       real(r8), intent(in):: bed_thick(LBi:,LBj:,:)
 #  endif
+#  if defined MARSH_SED_BEDLOAD_MODE2
+      real(r8), intent(in):: marsh_mask(LBi:,LBj:)
+#  endif 
       real(r8), intent(in) :: Zt_avg1(LBi:,LBj:)
       real(r8), intent(inout) :: h(LBi:,LBj:)
       real(r8), intent(out) :: Hz(LBi:,LBj:,:)
@@ -126,6 +148,9 @@
 #  if defined SEDIMENT && defined SED_MORPH
       real(r8), intent(in):: bed_thick(LBi:UBi,LBj:UBj,2)
 #  endif
+#  if defined MARSH_SED_BEDLOAD_MODE2
+      real(r8), intent(in):: marsh_mask(LBi:UBi,LBj:UBj)
+#  endif 
       real(r8), intent(in) :: Zt_avg1(LBi:UBi,LBj:UBj)
       real(r8), intent(inout) :: h(LBi:UBi,LBj:UBj)
       real(r8), intent(out) :: Hz(LBi:UBi,LBj:UBj,N(ng))
@@ -168,8 +193,14 @@
         DO j=JstrT,JendT
           DO i=IstrT,IendT
 # if defined SEDIMENT && defined SED_MORPH
+#  if !defined MARSH_SED_BEDLOAD_MODE2 
             h(i,j)=h(i,j)-bed_thick(i,j,nstp)+bed_thick(i,j,nnew)
-# endif
+#  endif 
+#  if defined MARSH_SED_BEDLOAD_MODE2 
+            h(i,j)=h(i,j)-(bed_thick(i,j,nstp)-bed_thick(i,j,nnew))*    &
+     &                    (1.0_r8-marsh_mask(i,j))
+#  endif
+# endif 
 # if defined WET_DRY
             IF (h(i,j).eq.0.0_r8) THEN
               h(i,j)=eps

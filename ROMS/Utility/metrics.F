@@ -32,6 +32,10 @@
 #if defined SEDIMENT && defined SED_MORPH && defined SOLVE3D
       USE mod_sedbed
 #endif
+# if defined MARSH_SED_BEDLOAD_MODE2
+      USE mod_vegarr
+      USE marsh_sed_bedload_mode2_mod, ONLY : marsh_sed_bedload_mode2
+# endif
       USE mod_stepping
 !
 !  Imported variable declarations.
@@ -63,6 +67,9 @@
 # endif
 # if defined SEDIMENT && defined SED_MORPH
      &                   SEDBED(ng) % bed_thick,                        &
+# endif
+# if defined MARSH_SED_BEDLOAD_MODE2
+     &                   VEG(ng) % marsh_mask,                          &
 # endif
      &                   GRID(ng) % Hz,                                 &
      &                   GRID(ng) % z_r,                                &
@@ -115,6 +122,9 @@
 # endif
 # if defined SEDIMENT && defined SED_MORPH
      &                         bed_thick,                               &
+# endif
+# if defined MARSH_SED_BEDLOAD_MODE2
+     &                         marsh_mask,                              &
 # endif
      &                         Hz, z_r, z_w,                            &
 #endif
@@ -185,7 +195,10 @@
 #  if defined SEDIMENT && defined SED_MORPH
       real(r8), intent(in):: bed_thick(LBi:,LBj:,:)
 #  endif
-# endif
+# endif 
+#  if defined MARSH_SED_BEDLOAD_MODE2
+      real(r8), intent(in):: marsh_mask(LBi:,LBj:)
+#  endif
 #if defined DIFF_GRID || defined DIFF_3DCOEF || \
     defined VISC_GRID || defined VISC_3DCOEF
       real(r8), intent(out) :: grdscl(LBi:,LBj:)
@@ -238,6 +251,9 @@
 #  endif
 #  if defined SEDIMENT && defined SED_MORPH
       real(r8), intent(in):: bed_thick(LBi:UBi,LBj:UBj,2)
+#  endif
+#  if defined MARSH_SED_BEDLOAD_MODE2
+      real(r8), intent(in):: marsh_mask(LBi:UBi,LBj:UBj)
 #  endif
 # endif
 #if defined DIFF_GRID || defined DIFF_3DCOEF || \
@@ -734,6 +750,9 @@
 # endif
 # if defined SEDIMENT && defined SED_MORPH
      &                     bed_thick,                                   &
+# endif
+# if defined MARSH_SED_BEDLOAD_MODE2
+     &                     marsh_mask,                                  &
 # endif
      &                     A2d,                                         &
      &                     Hz, z_r, z_w)
