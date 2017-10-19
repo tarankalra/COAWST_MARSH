@@ -158,7 +158,7 @@
 !  Local variable declarations.
 !
       integer :: i, j, k, ised
-      real(r8), parameter :: kN_N = 1000.0_r8 ! convert Thrust from kN to N 
+      real(r8), parameter :: kN_N=1000.0_r8 ! convert Thrust from kN to N 
       real(r8) :: cff, cff1, cff2, cff3, cff4
       real(r8) :: Eff_thrust 
 !
@@ -297,6 +297,9 @@
             cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff,cff1)
             bed_mass(i,j+1,1,nnew,ised)=bed_mass(i,j+1,1,nnew,ised)+    &
                                              cff2*pm(i,j+1)*pn(i,j+1)
+            write(60,*) iic(ng),i,j,Eff_thrust
+            write(61,*) i,j,bed_mass(i,j+1,1,nnew,ised)
+            write(62,*) i,j,pm(i,j+1),pn(i,j+1)
 !
 # if defined MARSH_LAT_RETREAT
 !
