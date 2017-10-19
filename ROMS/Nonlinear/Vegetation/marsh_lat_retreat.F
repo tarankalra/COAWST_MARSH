@@ -159,9 +159,9 @@
 !
       J_LOOP : DO j=Jstr,Jend
         DO i=Istr,Iend
-          cff1=1.0_r8
+          cff=1.0_r8
           DO ised=NCS+1,NST
-            cff1=cff1*Srho(ised,ng)*bed_frac(i,j,1,ised)
+            cff=cff*Srho(ised,ng)*bed_frac(i,j,1,ised)
           END DO
           srho_mean(i,j)=MAX(cff1,1050.0_r8)
         END DO
@@ -186,7 +186,7 @@
 ! West cell face erosion volume
 !-----------------------------------------------------------------------
 !
-          Vol_erod=marsh_flux_e(i+1,j)*cff
+          Vol_erod=marsh_flux_e(i+1,j)*cff1
           inv_scarp_hght_eff=1.0_r8/(ABS(h(i,j)+zeta(i+1,j,3)))
           dx_w=Vol_erod*inv_scarp_hght_eff*pn(i,j)
 !
@@ -194,7 +194,7 @@
 ! East cell face erosion volume
 !-----------------------------------------------------------------------
 !
-          Vol_erod=marsh_flux_w(i,j)*cff
+          Vol_erod=marsh_flux_w(i,j)*cff1
           inv_scarp_hght_eff=1.0_r8/(ABS(h(i,j)+zeta(i-1,j,3)))
           dx_e=Vol_erod*inv_scarp_hght_eff*pn(i,j)
 !
@@ -202,7 +202,7 @@
 ! North cell face erosion volume
 !-----------------------------------------------------------------------
 !
-          Vol_erod=marsh_flux_n(i,j+1)*cff
+          Vol_erod=marsh_flux_n(i,j+1)*cff1
           inv_scarp_hght_eff=1.0_r8/(ABS(h(i,j)+zeta(i,j+1,3)))
           dy_n=Vol_erod*inv_scarp_hght_eff*pm(i,j)
 !
@@ -210,7 +210,7 @@
 ! South cell face erosion volume
 !-----------------------------------------------------------------------
 !
-          Vol_erod=marsh_flux_s(i,j)*cff
+          Vol_erod=marsh_flux_s(i,j)*cff1
           inv_scarp_hght_eff=1.0_r8/(ABS(h(i,j)+zeta(i,j-1,3)))
           dy_s=Vol_erod*inv_scarp_hght_eff*pm(i,j)
 !
