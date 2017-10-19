@@ -199,13 +199,6 @@
         DO j=Jstr,Jend
           DO i=Istr,Iend
 !
-<<<<<<< HEAD
-!-----------------------------------------------------------------------
-! Convert the bed mass in marsh cell to kg from kg-sq.m
-!-----------------------------------------------------------------------
-!
-=======
->>>>>>> 03da1b8267a44bd2fff0eb56847a0cab53d78a31
             cff1=bed_mass(i,j,1,nnew,ised)*pm(i,j)*pn(i,j)
 !
 !-----------------------------------------------------------------------
@@ -213,16 +206,10 @@
 !-----------------------------------------------------------------------
 !
             cff=dt(ng)/pn(i,j)
-<<<<<<< HEAD
-            Eff_thrust=kN_N*MAX(ABS(Thrust_w(i,j)),0.0_r8)
-            cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff,cff1)
-            bed_mass(i-1,j,1,nnew,ised)=bed_mass(i-1,j,1,nnew,ised)+    &
-=======
+! 
             Eff_thrust=kN_N*MAX((ABS(Thrust_w(i,j)),0.0_r8))
             cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff,cff1)
             bed_mass(i-1,j,1,nnew,ised)=bed_mass(i-1,j,1,nnew,ised)+    &
-            bed_mass(i-1,j,1,nnew,ised)=bed_mass(i-1,j,1,nnew,ised)+    &
->>>>>>> 03da1b8267a44bd2fff0eb56847a0cab53d78a31
                                              cff2*pm(i-1,j)*pn(i-1,j)
 !
 # if defined MARSH_LAT_RETREAT
@@ -272,7 +259,6 @@
             marsh_flux_e(i+1,j)=cff2+marsh_flux_e(i+1,j)
 # endif 
 !
-
             IF(Eff_thrust.gt.0.0_r8) THEN
               cff3=1.0_r8
               cff1=MAX(cff1-cff2*cff3,0.0_r8)
@@ -307,12 +293,9 @@
             cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff,cff1)
             bed_mass(i,j+1,1,nnew,ised)=bed_mass(i,j+1,1,nnew,ised)+    &
                                              cff2*pm(i,j+1)*pn(i,j+1)
-<<<<<<< HEAD
             write(60,*) iic(ng),i,j,Eff_thrust
             write(61,*) i,j,bed_mass(i,j+1,1,nnew,ised)
             write(62,*) i,j,pm(i,j+1),pn(i,j+1)
-=======
->>>>>>> 03da1b8267a44bd2fff0eb56847a0cab53d78a31
 !
 # if defined MARSH_LAT_RETREAT
 !
