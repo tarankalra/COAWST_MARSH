@@ -877,7 +877,7 @@
               bed_mass(i,j,k,nnew,ised)=bed_mass(i,j,k,nstp,ised)
             END DO
 #  endif
-#  if defined MARSH_SED_BEDLOAD_MODE2
+!#  if defined MARSH_SED_BEDLOAD_MODE2
 !
 ! Do not alter marsh thickness in marsh cells when the erosion occurs 
 ! through porosity change
