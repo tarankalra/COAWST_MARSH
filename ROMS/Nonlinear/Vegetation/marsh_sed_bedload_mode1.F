@@ -207,7 +207,7 @@
 !
             cff=dt(ng)/pn(i,j)
 ! 
-            Eff_thrust=kN_N*MAX((ABS(Thrust_w(i,j)),0.0_r8))
+            Eff_thrust=kN_N*MAX(ABS(Thrust_w(i,j)),0.0_r8)
             cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff,cff1)
             bed_mass(i-1,j,1,nnew,ised)=bed_mass(i-1,j,1,nnew,ised)+    &
                                              cff2*pm(i-1,j)*pn(i-1,j)
