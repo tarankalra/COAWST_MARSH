@@ -3,6 +3,7 @@
       MODULE marsh_lat_retreat_mod
 
 #if defined MARSH_WAVE_EROSION && defined MARSH_LAT_RETREAT
+!
 !#if defined MARSH_WAVE_EROSION && defined MARSH_WAVE_THRUST \
 ! && defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2 \
 ! && defined MARSH_LAT_RETREAT 
