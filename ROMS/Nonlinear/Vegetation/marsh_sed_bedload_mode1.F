@@ -198,7 +198,7 @@
       DO ised=NCS+1,NST
         DO j=Jstr,Jend
           DO i=Istr,Iend
-!
+!JMM comment goes here
             cff1=bed_mass(i,j,1,nnew,ised)*pm(i,j)*pn(i,j)
 !
 !-----------------------------------------------------------------------
