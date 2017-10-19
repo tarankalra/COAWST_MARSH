@@ -53,6 +53,8 @@
       CALL marsh_sed_bedload_mode1_tile (ng, tile,                      &
      &                       LBi, UBi, LBj, UBj,                        &
      &                       IminS, ImaxS, JminS, JmaxS,                &
+     &                       GRID(ng) % om_r,                           &
+     &                       GRID(ng) % on_r,                           &
      &                       GRID(ng) % pm,                             &
      &                       GRID(ng) % pn,                             &
      &                       nstp(ng), nnew(ng),                        &
@@ -80,6 +82,7 @@
       SUBROUTINE marsh_sed_bedload_mode1_tile (ng, tile,                &
      &                             LBi, UBi, LBj, UBj,                  &
      &                             IminS, ImaxS, JminS, JmaxS,          &
+     &                             om_r, on_r,                          &
      &                             pm, pn,                              &
      &                             nstp, nnew,                          &
      &                             Thrust_w, Thrust_e,                  &
@@ -114,6 +117,8 @@
       integer, intent(in) :: nstp, nnew
 !
 # ifdef ASSUMED_SHAPE
+      real(r8), intent(in) :: om_r(LBi:,LBj:)
+      real(r8), intent(in) :: on_r(LBi:,LBj:)
       real(r8), intent(in) :: pm(LBi:,LBj:)
       real(r8), intent(in) :: pn(LBi:,LBj:)
 !
@@ -134,6 +139,8 @@
 !
       real(r8), intent(inout) :: marsh_mask(LBi:,LBj:)
 # else
+      real(r8), intent(in) :: om_r(LBi:UBi,LBj:UBj)
+      real(r8), intent(in) :: on_r(LBi:UBi,LBj:UBj)
       real(r8), intent(in) :: pm(LBi:UBi,LBj:UBj)
       real(r8), intent(in) :: pn(LBi:UBi,LBj:UBj)
 !
@@ -199,7 +206,7 @@
         DO j=Jstr,Jend
           DO i=Istr,Iend
 !
-            cff1=bed_mass(i,j,1,nnew,ised)*pm(i,j)*pn(i,j)
+            cff1=bed_mass(i,j,1,nnew,ised)*om_r(i,j)*on_r(i,j)
 !
 !-----------------------------------------------------------------------
 ! Thrust from West cell face leads to sediment addition on left cell
@@ -293,9 +300,9 @@
             cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff,cff1)
             bed_mass(i,j+1,1,nnew,ised)=bed_mass(i,j+1,1,nnew,ised)+    &
                                              cff2*pm(i,j+1)*pn(i,j+1)
-            write(60,*) iic(ng),i,j,Eff_thrust
-            write(61,*) i,j,bed_mass(i,j+1,1,nnew,ised)
-            write(62,*) i,j,pm(i,j+1),pn(i,j+1)
+!            write(60,*) iic(ng),i,j,Eff_thrust
+!            write(61,*) i,j,bed_mass(i,j+1,1,nnew,ised)
+!            write(62,*) i,j,pm(i,j+1),pn(i,j+1)
 !
 # if defined MARSH_LAT_RETREAT
 !

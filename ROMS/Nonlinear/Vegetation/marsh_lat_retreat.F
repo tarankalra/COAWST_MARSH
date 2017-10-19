@@ -56,15 +56,15 @@
       CALL marsh_lat_retreat_tile (ng, tile,                            & 
      &                       LBi, UBi, LBj, UBj,                        &
      &                       IminS, ImaxS, JminS, JmaxS,                &
-     &                       GRID(ng) % om_r,                           &
-     &                       GRID(ng) % on_r,                           &
+     &                       GRID(ng) % pm,                             &
+     &                       GRID(ng) % pn,                             &
      &                       GRID(ng) % h,                              &
-     &                       OCEAN(ng) % zeta,                          & 
-     &                       VEG(ng) % marsh_mask,                      & 
+     &                       OCEAN(ng) % zeta,                          &
+     &                       VEG(ng) % marsh_mask,                      &
      &                       VEG(ng) % marsh_flux_e,                    &
      &                       VEG(ng) % marsh_flux_w,                    &
      &                       VEG(ng) % marsh_flux_n,                    &
-     &                       VEG(ng) % marsh_flux_s,                    & 
+     &                       VEG(ng) % marsh_flux_s,                    &
      &                       SEDBED(ng) % bed_frac,                     &
      &                       SEDBED(ng) % bed,                          &
      &                       VEG(ng) % marsh_retreat)
@@ -76,11 +76,11 @@
       SUBROUTINE marsh_lat_retreat_tile (ng, tile,                      &
      &                             LBi, UBi, LBj, UBj,                  &
      &                             IminS, ImaxS, JminS, JmaxS,          &
-     &                             om_r, on_r,                          &
+     &                             pm, pn,                              &
      &                             h, zeta,                             &
      &                             marsh_mask,                          &
      &                             marsh_flux_e, marsh_flux_w,          &
-     &                             marsh_flux_n, marsh_flux_s,          & 
+     &                             marsh_flux_n, marsh_flux_s,          &
      &                             bed_frac, bed,                       &
      &                             marsh_retreat)
 !
@@ -114,8 +114,8 @@
       integer, intent(in) :: IminS, ImaxS, JminS, JmaxS
 !
 # ifdef ASSUMED_SHAPE
-      real(r8), intent(in) :: om_r(LBi:,LBj:)
-      real(r8), intent(in) :: on_r(LBi:,LBj:)
+      real(r8), intent(in) :: pm(LBi:,LBj:)
+      real(r8), intent(in) :: pn(LBi:,LBj:)
       real(r8), intent(in) :: h(LBi:,LBj:)
       real(r8), intent(in) :: zeta(LBi:,LBj:,:)
 !
@@ -130,8 +130,8 @@
 !
       real(r8), intent(inout) :: marsh_retreat(LBi:,LBj:)
 # else
-      real(r8), intent(in) :: om_r(LBi:UBi,LBj:UBj)
-      real(r8), intent(in) :: on_r(LBi:UBi,LBj:UBj)
+      real(r8), intent(in) :: pm(LBi:UBi,LBj:UBj)
+      real(r8), intent(in) :: pn(LBi:UBi,LBj:UBj)
       real(r8), intent(in) :: h(LBi:UBi,LBj:UBj)
       real(r8), intent(in) :: zeta(LBi:UBi,LBj:UBj,3)
 !
@@ -151,7 +151,7 @@
 !
       integer :: i, ised, j, k
       real(r8) :: cff, cff1
-      real(r8) :: Vol_erod, scarp_height_eff
+      real(r8) :: Vol_erod, inv_scarp_hght_eff
       real(r8) :: dx_e, dx_w, dy_n, dy_s 
       real(r8), dimension(IminS:ImaxS,JminS:JmaxS) :: srho_mean
 !
@@ -172,8 +172,8 @@
 !
 ! Use an average Srho here and remove the sediment loop because 
 ! marsh flux from each face already adds the sediment classes 
+! marsh flux is in units of kg.
 !  
-          cff=(om_r(i,j)*on_r(i,j))
           cff1=1.0_r8/((srho_mean(i,j))*(1.0_r8-bed(i,j,1,iporo)))
 !
 !  |           | Flux North  |         |
@@ -186,33 +186,33 @@
 ! West cell face erosion volume
 !-----------------------------------------------------------------------
 !
-          Vol_erod=marsh_flux_e(i+1,j)*cff*cff1
-          scarp_height_eff=ABS(h(i,j)+zeta(i+1,j,3))
-          dx_w=Vol_erod/(scarp_height_eff*on_r(i,j))
+          Vol_erod=marsh_flux_e(i+1,j)*cff
+          inv_scarp_hght_eff=1.0_r8/(ABS(h(i,j)+zeta(i+1,j,3)))
+          dx_w=Vol_erod*inv_scarp_hght_eff*pn(i,j)
 !
 !-----------------------------------------------------------------------
 ! East cell face erosion volume
 !-----------------------------------------------------------------------
 !
-          Vol_erod=marsh_flux_w(i,j)*cff*cff1
-          scarp_height_eff=ABS(h(i,j)+zeta(i-1,j,3))
-          dx_e=Vol_erod/(scarp_height_eff*on_r(i,j))
+          Vol_erod=marsh_flux_w(i,j)*cff
+          inv_scarp_hght_eff=1.0_r8/(ABS(h(i,j)+zeta(i-1,j,3)))
+          dx_e=Vol_erod*inv_scarp_hght_eff*pn(i,j)
 !
 !-----------------------------------------------------------------------
 ! North cell face erosion volume
 !-----------------------------------------------------------------------
 !
-          Vol_erod=marsh_flux_n(i,j+1)*cff*cff1
-          scarp_height_eff=ABS(h(i,j)+zeta(i,j+1,3))
-          dy_n=Vol_erod/(scarp_height_eff*om_r(i,j))
+          Vol_erod=marsh_flux_n(i,j+1)*cff
+          inv_scarp_hght_eff=1.0_r8/(ABS(h(i,j)+zeta(i,j+1,3)))
+          dy_n=Vol_erod*inv_scarp_hght_eff*pm(i,j)
 !
 !-----------------------------------------------------------------------
 ! South cell face erosion volume
 !-----------------------------------------------------------------------
 !
-          Vol_erod=marsh_flux_s(i,j)*cff*cff1
-          scarp_height_eff=ABS(h(i,j)+zeta(i,j-1,3))
-          dy_s=Vol_erod/(scarp_height_eff*om_r(i,j))
+          Vol_erod=marsh_flux_s(i,j)*cff
+          inv_scarp_hght_eff=1.0_r8/(ABS(h(i,j)+zeta(i,j-1,3)))
+          dy_s=Vol_erod*inv_scarp_hght_eff*pm(i,j)
 !
 !-----------------------------------------------------------------------
 ! Total amount of retreat from all four directions
