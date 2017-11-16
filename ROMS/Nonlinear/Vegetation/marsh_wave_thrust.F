@@ -116,8 +116,9 @@
 # endif 
      &                              marsh_mask,                         &
      &                              mask_thrust,                        &
+     &                              Thrust_e,                           &
+     &                              Thrust_n,                           &
      &                              Thrust_tonelli,                     &
-     &                              Thrust_e, Thrust_n,                 &
      &                              zeta)           
 !
 !***********************************************************************
@@ -191,6 +192,9 @@
 #  endif 
       real(r8), intent(in)    :: marsh_mask(LBi:UBi,LBj:UBj)
       real(r8), intent(inout) :: mask_thrust(LBi:UBi,LBj:UBj)
+!      real(r8), intent(inout) :: umask_marsh(LBi:UBi,LBj:UBj)
+!      real(r8), intent(inout) :: vmask_marsh(LBi:UBi,LBj:UBj)
+     
       real(r8), intent(inout) :: Thrust_e(LBi:UBi,LBj:UBj)
       real(r8), intent(inout) :: Thrust_n(LBi:UBi,LBj:UBj)
       real(r8), intent(inout) :: Thrust_tonelli(LBi:UBi,LBj:UBj)
@@ -236,8 +240,6 @@
         END DO
       END DO
 !
-! Marsh boundary mask at v-points
-!
       DO j=Jstr,JendR
         DO i=IstrR,IendR
           vmask_marsh(i,j)=marsh_mask(i,j-1)+marsh_mask(i,j)
@@ -248,13 +250,6 @@
           END IF
         END DO
       END DO
-!
-      CALL bc_u2d_tile (ng, tile,                                       &
-     &                  LBi, UBi, LBj, UBj,                             &
-     &                  umask_marsh)
-       CALL bc_v2d_tile (ng, tile,                                      &
-     &                  LBi, UBi, LBj, UBj,                             &
-     &                  vmask_marsh)
 !
 # ifdef DISTRIBUTE
 ! 
@@ -278,7 +273,7 @@
         DO i=Istr-1,Iend+1
           cff=1.5_r8*pi-Dwave(i,j)-angler(i,j)
 !
-!----------------------------------------------------------------------
+!---------yy-------------------------------------------------------------
 !  Calculate Thrust below and above sea level.
 !----------------------------------------------------------------------
 !
@@ -294,50 +289,51 @@
 !---------------------------------------------------------------------
 !
           F_msl=F_asl+F_bsl
-          FX(i,j)=F_msl*MIN(cos(cff),eps)
-          FY(i,j)=F_msl*MIN(sin(cff),eps)
-! 
-! Find a way of making 10-16 cos,sin to zero
+          FX(i,j)=F_msl*cos(cff)
+          FY(i,j)=F_msl*sin(cff)
 !
-          write(61,*)iic(ng),i,j,FX(i,j)
-          write(60,*)iic(ng),i,j,FY(i,j)
         END DO
       END DO
 !
+!=======================================================================
+! Compute marsh mask with respect to water column depth to reduce      ! 
+! thrust based on depth.                                               ! 
+! Constant value of masking below the marsh                            !         
+! Exponential reduction above the marsh (depth=zeta+marsh elevation)   !
+!                                                                      !
+!=======================================================================
+!
+!          depth_all=(h(i,j)+zeta(i-1,j,1))
+!          IF(depth_all.lt.0.0_r8) THEN
+!            cff=1.0_r8
+!          ELSEIF (depth_all.ge.0.0_r8) THEN
+!            cff=exp(-depth_all*3.0_r8)
+!          ENDIF
+!          mask_thrust_eachdir=cff*fac
+!
+
+!
+!---------------------------------------------------------------------
 ! Get the wave thrust on cell faces
+!---------------------------------------------------------------------
 !
       DO j=JstrR,JendR
         DO i=Istr,IendR
-!
-          cff1=0.5_r8*(1.0_r8+sign(1.0_r8,FX(i,j)));
-          cff2=0.5_r8*(1.0_r8+sign(1.0_r8,umask_marsh(i,j)));
-          cff3=cff1*cff2*FX(i,j)
-          Thrust_e(i,j)=cff3
+          cff1=SIGN(1.0_r8,FX(i,j))
+          cff2=SIGN(1.0_r8,umask_marsh(i,j))
+          cff3=0.5_r8*ABS(cff1+cff2)
+          Thrust_e(i,j)=ABS(umask_marsh(i,j))*cff3*FX(i,j)
 
-          cff1=0.5_r8*(1.0_r8-sign(1.0_r8,FX(i,j)));
-          cff2=0.5_r8*(1.0_r8-sign(1.0_r8,umask_marsh(i,j)));
-          cff3=cff1*cff2*FX(i,j)
-
-          Thrust_e(i,j)=cff3+Thrust_e(i,j)
-          write(62,*) iic(ng),i,j,Thrust_e(i,j)
+          Thrust_e(i,j)=Thrust_e(i,j)
         END DO
       END DO 
 !
       DO j=Jstr,JendR
         DO i=IstrR,IendR
-
-          cff1=0.5_r8*(1.0_r8+sign(1.0_r8,FY(i,j)));
-          cff2=0.5_r8*(1.0_r8+sign(1.0_r8,vmask_marsh(i,j)));
-          cff3=cff1*cff2*FY(i,j)
-          Thrust_n(i,j)=cff3
-
-          cff1=0.5_r8*(1.0_r8-sign(1.0_r8,FY(i,j)));
-          cff2=0.5_r8*(1.0_r8-sign(1.0_r8,vmask_marsh(i,j)));
-          cff3=cff1*cff2*FY(i,j)
-          Thrust_n(i,j)=cff3+Thrust_n(i,j)
-          write(64,*) iic(ng),j,cff1,cff2
-          write(66,*) iic(ng),j,cff3,FY(i,j)
-!
+          cff1=SIGN(1.0_r8,FY(i,j))
+          cff2=SIGN(1.0_r8,vmask_marsh(i,j))
+          cff3=0.5_r8*ABS(cff1-cff2)
+          Thrust_n(i,j)=ABS(vmask_marsh(i,j))*cff3*FY(i,j)
         END DO 
       END DO
 ! 
@@ -354,11 +350,15 @@
 !
 # endif 
 !
+!---------------------------------------------------------------------
+! Sum the thrust from all cell faces to get thrust at cell center
+!---------------------------------------------------------------------
+!
       DO j=Jstr,Jend
         DO i=Istr,Iend
-          cff=Thrust_e(i+1,j)-Thrust_e(i,j)
-          cff1=Thrust_n(i,j+1)-Thrust_n(i,j)
-          Thrust_tonelli(i,j)=(cff+cff1)*marsh_mask(i,j)
+          cff1=ABS(Thrust_e(i+1,j))+ABS(Thrust_e(i,j))+                 &
+               ABS(Thrust_n(i,j+1))+ABS(Thrust_n(i,j))
+          Thrust_tonelli(i,j)=cff1*marsh_mask(i,j)
         END DO
       END DO
 !
@@ -367,26 +367,26 @@
 !  purposes only.
 !---------------------------------------------------------------------
 !
-# ifdef DISTRIBUTE
-! 
-! Exchange boundary data 
-!
+      CALL bc_u2d_tile (ng, tile,                                       &
+     &                  LBi, UBi, LBj, UBj,                             &
+     &                  Thrust_e)
+      CALL bc_v2d_tile (ng, tile,                                       &
+     &                  LBi, UBi, LBj, UBj,                             &
+     &                  Thrust_n)
       CALL bc_r2d_tile (ng, tile,                                       &
      &                  LBi, UBi, LBj, UBj,                             &
      &                  Thrust_tonelli)
-# endif
-!
-# ifdef DISTRIBUTE
 ! 
+# ifdef DISTRIBUTE
+!
 ! Exchange boundary data 
 !
-      CALL mp_exchange2d (ng, tile, iNLM, 4,                            &
+      CALL mp_exchange2d (ng, tile, iNLM, 1,                            &
      &                    LBi, UBi, LBj, UBj,                           &
      &                    NghostPoints,                                 &
      &                    EWperiodic(ng), NSperiodic(ng),               &
-!     &                    umask_marsh, vmask_marsh,                     &
-     &                     Thrust_tonelli)
-
+     &                    Thrust_tonelli)
+!
 # endif
 !
       END SUBROUTINE marsh_wave_thrust_tile
