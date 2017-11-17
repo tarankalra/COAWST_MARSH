@@ -2,8 +2,8 @@
 
       MODULE marsh_sed_bedload_mode1_mod
 
-#if defined SEDIMENT && defined BEDLOAD && defined MARSH_WAVE_THRUST \
-      && defined MARSH_WAVE_EROSION && defined MARSH_SED_BEDLOAD_MODE1 
+#if defined SEDIMENT && defined BEDLOAD && defined MARSH_WAVE_EROSION \
+      && defined MARSH_SED_BEDLOAD_MODE1 
 !
 !svn $Id: marsh_wave_thrust.F 429 2015-04-20 17:30:26Z arango $
 !=======================================================================
@@ -55,18 +55,16 @@
      &                       IminS, ImaxS, JminS, JmaxS,                &
      &                       GRID(ng) % om_r,                           &
      &                       GRID(ng) % on_r,                           &
+     &                       GRID(ng) % on_u,                           &
+     &                       GRID(ng) % om_v,                           &
      &                       GRID(ng) % pm,                             &
      &                       GRID(ng) % pn,                             &
+     &                       GRID(ng) % h,                              &
      &                       nstp(ng), nnew(ng),                        &
-     &                       VEG(ng) % Thrust_w,                        & 
      &                       VEG(ng) % Thrust_e,                        &
      &                       VEG(ng) % Thrust_n,                        &
-     &                       VEG(ng) % Thrust_s,                        &
 # ifdef MARSH_LAT_RETREAT
-     &                       VEG(ng) % marsh_flux_e,                    &
-     &                       VEG(ng) % marsh_flux_w,                    &
-     &                       VEG(ng) % marsh_flux_n,                    &
-     &                       VEG(ng) % marsh_flux_s,                    &
+     &                       VEG(ng) % marsh_flux_out,                  &
 # endif 
      &                    SEDBED(ng) % bed_frac,                        &
      &                    SEDBED(ng) % bed,                             &
@@ -83,13 +81,13 @@
      &                             LBi, UBi, LBj, UBj,                  &
      &                             IminS, ImaxS, JminS, JmaxS,          &
      &                             om_r, on_r,                          &
+     &                             on_u, om_v,                          &
      &                             pm, pn,                              &
+     &                             h,                                   &
      &                             nstp, nnew,                          &
-     &                             Thrust_w, Thrust_e,                  &
-     &                             Thrust_n, Thrust_s,                  &
+     &                             Thrust_e, Thrust_n,                  &
 # ifdef MARSH_LAT_RETREAT
-     &                             marsh_flux_e, marsh_flux_w,          &
-     &                             marsh_flux_n, marsh_flux_s,          &
+     &                             marsh_flux_out,                      &
 # endif 
      &                             bed_frac, bed, bed_mass,             &
      &                             marsh_mask)
@@ -106,7 +104,8 @@
       USE bc_2d_mod, ONLY : bc_r2d_tile
       USE bc_3d_mod, ONLY : bc_r3d_tile
 # ifdef DISTRIBUTE
-      USE mp_exchange_mod, ONLY : mp_exchange2d, mp_exchange4d
+      USE mp_exchange_mod, ONLY : mp_exchange2d, mp_exchange3d,         &
+     &                            mp_exchange4d
 # endif
 !
 !  Imported variable declarations.
@@ -119,18 +118,18 @@
 # ifdef ASSUMED_SHAPE
       real(r8), intent(in) :: om_r(LBi:,LBj:)
       real(r8), intent(in) :: on_r(LBi:,LBj:)
+      real(r8), intent(in) :: on_u(LBi:,LBj:)
+      real(r8), intent(in) :: om_v(LBi:,LBj:)
       real(r8), intent(in) :: pm(LBi:,LBj:)
       real(r8), intent(in) :: pn(LBi:,LBj:)
+      real(r8), intent(in) :: h(LBi:,LBj:)
 !
-      real(r8), intent(in) :: Thrust_w(LBi:,LBj:)
       real(r8), intent(in) :: Thrust_e(LBi:,LBj:)
       real(r8), intent(in) :: Thrust_n(LBi:,LBj:)
-      real(r8), intent(in) :: Thrust_s(LBi:,LBj:)
 # ifdef MARSH_LAT_RETREAT
-      real(r8), intent(inout) :: marsh_flux_w(LBi:,LBj:)
       real(r8), intent(inout) :: marsh_flux_e(LBi:,LBj:)
       real(r8), intent(inout) :: marsh_flux_n(LBi:,LBj:)
-      real(r8), intent(inout) :: marsh_flux_s(LBi:,LBj:)
+      real(r8), intent(inout) :: marsh_flux_out(LBi:,LBj:,:)
 # endif 
 !
       real(r8), intent(inout) :: bed(LBi:,LBj:,:,:)
@@ -141,18 +140,16 @@
 # else
       real(r8), intent(in) :: om_r(LBi:UBi,LBj:UBj)
       real(r8), intent(in) :: on_r(LBi:UBi,LBj:UBj)
+      real(r8), intent(in) :: on_u(LBi:UBi,LBj:UBj)
+      real(r8), intent(in) :: om_v(LBi:UBi,LBj:UBj)
       real(r8), intent(in) :: pm(LBi:UBi,LBj:UBj)
       real(r8), intent(in) :: pn(LBi:UBi,LBj:UBj)
+      real(r8), intent(in) :: h(LBi:UBi,LBj:UBj)
 !
-      real(r8), intent(in) :: Thrust_w(LBi:UBi,LBj:UBj)
       real(r8), intent(in) :: Thrust_e(LBi:UBi,LBj:UBj)
       real(r8), intent(in) :: Thrust_n(LBi:UBi,LBj:UBj)
-      real(r8), intent(in) :: Thrust_s(LBi:UBi,LBj:UBj)
 # ifdef MARSH_LAT_RETREAT
-      real(r8), intent(inout) :: marsh_flux_w(LBi:UBi,LBj:UBj)
-      real(r8), intent(inout) :: marsh_flux_e(LBi:UBi,LBj:UBj)
-      real(r8), intent(inout) :: marsh_flux_n(LBi:UBi,LBj:UBj)
-      real(r8), intent(inout) :: marsh_flux_s(LBi:UBi,LBj:UBj)
+      real(r8), intent(inout) :: marsh_flux_out(LBi:UBi,LBj:UBj,NST)
 # endif 
 !
       real(r8), intent(inout) :: bed(LBi:UBi,LBj:UBj,Nbed,MBEDP)
@@ -165,226 +162,132 @@
 !  Local variable declarations.
 !
       integer :: i, j, k, ised
+      real(r8), parameter :: half=0.5_r8
+      real(r8), parameter :: eps = 1.0E-14_r8 !
       real(r8), parameter :: kN_N=1000.0_r8 ! convert Thrust from kN to N 
       real(r8) :: cff, cff1, cff2, cff3, cff4
-      real(r8) :: Eff_thrust 
+      real(r8) :: bed_thick_old, bathy
 !
 # include "set_bounds.h"
-!
+
 # if defined MARSH_LAT_RETREAT
-      marsh_flux_e=0.0_r8
-      marsh_flux_w=0.0_r8
-      marsh_flux_n=0.0_r8
-      marsh_flux_s=0.0_r8
+        marsh_flux_e=0.0_r8
+        marsh_flux_n=0.0_r8
 # endif 
 !
-!  |           |Thrust North |           |
-!--|---------- |-------------|---------  |-------------
-!  |Thrust West|   Marsh     |Thrust East| 
-!  |-----------|-------------|-----------|
-!  |           |Thrust South |           |    
-!
-! A fraction of bed mass moves from this cell to either
-! of the four neighboring cells if a critical thrust exceeds 
-!
-!|------|-----     |   -----     | -----   |-------------
-!|      |          |   marsh     |         | 
-!|      |  <----   |  <----->    | ---->   |
-!|      | add sed  | remove sed  | add sed |   
-!|
-!
-!The amount of sediment removed from the marsh cell 
-!depends on wave thrust, an erodibility coefficient 
-!(kfac_marsh), such that:
-!sediment removed (kg/m2)=mass eroded (kg) / cell area (m2)
-!       =thrust (kg/s2) *kfac_marsh (s/m) 
-!        * dy (along-marsh distance, m) * dt (s)
-!        / [dx *dy (m2)]
-!       = thrust * kfac_marsh *dt / dx 
-!
-      DO ised=NCS+1,NST
-        DO j=Jstr,Jend
+        J_LOOP: DO j=Jstr,Jend
           DO i=Istr,Iend
+            SED_LOOP: DO ised=NCS+1,NST
 !
-            cff1=bed_mass(i,j,1,nnew,ised)*om_r(i,j)*on_r(i,j)
+!---------------------------------------------------------------------
+! Convert bed mass from kg/sq.m to kg in each cell.
+!---------------------------------------------------------------------
 !
-!-----------------------------------------------------------------------
-! Thrust from West cell face leads to sediment addition on left cell
-!-----------------------------------------------------------------------
+              cff=bed_mass(i,j,1,nnew,ised)*om_r(i,j)*on_r(i,j)
 !
-            cff=dt(ng)/pn(i,j)
-! 
-            Eff_thrust=kN_N*MAX(ABS(Thrust_w(i,j)),0.0_r8)
-            cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff,cff1)
-            bed_mass(i-1,j,1,nnew,ised)=bed_mass(i-1,j,1,nnew,ised)+    &
-                                             cff2*pm(i-1,j)*pn(i-1,j)
+!---------------------------------------------------------------------
+! Add bed mass from sea cell providing horizontal face thrust.
+!---------------------------------------------------------------------
 !
-# if defined MARSH_LAT_RETREAT
-!
-! Save the marsh flux in kgs 
-!
-            marsh_flux_w(i,j)=cff2+marsh_flux_w(i,j)
+              cff1=half*(1.0_r8-SIGN(1.0_r8,Thrust_e(i,j)))
+              cff2=half*(1.0_r8+SIGN(1.0_r8,Thrust_e(i+1,j)))
+              cff3=kN_N*kfac_marsh(ng)*dt(ng)*                          &
+                            ( Thrust_e(i,j  )*on_u(i,j  )*cff1          &
+                             -Thrust_e(i+1,j)*on_u(i+1,j)*cff2) 
+              cff=cff+cff3
+# ifdef MARSH_LAT_RETREAT
+              marsh_sedflux_out(i,j,ised)=cff3
 # endif 
 !
-            IF(Eff_thrust.gt.0.0_r8) THEN
-              cff3=1.0_r8
-              cff1=MAX(cff1-cff2*cff3,0.0_r8)
+!---------------------------------------------------------------------
+! Subtract bed mass from marsh cell if thrust acts on horizontal face.
+!---------------------------------------------------------------------
 !
-! Save the updated bed mass from the eroded cell in kg-sq.m
-! 
-              bed_mass(i,j,1,nnew,ised)=cff1*pm(i,j)*pn(i,j)
+              cff1=half*(1.0_r8+SIGN(1.0_r8,Thrust_e(i,j)))
+              cff2=half*(1.0_r8-SIGN(1.0_r8,Thrust_e(i+1,j)))
+              cff3=-kN_N*kfac_marsh(ng)*dt(ng)*                         &
+                            (  Thrust_e(i+1,j)*on_u(i+1,j)*cff2         &
+                              -Thrust_e(i,j  )*on_u(i,j  )*cff1)
+              cff=cff+cff3
 !
-!  Get the updated bed thickness 
+!---------------------------------------------------------------------
+! Add bed mass from sea cell if it provides vertical face thrust. 
+!---------------------------------------------------------------------
 !
-              CALL update_bed_thickness (ng, tile, LBi, UBi, LBj, UBj,  &
-     &                                 Istr, Iend, Jstr, Jend,          &
-     &                                 nnew, bed , bed_frac, bed_mass)
-!
-!   If the marsh cell bed thickness is equal to wet cell infront of it
-!   Then make the marsh cell as a wet cell i.e. marsh_mask=0.0  
-!   Then the sediment is not supplied indefinitely to a cell infront 
-!
-              cff4=(bed(i,j,1,ithck)-bed(i-1,j,1,ithck))*marsh_mask(i,j)
-              IF (cff4.gt.0.0) THEN 
-                marsh_mask(i,j)=0.0_r8
-              END IF 
-            ENDIF
-!
-!-----------------------------------------------------------------------
-! Thrust from East cell face leads to sediment addition on right cell
-!-----------------------------------------------------------------------
-!
-            Eff_thrust=kn_N*MAX(ABS(Thrust_e(i+1,j)),0.0_r8)  
-            cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff,cff1)
-            bed_mass(i+1,j,1,nnew,ised)=bed_mass(i+1,j,1,nnew,ised)+    &
-                                             cff2*pm(i+1,j)*pn(i+1,j)
-!
-# if defined MARSH_LAT_RETREAT
-!
-! Save the marsh flux in kgs
-!
-            marsh_flux_e(i+1,j)=cff2+marsh_flux_e(i+1,j)
+              cff1=half*(1.0_r8-SIGN(1.0_r8,Thrust_n(i,j)))
+              cff2=half*(1.0_r8+SIGN(1.0_r8,Thrust_n(i,j+1)))
+              cff3=kN_N*kfac_marsh(ng)*dt(ng)*                          &
+                            ( Thrust_n(i,j+1)*om_v(i,j+1)*cff2          &
+                             -Thrust_n(i,j  )*om_v(i,j  )*cff1 )
+              cff=cff+cff3
+# ifdef MARSH_LAT_RETREAT
+              marsh_sedflux_out(i,j,ised)=cff3+                         &
+                                          marsh_sedflux_out(i,j,ised)
 # endif 
 !
-            IF(Eff_thrust.gt.0.0_r8) THEN
-              cff3=1.0_r8
-              cff1=MAX(cff1-cff2*cff3,0.0_r8)
+!---------------------------------------------------------------------
+! Subtract bed mass from marsh cell if thrust acts on vertical face. 
+!---------------------------------------------------------------------
 !
-! Save the updated bed mass from the eroded cell
+              cff1=half*(1.0_r8+SIGN(1.0_r8,Thrust_n(i,j  )))
+              cff2=half*(1.0_r8-SIGN(1.0_r8,Thrust_n(i,j+1)))
+              cff=cff-kN_N*kfac_marsh(ng)*dt(ng)*                       &
+                            ( Thrust_n(i,j  )*om_v(i,j  )*cff1          &
+                             -Thrust_n(i,j+1)*om_v(i,j+1)*cff2  )
+!
+!---------------------------------------------------------------------
+! Update bed mass and convert back to kg-sq.m. 
+!---------------------------------------------------------------------
+!
+              bed_mass(i,j,1,nnew,ised)=cff*pm(i,j)*pn(i,j)
+!        
+            END DO SED_LOOP
+!
+!---------------------------------------------------------------------
+! recalculate thickness and fractions for all layers.
+!---------------------------------------------------------------------
+!
+            bed_thick_old=bed(i,j,1,ithck)
+            cff3=0.0_r8
+            DO ised=1,NST
+              cff3=cff3+bed_mass(i,j,1,nnew,ised)
+            END DO
+            IF (cff3.eq.0.0_r8) THEN
+              cff3=eps
+            END IF
+            bed(i,j,1,ithck)=0.0_r8
+            DO ised=1,NST
+              bed_frac(i,j,1,ised)=bed_mass(i,j,1,nnew,ised)/cff3
+              bed(i,j,1,ithck)=MAX(bed(i,j,1,ithck)+                    &
+     &                       bed_mass(i,j,1,nnew,ised)/                 &
+     &                       (Srho(ised,ng)*                            &
+     &                       (1.0_r8-bed(i,j,1,iporo))),0.0_r8)
+            END DO
+!
+!---------------------------------------------------------------------
+! Local bathymetry calculation to change marsh mask.
+!---------------------------------------------------------------------
+!
+          bathy=h(i,j)+bed(i,j,1,ithck)-bed_thick_old 
+!
+          IF(bathy.lt.DCRIT_MARSH(ng))THEN
+!
+!---------------------------------------------------------------------
+! Erode marsh.
+!---------------------------------------------------------------------
+!
+             marsh_mask(i,j)=1.0_r8
+           ELSE
+!
+!---------------------------------------------------------------------
+! Reclaim marsh.
+!---------------------------------------------------------------------
+!
+             marsh_mask(i,j)=0.0_r8
+           END IF
 ! 
-              bed_mass(i,j,1,nnew,ised)=cff1*pm(i,j)*pn(i,j) 
-!
-!  Get the updated bed thickness 
-!
-              CALL update_bed_thickness (ng, tile, LBi, UBi, LBj, UBj,  & 
-     &                                   Istr, Iend, Jstr, Jend,        &
-     &                                   nnew, bed , bed_frac, bed_mass)
-!
-!   If the marsh cell bed thickness is equal to wet cell infront of it
-!   Then make the marsh cell as a wet cell i.e. marsh_mask=0.0  
-!   Then the sediment is not supplied indefinitely to a cell infront 
-!
-              cff4=(bed(i+1,j,1,ithck)-bed(i,j,1,ithck))*marsh_mask(i,j)
-              IF (cff4.gt.0.0) THEN 
-                marsh_mask(i,j)=0.0_r8
-              END IF 
-            ENDIF
-!
-!-----------------------------------------------------------------------
-! Thrust from North cell face leads to sediment addition on cell above
-!-----------------------------------------------------------------------
-!
-            cff=dt(ng)/pm(i,j)
-!
-            Eff_thrust=kN_N*MAX(ABS(Thrust_n(i,j+1)),0.0_r8)
-            cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff,cff1)
-            bed_mass(i,j+1,1,nnew,ised)=bed_mass(i,j+1,1,nnew,ised)+    &
-                                             cff2*pm(i,j+1)*pn(i,j+1)
-!            write(60,*) iic(ng),i,j,Eff_thrust
-!            write(61,*) i,j,bed_mass(i,j+1,1,nnew,ised)
-!            write(62,*) i,j,pm(i,j+1),pn(i,j+1)
-!
-# if defined MARSH_LAT_RETREAT
-!
-! Save the marsh flux in kgs
-! 
-            marsh_flux_n(i,j+1)=cff2+marsh_flux_n(i,j+1)
-# endif
-!
-!
-            IF(Eff_thrust.gt.0.0_r8) THEN
-              cff3=1.0_r8
-              cff1=MAX((cff1-cff2*cff3),0.0_r8)
-!
-! Save the updated bed mass from the eroded cell
-! 
-              bed_mass(i,j,1,nnew,ised)=cff1*pm(i,j)*pn(i,j) 
-!
-              CALL update_bed_thickness (ng, tile, LBi, UBi, LBj, UBj,  & 
-     &                                   Istr, Iend, Jstr, Jend,        &
-     &                                   nnew, bed , bed_frac, bed_mass)
-!
-!   If the marsh cell bed thickness is equal to wet cell infront of it
-!   Then make the marsh cell as a wet cell i.e. marsh_mask=0.0  
-!   Then the sediment is not supplied indefinitely to a cell infront 
-!
-              cff4=(bed(i,j+1,1,ithck)-bed(i,j,1,ithck))*marsh_mask(i,j)
-              IF (cff4.gt.0.0) THEN 
-                marsh_mask(i,j)=0.0_r8
-              END IF 
-!
-            ENDIF
-!
-!-----------------------------------------------------------------------
-! Thrust from South cell face leads to sediment addition on cell below
-!-----------------------------------------------------------------------
-!
-            Eff_thrust=kN_N*MAX(ABS(Thrust_s(i,j)),0.0_r8)
-            cff2=MIN(Eff_thrust*kfac_marsh(ng)*cff,cff1)
-            bed_mass(i,j-1,1,nnew,ised)=bed_mass(i,j-1,1,nnew,ised)+    &
-                                             cff2*pm(i,j-1)*pn(i,j-1)
-!
-# if defined MARSH_LAT_RETREAT
-!
-! Save the marsh flux in kgs
-!  
-            marsh_flux_s(i,j)=cff2+marsh_flux_s(i,j)
-# endif 
-!
-            IF(Eff_thrust.gt.0.0_r8) THEN
-              cff3=1.0_r8
-              cff1=MAX((cff1-cff2*cff3),0.0_r8)
-!
-! Save the updated bed mass from the eroded cell
-! 
-              bed_mass(i,j,1,nnew,ised)=cff1*pm(i,j)*pn(i,j) 
-!
-!  Get the updated bed thickness 
-!
-              CALL update_bed_thickness (ng, tile, LBi, UBi, LBj, UBj,  &
-     &                                   Istr, Iend, Jstr, Jend,        &
-     &                                   nnew, bed , bed_frac, bed_mass)
-!
-!   If the marsh cell bed thickness is equal to wet cell infront of it
-!   Then make the marsh cell as a wet cell i.e. marsh_mask=0.0  
-!   Then the sediment is not supplied indefinitely to a cell infront 
-!
-              cff4=(bed(i,j-1,1,ithck)-bed(i,j,1,ithck))*marsh_mask(i,j)
-              IF (cff4.gt.0.0) THEN 
-                marsh_mask(i,j)=0.0_r8
-              END IF 
-!
-            ENDIF
-!
-! First criteria of converting marsh cell to wet cell 
-! 
-            IF (bed(i,j,1,ithck).le.dcrit_marsh(ng)) THEN 
-              marsh_mask(i,j)=0.0_r8
-            END IF 
-!
-          END DO
-        END DO 
-      END DO
+        END DO
+      END DO J_LOOP
 !
 !---------------------------------------------------------------------
 !  Apply periodic or gradient boundary conditions for output
@@ -393,7 +296,7 @@
 !
       CALL bc_r2d_tile (ng, tile,                                       &
      &                  LBi, UBi, LBj, UBj,                             &
-     &                  marsh_mask)
+                        marsh_mask)
       DO ised=1,NST
         CALL bc_r3d_tile (ng, tile,                                     &
      &                    LBi, UBi, LBj, UBj, 1, Nbed,                  &
@@ -449,67 +352,16 @@
      &                    EWperiodic(ng), NSperiodic(ng),               &
      &                    marsh_flux_w, marsh_flux_e,                   &
      &                    marsh_flux_n, marsh_flux_s)         
+      CALL mp_exchange3d (ng, tile, iNLM, 1,                            &
+     &                    LBi, UBi, LBj, UBj, 1, NST,                   &
+     &                    NghostPoints,                                 &
+     &                    EWperiodic(ng), NSperiodic(ng),               &
+     &                    marsh_flux_out)         
 #  endif 
 # endif
 !
-      RETURN
+      RETURN 
       END SUBROUTINE marsh_sed_bedload_mode1_tile
-!
-      SUBROUTINE update_bed_thickness (ng, tile, LBi, UBi, LBj, UBj,    & 
-     &                                  Istr, Iend, Jstr, Jend,         &
-     &                                 nnew, bed, bed_frac, bed_mass)
-! 
-      USE mod_sediment
-      USE mod_sedbed
-      USE mod_param
-      USE mod_scalars 
-!
-      implicit none
-!
-      integer, intent(in) :: ng, tile
-      integer, intent(in) :: LBi, UBi, LBj, UBj
-      integer, intent(in) :: Istr, Iend, Jstr, Jend
-      integer, intent(in) :: nnew
-!
-#  ifdef ASSUMED_SHAPE
-      real(r8), intent(inout) :: bed(LBi:,LBj:,:,:)
-      real(r8), intent(inout) :: bed_frac(LBi:,LBj:,:,:)
-      real(r8), intent(inout) :: bed_mass(LBi:,LBj:,:,:,:)
-#  else
-      real(r8), intent(inout) :: bed(LBi:UBi,LBj:UBj,Nbed,MBEDP)
-      real(r8), intent(inout) :: bed_frac(LBi:UBi,LBj:UBj,Nbed,NST)
-      real(r8), intent(inout) :: bed_mass(LBi:UBi,LBj:UBj,Nbed,1:2,NST)
-#  endif
-!
-!  Local variable declarations.
-!
-      integer :: i, ised, j, k
-      real(r8) :: cff3
-      real(r8), parameter :: eps = 1.0E-14_r8 !
-!
-! recalculate thickness and fractions for all layers.
-!
-      DO j=Jstr,Jend
-        DO i=Istr,Iend
-          cff3=0.0_r8
-          DO ised=1,NST
-            cff3=cff3+bed_mass(i,j,1,nnew,ised)
-          END DO
-          IF (cff3.eq.0.0_r8) THEN
-            cff3=eps
-          END IF
-          bed(i,j,1,ithck)=0.0_r8
-          DO ised=1,NST
-            bed_frac(i,j,1,ised)=bed_mass(i,j,1,nnew,ised)/cff3
-            bed(i,j,1,ithck)=MAX(bed(i,j,1,ithck)+                      &
-     &                       bed_mass(i,j,1,nnew,ised)/                 &
-     &                       (Srho(ised,ng)*                            &
-     &                        (1.0_r8-bed(i,j,1,iporo))),0.0_r8)
-          END DO
-        END DO 
-      END DO 
-!
-      END SUBROUTINE update_bed_thickness
 #endif
       END MODULE marsh_sed_bedload_mode1_mod
 

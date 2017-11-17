@@ -210,9 +210,10 @@
       real(r8), parameter :: eps=1.0e-12_r8
 
       real(r8) :: Kw, Integral_Kp 
-      real(r8) :: depth_all, mask_local_tonelli
+      real(r8) :: depth_all
 
-      real(r8) :: cff, cff1, cff2, cff3, F_asl, F_bsl, F_msl
+      real(r8) :: cff, cff1, cff2, cff3, cff4
+      real(r8) :: F_asl, F_bsl, F_msl
 
       real(r8), dimension(IminS:ImaxS,JminS:JmaxS) :: umask_marsh
       real(r8), dimension(IminS:ImaxS,JminS:JmaxS) :: vmask_marsh
@@ -261,7 +262,7 @@
       CALL exchange_v2d_tile (ng, tile,                                 &
      &                            LBi, UBi, LBj, UBj,                   &
      &                            vmask_marsh(:,:))
-                 
+!                 
 # endif
 !
 !----------------------------------------------------------------------
@@ -273,7 +274,7 @@
         DO i=Istr-1,Iend+1
           cff=1.5_r8*pi-Dwave(i,j)-angler(i,j)
 !
-!---------yy-------------------------------------------------------------
+!----------------------------------------------------------------------
 !  Calculate Thrust below and above sea level.
 !----------------------------------------------------------------------
 !
@@ -295,45 +296,59 @@
         END DO
       END DO
 !
-!=======================================================================
-! Compute marsh mask with respect to water column depth to reduce      ! 
-! thrust based on depth.                                               ! 
-! Constant value of masking below the marsh                            !         
-! Exponential reduction above the marsh (depth=zeta+marsh elevation)   !
-!                                                                      !
-!=======================================================================
-!
-!          depth_all=(h(i,j)+zeta(i-1,j,1))
-!          IF(depth_all.lt.0.0_r8) THEN
-!            cff=1.0_r8
-!          ELSEIF (depth_all.ge.0.0_r8) THEN
-!            cff=exp(-depth_all*3.0_r8)
-!          ENDIF
-!          mask_thrust_eachdir=cff*fac
-!
-
-!
 !---------------------------------------------------------------------
 ! Get the wave thrust on cell faces
 !---------------------------------------------------------------------
 !
       DO j=JstrR,JendR
         DO i=Istr,IendR
-          cff1=SIGN(1.0_r8,FX(i,j))
-          cff2=SIGN(1.0_r8,umask_marsh(i,j))
-          cff3=0.5_r8*ABS(cff1+cff2)
-          Thrust_e(i,j)=ABS(umask_marsh(i,j))*cff3*FX(i,j)
-
-          Thrust_e(i,j)=Thrust_e(i,j)
+!
+          cff1=SIGN(1.0_r8,umask_marsh(i,j))
+          cff2=half*(1.0_r8+cff1)
+          cff3=half*(1.0_r8-cff1)
+          Thrust_e(i,j)=ABS(umask_marsh(i,j))*                          &
+                           (cff2*FX(i-1,j)+cff3*FX(i,j))
+!
+          depth_all=cff2*(h(i,j  )+zeta(i-1,j,1))+                      &
+                    cff3*(h(i-1,j)+zeta(i,j,1  ))
+          IF(depth_all.lt.0.0_r8) THEN 
+            cff4=1.0_r8
+          ELSEIF(depth_all.ge.0.0_r8) THEN 
+            cff4=exp(-depth_all*3.0_r8)
+          ENDIF 
+!
+!---------------------------------------------------------------------
+! Modify horizontal cell face thrust based on water depth  
+!---------------------------------------------------------------------
+!
+          Thrust_e(i,j)=cff4*Thrust_e(i,j)
+!
         END DO
       END DO 
 !
       DO j=Jstr,JendR
         DO i=IstrR,IendR
-          cff1=SIGN(1.0_r8,FY(i,j))
-          cff2=SIGN(1.0_r8,vmask_marsh(i,j))
-          cff3=0.5_r8*ABS(cff1-cff2)
-          Thrust_n(i,j)=ABS(vmask_marsh(i,j))*cff3*FY(i,j)
+!
+          cff1=SIGN(1.0_r8,vmask_marsh(i,j))
+          cff2=half*(1.0_r8+cff1)
+          cff3=half*(1.0_r8-cff1)
+          Thrust_n(i,j)=ABS(vmask_marsh(i,j))*                          &
+                           (cff3*FY(i,j-1)+cff2*FY(i,j))
+!
+          depth_all=cff2*(h(i,j-1)+zeta(i,j,1  ))+                      &
+                    cff3*(h(i,j  )+zeta(i,j-1,1))
+          IF(depth_all.lt.0.0_r8) THEN 
+            cff4=1.0_r8
+          ELSEIF(depth_all.ge.0.0_r8) THEN 
+            cff4=exp(-depth_all*3.0_r8)
+          ENDIF 
+!
+!---------------------------------------------------------------------
+! Modify vertical cell face thrust based on water depth  
+!---------------------------------------------------------------------
+!
+          Thrust_n(i,j)=cff4*Thrust_n(i,j)
+!
         END DO 
       END DO
 ! 
