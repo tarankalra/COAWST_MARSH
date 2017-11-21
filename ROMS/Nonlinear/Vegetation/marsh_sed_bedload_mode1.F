@@ -64,6 +64,8 @@
      &                       VEG(ng) % Thrust_e,                        &
      &                       VEG(ng) % Thrust_n,                        &
 # ifdef MARSH_LAT_RETREAT
+     &                       VEG(ng) % marsh_flux_e,                    &
+     &                       VEG(ng) % marsh_flux_n,                    &
      &                       VEG(ng) % marsh_flux_out,                  &
 # endif 
      &                    SEDBED(ng) % bed_frac,                        &
@@ -87,6 +89,7 @@
      &                             nstp, nnew,                          &
      &                             Thrust_e, Thrust_n,                  &
 # ifdef MARSH_LAT_RETREAT
+     &                             marsh_flux_e, marsh_flux_n,          &
      &                             marsh_flux_out,                      &
 # endif 
      &                             bed_frac, bed, bed_mass,             &
@@ -149,6 +152,8 @@
       real(r8), intent(in) :: Thrust_e(LBi:UBi,LBj:UBj)
       real(r8), intent(in) :: Thrust_n(LBi:UBi,LBj:UBj)
 # ifdef MARSH_LAT_RETREAT
+      real(r8), intent(inout) :: marsh_flux_e(LBi:UBi,LBj:UBj)
+      real(r8), intent(inout) :: marsh_flux_n(LBi:UBi,LBj:UBj)
       real(r8), intent(inout) :: marsh_flux_out(LBi:UBi,LBj:UBj,NST)
 # endif 
 !
@@ -162,7 +167,7 @@
 !  Local variable declarations.
 !
       integer :: i, j, k, ised
-      real(r8), parameter :: half=0.5_r8
+      real(r8), parameter :: half=0.5_r8, one=1.0_r8 
       real(r8), parameter :: eps = 1.0E-14_r8 !
       real(r8), parameter :: kN_N=1000.0_r8 ! convert Thrust from kN to N 
       real(r8) :: cff, cff1, cff2, cff3, cff4
@@ -179,64 +184,53 @@
           DO i=Istr,Iend
             SED_LOOP: DO ised=NCS+1,NST
 !
-!---------------------------------------------------------------------
-! Convert bed mass from kg/sq.m to kg in each cell.
-!---------------------------------------------------------------------
+! Convert bed mass from kg/sq.m to kg in each cell
 !
               cff=bed_mass(i,j,1,nnew,ised)*om_r(i,j)*on_r(i,j)
 !
 !---------------------------------------------------------------------
-! Add bed mass from sea cell providing horizontal face thrust.
+! Add bed mass from sea cell providing horizontal face thrust 
 !---------------------------------------------------------------------
 !
-              cff1=half*(1.0_r8-SIGN(1.0_r8,Thrust_e(i,j)))
-              cff2=half*(1.0_r8+SIGN(1.0_r8,Thrust_e(i+1,j)))
-              cff3=kN_N*kfac_marsh(ng)*dt(ng)*                          &
+              cff1=half*(one-SIGN(one,Thrust_e(i,j)))
+              cff2=half*(one+SIGN(one,Thrust_e(i+1,j)))
+              cff=cff+kN_N*kfac_marsh(ng)*dt(ng)*                       &
                             ( Thrust_e(i,j  )*on_u(i,j  )*cff1          &
                              -Thrust_e(i+1,j)*on_u(i+1,j)*cff2) 
-              cff=cff+cff3
-# ifdef MARSH_LAT_RETREAT
-              marsh_sedflux_out(i,j,ised)=cff3
-# endif 
 !
 !---------------------------------------------------------------------
-! Subtract bed mass from marsh cell if thrust acts on horizontal face.
+! Subtract bed mass from marsh cell if thrust acts on horizontal face 
+! Marsh cell
 !---------------------------------------------------------------------
 !
-              cff1=half*(1.0_r8+SIGN(1.0_r8,Thrust_e(i,j)))
-              cff2=half*(1.0_r8-SIGN(1.0_r8,Thrust_e(i+1,j)))
-              cff3=-kN_N*kfac_marsh(ng)*dt(ng)*                         &
+              cff1=half*(one+SIGN(one,Thrust_e(i,j)))
+              cff2=half*(one-SIGN(one,Thrust_e(i+1,j)))
+              cff=cff-kN_N*kfac_marsh(ng)*dt(ng)*                       &
                             (  Thrust_e(i+1,j)*on_u(i+1,j)*cff2         &
                               -Thrust_e(i,j  )*on_u(i,j  )*cff1)
-              cff=cff+cff3
 !
 !---------------------------------------------------------------------
-! Add bed mass from sea cell if it provides vertical face thrust. 
+! Add bed mass from sea cell if it provides vertical face thrust 
 !---------------------------------------------------------------------
 !
-              cff1=half*(1.0_r8-SIGN(1.0_r8,Thrust_n(i,j)))
-              cff2=half*(1.0_r8+SIGN(1.0_r8,Thrust_n(i,j+1)))
-              cff3=kN_N*kfac_marsh(ng)*dt(ng)*                          &
+              cff1=half*(one-SIGN(one,Thrust_n(i,j)))
+              cff2=half*(one+SIGN(one,Thrust_n(i,j+1)))
+              cff=cff+kN_N*kfac_marsh(ng)*dt(ng)*                       &
                             ( Thrust_n(i,j+1)*om_v(i,j+1)*cff2          &
                              -Thrust_n(i,j  )*om_v(i,j  )*cff1 )
-              cff=cff+cff3
-# ifdef MARSH_LAT_RETREAT
-              marsh_sedflux_out(i,j,ised)=cff3+                         &
-                                          marsh_sedflux_out(i,j,ised)
-# endif 
 !
 !---------------------------------------------------------------------
-! Subtract bed mass from marsh cell if thrust acts on vertical face. 
+! Subtract bed mass from marsh cell if thrust acts on vertical face 
 !---------------------------------------------------------------------
 !
-              cff1=half*(1.0_r8+SIGN(1.0_r8,Thrust_n(i,j  )))
-              cff2=half*(1.0_r8-SIGN(1.0_r8,Thrust_n(i,j+1)))
+              cff1=half*(one+SIGN(one,Thrust_n(i,j  )))
+              cff2=half*(one-SIGN(one,Thrust_n(i,j+1)))
               cff=cff-kN_N*kfac_marsh(ng)*dt(ng)*                       &
                             ( Thrust_n(i,j  )*om_v(i,j  )*cff1          &
                              -Thrust_n(i,j+1)*om_v(i,j+1)*cff2  )
 !
 !---------------------------------------------------------------------
-! Update bed mass and convert back to kg-sq.m. 
+! Update bed mass 
 !---------------------------------------------------------------------
 !
               bed_mass(i,j,1,nnew,ised)=cff*pm(i,j)*pn(i,j)
@@ -265,22 +259,22 @@
             END DO
 !
 !---------------------------------------------------------------------
-! Local bathymetry calculation to change marsh mask.
+! Bathymetry based change in marsh mask.
 !---------------------------------------------------------------------
 !
-          bathy=h(i,j)+bed(i,j,1,ithck)-bed_thick_old 
+          bathy=h(i,j)-bed(i,j,1,ithck)+bed_thick_old 
 !
           IF(bathy.lt.DCRIT_MARSH(ng))THEN
 !
 !---------------------------------------------------------------------
-! Reclaim marsh.
+! Erode marsh
 !---------------------------------------------------------------------
 !
              marsh_mask(i,j)=1.0_r8
            ELSE
 !
 !---------------------------------------------------------------------
-! Erode marsh.
+! Reclaim marsh
 !---------------------------------------------------------------------
 !
              marsh_mask(i,j)=0.0_r8
@@ -360,7 +354,6 @@
 #  endif 
 # endif
 !
-      RETURN 
       END SUBROUTINE marsh_sed_bedload_mode1_tile
 #endif
       END MODULE marsh_sed_bedload_mode1_mod
