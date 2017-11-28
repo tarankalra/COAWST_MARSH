@@ -2,11 +2,7 @@
 
       MODULE marsh_lat_retreat_mod
 
-#if defined MARSH_WAVE_EROSION && defined MARSH_LAT_RETREAT
-!
-!#if defined MARSH_WAVE_EROSION && defined MARSH_WAVE_THRUST \
-! && defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2 \
-! && defined MARSH_LAT_RETREAT 
+#if defined MARSH_WAVE_EROSION && defined MARSH_RETREAT
 !
 !svn $Id: marsh_wave_thrust.F 429 2015-04-20 17:30:26Z arango $
 !=======================================================================
@@ -16,6 +12,7 @@
 !================================================Neil K. Ganju  =======!
 !==============================================Tarandeep S. Kalra======!
 !==============================================John C. Warner==========!
+!==============================================Julia M. Moriarty=======!
 !                                                                      ! 
 !  References:                                                         !
 !                                                                      !
@@ -24,12 +21,12 @@
       implicit none
 
       PRIVATE
-      PUBLIC  :: marsh_lat_retreat
+      PUBLIC  :: marsh_retreat
 
       CONTAINS
 !
 !***********************************************************************
-      SUBROUTINE marsh_lat_retreat (ng, tile)
+      SUBROUTINE marsh_retreat (ng, tile)
 !***********************************************************************
 !
       USE mod_grid
@@ -38,12 +35,7 @@
       USE mod_vegarr
       USE mod_sediment
       USE mod_sedbed
-# if defined MARSH_SED_BEDLOAD_MODE1 
-      USE marsh_sed_bedload_mode1_mod
-# endif 
-# if defined MARSH_SED_BEDLOAD_MODE2
-      USE marsh_sed_bedload_mode2_mod
-# endif 
+      USE marsh_wave_thrust
 !
 !  Imported variable declarations.
 !
@@ -53,35 +45,23 @@
 !
 # include "tile.h"
 !
-      CALL marsh_lat_retreat_tile (ng, tile,                            & 
+      CALL marsh_retreat_tile (ng, tile,                                &
      &                       LBi, UBi, LBj, UBj,                        &
      &                       IminS, ImaxS, JminS, JmaxS,                &
      &                       GRID(ng) % pm,                             &
      &                       GRID(ng) % pn,                             &
      &                       GRID(ng) % h,                              &
      &                       OCEAN(ng) % zeta,                          &
-     &                       VEG(ng) % marsh_mask,                      &
-     &                       VEG(ng) % marsh_flux_e,                    &
-     &                       VEG(ng) % marsh_flux_w,                    &
-     &                       VEG(ng) % marsh_flux_n,                    &
-     &                       VEG(ng) % marsh_flux_s,                    &
-     &                       SEDBED(ng) % bed_frac,                     &
-     &                       SEDBED(ng) % bed,                          &
      &                       VEG(ng) % marsh_retreat)
       RETURN
-      END SUBROUTINE marsh_lat_retreat
+      END SUBROUTINE marsh_retreat
 !
 !***********************************************************************
 !
-      SUBROUTINE marsh_lat_retreat_tile (ng, tile,                      &
+      SUBROUTINE marsh_retreat_tile (ng, tile,                          &
      &                             LBi, UBi, LBj, UBj,                  &
      &                             IminS, ImaxS, JminS, JmaxS,          &
-     &                             pm, pn,                              &
-     &                             h, zeta,                             &
      &                             marsh_mask,                          &
-     &                             marsh_flux_e, marsh_flux_w,          &
-     &                             marsh_flux_n, marsh_flux_s,          &
-     &                             bed_frac, bed,                       &
      &                             marsh_retreat)
 !
 !***********************************************************************
@@ -92,12 +72,7 @@
       USE mod_vegarr
       USE mod_sediment
       USE mod_sedbed
-# if defined MARSH_SED_BEDLOAD_MODE1 
-      USE marsh_sed_bedload_mode1_mod
-# endif 
-# if defined MARSH_SED_BEDLOAD_MODE2
-      USE marsh_sed_bedload_mode2_mod
-# endif 
+      USE mod_marsh_wave_thrust
       USE bc_2d_mod, ONLY : bc_r2d_tile
       USE bc_3d_mod, ONLY : bc_r3d_tile
 !
@@ -120,14 +95,8 @@
       real(r8), intent(in) :: zeta(LBi:,LBj:,:)
 !
       real(r8), intent(in) :: marsh_mask(LBi:,LBj:)
-      real(r8), intent(in) :: marsh_flux_w(LBi:,LBj:)
-      real(r8), intent(in) :: marsh_flux_e(LBi:,LBj:)
-      real(r8), intent(in) :: marsh_flux_n(LBi:,LBj:)
-      real(r8), intent(in) :: marsh_flux_s(LBi:,LBj:)
-! 
-      real(r8), intent(in) :: bed_frac(LBi:,LBj:,:,:)
-      real(r8), intent(in) :: bed(LBi:,LBj:,:,:)
-!
+      real(r8), intent(in) :: Thrust_xi(LBi:,LBj:)
+      real(r8), intent(in) :: Thrust_eta(LBi:,LBj:)
       real(r8), intent(inout) :: marsh_retreat(LBi:,LBj:)
 # else
       real(r8), intent(in) :: pm(LBi:UBi,LBj:UBj)
@@ -136,13 +105,8 @@
       real(r8), intent(in) :: zeta(LBi:UBi,LBj:UBj,3)
 !
       real(r8), intent(in) :: marsh_mask(LBi:UBi,LBj:UBj)
-      real(r8), intent(in) :: marsh_flux_w(LBi:UBi,LBj:UBj) 
-      real(r8), intent(in) :: marsh_flux_e(LBi:UBi,LBj:UBj) 
-      real(r8), intent(in) :: marsh_flux_n(LBi:UBi,LBj:UBj) 
-      real(r8), intent(in) :: marsh_flux_s(LBi:UBi,LBj:UBj)
-!
-      real(r8), intent(in) :: bed_frac(LBi:UBi,LBj:UBj,Nbed,NST)
-      real(r8), intent(in) :: bed(LBi:UBi,LBj:UBj,Nbed,MBEDP)
+      real(r8), intent(in) :: Thrust_xi(LBi:UBi,LBj:UBj)
+      real(r8), intent(in) :: Thrust_eta(LBi:UBi,LBj:UBj)
 !
       real(r8), intent(inout) :: marsh_retreat(LBi:UBi,LBj:UBj)
 # endif
@@ -150,10 +114,10 @@
 !  Local variable declarations.
 !
       integer :: i, ised, j, k
-      real(r8) :: cff, cff1
-      real(r8) :: Vol_erod, inv_scarp_hght_eff
-      real(r8) :: dx_e, dx_w, dy_n, dy_s 
+      real(r8) :: cff, cff1, cff2, cff3
+      real(r8) :: inv_scarp_hght_eff
       real(r8), dimension(IminS:ImaxS,JminS:JmaxS) :: srho_mean
+      real(r8), dimension(IminS:ImaxS,JminS:JmaxS) :: dx_xi, dy_eta
 !
 # include "set_bounds.h"
 !
@@ -167,59 +131,62 @@
         END DO
       END DO J_LOOP
 !
+!----------------------------------------------------------------------
+! Calculated flux out in kg/m from marsh at U-points and V-points.
+!----------------------------------------------------------------------
+!
+      DO j=JstrR,JendR
+         DO i=Istr,IendR
+          cff=kN_N*kfac_marsh(ng)*dt(ng)          
+          flux_out=ABS(cff*Thrust_xi(i,j)*on_u(i,j))
+!
+          cff1=SIGN(1.0_r8,Thrust_xi(i,j))
+          cff2=half*(1.0_r8+cff1)
+          cff3=half*(1.0_r8-cff1)
+
+          inv_scarp_hght_eff=cff2*(h(i,j-1)+zeta(i,j,1  ))+             &
+                             cff3*(h(i,j  )+zeta(i-1,j,1))
+          dx_xi(i,j)=flux_out/inv_scarp_hght_eff
+        END DO
+      END DO
+!
+      DO j=Jstr,JendR
+        DO i=IstrR,IendR
+!
+          cff=kN_N*kfac_marsh(ng)*dt(ng)          
+          flux_out=ABS(cff*Thrust_eta(i,j)*om_v(i,j))
+!
+          cff1=SIGN(1.0_r8,Thrust_eta(i,j))
+          cff2=half*(1.0_r8+cff1)
+          cff3=half*(1.0_r8-cff1)
+          inv_scarp_hght_eff=cff2*(h(i,j-1)+zeta(i,j,1  ))+             &
+                             cff3*(h(i,j  )+zeta(i,j-1,1))
+          dy_eta(i,j)=flux_out/(inv_scarp_hght_eff)
+        END DO
+      END DO
+!
+# ifdef DISTRIBUTE
+! 
+! Exchange boundary data 
+!
+       CALL exchange_u2d_tile (ng, tile,                                &
+     &                            LBi, UBi, LBj, UBj,                  &
+     &                            dx_xi(:,:))
+       CALL exchange_v2d_tile (ng, tile,                                &
+     &                            LBi, UBi, LBj, UBj,                  &
+     &                            dy_eta(:,:))
+!
+ # endif
+! 
       DO j=Jstr,Jend
         DO i=Istr,Iend
-!
-! Use an average Srho here and remove the sediment loop because 
-! marsh flux from each face already adds the sediment classes 
-! marsh flux is in units of kg.
-!  
-          cff1=1.0_r8/((srho_mean(i,j))*(1.0_r8-bed(i,j,1,iporo)))
-!
-!  |           | Flux North  |         |
-!--|---------- |-------------|---------|-------------
-!  |Flux West  |   Marsh     |Flux East| 
-!  |-----------|-------------|---------|
-!  |           |Flux South   |         |    
-!
-!-----------------------------------------------------------------------
-! West cell face erosion volume
-!-----------------------------------------------------------------------
-!
-          Vol_erod=marsh_flux_e(i+1,j)*cff1
-          inv_scarp_hght_eff=1.0_r8/(ABS(h(i,j)+zeta(i+1,j,3)))
-          dx_w=Vol_erod*inv_scarp_hght_eff*pn(i,j)
-!
-!-----------------------------------------------------------------------
-! East cell face erosion volume
-!-----------------------------------------------------------------------
-!
-          Vol_erod=marsh_flux_w(i,j)*cff1
-          inv_scarp_hght_eff=1.0_r8/(ABS(h(i,j)+zeta(i-1,j,3)))
-          dx_e=Vol_erod*inv_scarp_hght_eff*pn(i,j)
-!
-!-----------------------------------------------------------------------
-! North cell face erosion volume
-!-----------------------------------------------------------------------
-!
-          Vol_erod=marsh_flux_n(i,j+1)*cff1
-          inv_scarp_hght_eff=1.0_r8/(ABS(h(i,j)+zeta(i,j+1,3)))
-          dy_n=Vol_erod*inv_scarp_hght_eff*pm(i,j)
-!
-!-----------------------------------------------------------------------
-! South cell face erosion volume
-!-----------------------------------------------------------------------
-!
-          Vol_erod=marsh_flux_s(i,j)*cff1
-          inv_scarp_hght_eff=1.0_r8/(ABS(h(i,j)+zeta(i,j-1,3)))
-          dy_s=Vol_erod*inv_scarp_hght_eff*pm(i,j)
 !
 !-----------------------------------------------------------------------
 ! Total amount of retreat from all four directions
 !-----------------------------------------------------------------------
 !
-          marsh_retreat(i,j)=marsh_mask(i,j)*(dx_e+dx_w+dy_n+dy_s)+     &
-      &                      marsh_retreat(i,j)
+          marsh_retreat(i,j)=marsh_mask(i,j)*(dx_xi(i,j)+dx_xi(i+1,j)+  &
+     &                                        dy_eta(i,j)+dy_eta(i,j+1))
 !
         END DO
       END DO 
@@ -244,3 +211,4 @@
       END SUBROUTINE marsh_lat_retreat_tile
 #endif
       END MODULE marsh_lat_retreat_mod
+
