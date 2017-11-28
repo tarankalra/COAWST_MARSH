@@ -1823,9 +1823,9 @@
           END IF
         END DO 
 #   endif 
-#   ifdef MARSH_WAVE_THRUST
+#   ifdef MARSH_WAVE_EROSION 
 !
-!  Read in masking for determining marsh interface 
+!  Read in masking for determining marsh interface. 
 !
         foundit=find_string(var_name, n_var, TRIM(Vname(1,idTims)),     & 
      &                        varid)

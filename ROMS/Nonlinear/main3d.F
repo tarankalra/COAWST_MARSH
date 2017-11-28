@@ -135,7 +135,6 @@
       USE mod_vegetation 
       USE mod_vegarr
       USE marsh_wave_erosion_mod, ONLY : marsh_wave_erosion
-!      USE marsh_wave_thrust_mod, ONLY : marsh_wave_thrust
 # endif
 # ifdef AVERAGES
       USE set_avg_mod, ONLY : set_avg

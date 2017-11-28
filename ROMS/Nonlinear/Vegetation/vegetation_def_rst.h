@@ -60,9 +60,8 @@
           IF (exit_flag.ne.NoError) RETURN
 #endif 
 #ifdef MARSH_WAVE_EROSION
-# ifdef MARSH_WAVE_THRUST
 !
-!  Store initial masking marsh. 
+!  Store marsh masking marsh from marsh cells. 
 !
           Vinfo( 1)=Vname(1,idTims)
           Vinfo( 2)=Vname(2,idTims)
@@ -78,39 +77,39 @@
      &                   NF_FRST, nvd3, t2dgrd, Aval, Vinfo, ncname)
           IF (exit_flag.ne.NoError) RETURN
 !
-!  Write out reduced masking (Tonellis masking) based on water depth.
+!  Total thrust from all directions due to waves.
 !
-          Vinfo( 1)=Vname(1,idTmsk)
-          Vinfo( 2)=Vname(2,idTmsk)
-          Vinfo( 3)=Vname(3,idTmsk)
-          Vinfo(14)=Vname(4,idTmsk)
-          Vinfo(16)=Vname(1,idTmsk)
+          Vinfo( 1)=Vname(1,idTtot)
+          Vinfo( 2)=Vname(2,idTtot)
+          Vinfo( 3)=Vname(3,idTtot)
+          Vinfo(14)=Vname(4,idTtot)
+          Vinfo(16)=Vname(1,idTtot)
 #  if defined WRITE_WATER && defined MASKING
           Vinfo(20)='mask_rho'
 #  endif
           Vinfo(22)='coordinates'
-          Aval(5)=REAL(Iinfo(1,idTmsk,ng),r8)
-          status=def_var(ng, iNLM, RST(ng)%ncid, RST(ng)%Vid(idTmsk),   &
+          Aval(5)=REAL(Iinfo(1,idTtot,ng),r8)
+          status=def_var(ng, iNLM, RST(ng)%ncid, RST(ng)%Vid(idTtot),   &
      &                   NF_FRST, nvd3, t2dgrd, Aval, Vinfo, ncname)
           IF (exit_flag.ne.NoError) RETURN
 !
-!  Define Tonelli thrust from all directions due to waves.
+!  Marsh sediment flux out from marsh cells. 
 !
-          Vinfo( 1)=Vname(1,idTton)
-          Vinfo( 2)=Vname(2,idTton)
-          Vinfo( 3)=Vname(3,idTton)
-          Vinfo(14)=Vname(4,idTton)
-          Vinfo(16)=Vname(1,idTton)
+          Vinfo( 1)=Vname(1,idTmfo)
+          Vinfo( 2)=Vname(2,idTmfo)
+          Vinfo( 3)=Vname(3,idTmfo)
+          Vinfo(14)=Vname(4,idTmfo)
+          Vinfo(16)=Vname(1,idTmfo)
 #  if defined WRITE_WATER && defined MASKING
           Vinfo(20)='mask_rho'
 #  endif
           Vinfo(22)='coordinates'
-          Aval(5)=REAL(Iinfo(1,idTton,ng),r8)
-          status=def_var(ng, iNLM, RST(ng)%ncid, RST(ng)%Vid(idTton),   &
+          Aval(5)=REAL(Iinfo(1,idTmfo,ng),r8)
+          status=def_var(ng, iNLM, RST(ng)%ncid, RST(ng)%Vid(idTmfo),   &
      &                   NF_FRST, nvd3, t2dgrd, Aval, Vinfo, ncname)
           IF (exit_flag.ne.NoError) RETURN
 !
-#   ifdef MARSH_LAT_RETREAT
+# ifdef MARSH_LAT_RETREAT
 !
 !  Amount of marsh retreat from all four directions.
 !
@@ -128,6 +127,5 @@
      &                   NF_FRST, nvd3, t2dgrd, Aval, Vinfo, ncname)
           IF (exit_flag.ne.NoError) RETURN
 !
-#   endif 
 # endif 
 #endif

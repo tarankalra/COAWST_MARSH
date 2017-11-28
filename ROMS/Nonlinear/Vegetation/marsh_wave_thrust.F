@@ -1,32 +1,26 @@
 #include "cppdefs.h"
  
        MODULE marsh_wave_thrust_mod
-#if defined MARSH_WAVE_EROSION && defined MARSH_WAVE_THRUST
+#if defined MARSH_WAVE_EROSION 
 !
 !svn $Id: marsh_wave_thrust.F 429 2015-04-20 17:30:26Z arango $
 !=======================================================================
 !  Copyright (c) 2002-2016 The ROMS/TOMS Group                         !
 !    Licensed under a MIT/X style license           Hernan G. Arango   !
 !    See License_ROMS.txt                   Alexander F. Shchepetkin   !
-!================================================John C. Warner=========
-!================================================Neil K. Ganju  ========
 !==============================================Tarandeep S. Kalra=======
+!================================================Neil K. Ganju  ========
+!================================================John C. Warner=========
+!==============================================Julia M. Moriarty========
 !                                                                      ! 
-!  This routine computes the wave thrust on marshes. Marsh thrust      !
-!  values are computed with correction from the wave angle. For each   !
-!  cell if one side is sheltered from other cells, that side is not    !
-!  exposed to waves. Each cell has four cell normals directed towards  !
-!  the center of the cell. The angle of the normals is with respect to !
-!  the North and clockwise direction. For a submerged marsh,           !
-!  "Tonelli mask" is used to reduce the value of the wave thrust.      !
+!  This routine computes the wave thrust on marsh edge from wave       !
+!  climate from the adjacent water cells.                              !
+!  Thrust is modified based on water level of the adjacent water cell  !
+!  providing wave climate and bathymetry of marsh cell                 !
 !                                                                      !
 !  References:                                                         !   
 !                                                                      !
 !=======================================================================
-!                                                                      !
-!  Tonelli, M., Fagherazzi, Sergio., and Petti., M., 2010: Modeling    !
-!  wave impact on salt marsh boundaries, Journal of Geophysical        !
-!  Research, 115, 0148-0227.                                           !   
 !                                                                      !
 !  Dean, R.G. and Dalrymple, R.A., 1991: Water Wave Mechanics for      !
 !  Engineers and Scientists, World Scientific Publications             !
@@ -83,10 +77,9 @@
      &                        FORCES(ng) % Dwave,                       &
 # endif 
      &                        VEG(ng) % marsh_mask,                     &
-     &                        VEG(ng) % mask_thrust,                    &
-     &                        VEG(ng) % Thrust_e,                       &
-     &                        VEG(ng) % Thrust_n,                       &
-     &                        VEG(ng) % Thrust_tonelli,                 &
+     &                        VEG(ng) % Thrust_xi,                      &
+     &                        VEG(ng) % Thrust_eta,                     &
+     &                        VEG(ng) % Thrust_total,                   &
      &                        OCEAN(ng)  % zeta)
               
       RETURN
@@ -115,10 +108,9 @@
      &                              Dwave,                              &
 # endif 
      &                              marsh_mask,                         &
-     &                              mask_thrust,                        &
-     &                              Thrust_e,                           &
-     &                              Thrust_n,                           &
-     &                              Thrust_tonelli,                     &
+     &                              Thrust_xi,                          &
+     &                              Thrust_eta                          &
+     &                              Thrust_total,                       &
      &                              zeta)           
 !
 !***********************************************************************
@@ -165,10 +157,9 @@
       real(r8), intent(in)  :: Dwave(LBi:,LBj:)
 #  endif 
       real(r8), intent(in)    :: marsh_mask(LBi:,LBj:)
-      real(r8), intent(inout) :: Thrust_e(LBi:,LBj:)
-      real(r8), intent(inout) :: Thrust_n(LBi:,LBj:)
-      real(r8), intent(inout) :: mask_thrust(LBi:,LBj:)
-      real(r8), intent(inout) :: Thrust_tonelli(LBi:,LBj:)
+      real(r8), intent(inout) :: Thrust_xi(LBi:,LBj:)
+      real(r8), intent(inout) :: Thrust_eta(LBi:,LBj:)
+      real(r8), intent(inout) :: Thrust_total(LBi:,LBj:)
       real(r8), intent(in)    :: zeta(LBi:,LBj:,:)
 # else
       real(r8), intent(in)  :: h(LBi:UBi,LBj:UBj)
@@ -191,13 +182,10 @@
       real(r8), intent(in)  :: Dwave(LBi:UBi,LBj:UBj)
 #  endif 
       real(r8), intent(in)    :: marsh_mask(LBi:UBi,LBj:UBj)
-      real(r8), intent(inout) :: mask_thrust(LBi:UBi,LBj:UBj)
-!      real(r8), intent(inout) :: umask_marsh(LBi:UBi,LBj:UBj)
-!      real(r8), intent(inout) :: vmask_marsh(LBi:UBi,LBj:UBj)
      
-      real(r8), intent(inout) :: Thrust_e(LBi:UBi,LBj:UBj)
-      real(r8), intent(inout) :: Thrust_n(LBi:UBi,LBj:UBj)
-      real(r8), intent(inout) :: Thrust_tonelli(LBi:UBi,LBj:UBj)
+      real(r8), intent(inout) :: Thrust_xi(LBi:UBi,LBj:UBj)
+      real(r8), intent(inout) :: Thrust_eta(LBi:UBi,LBj:UBj)
+      real(r8), intent(inout) :: Thrust_total(LBi:UBi,LBj:UBj)
       real(r8), intent(in)    :: zeta(LBi:UBi,LBj:UBj,3)
 # endif
 !
@@ -207,7 +195,7 @@
 
       real(r8), parameter :: Inival=0.0_r8
       real(r8), parameter :: half=0.5_r8
-      real(r8), parameter :: eps=1.0e-12_r8
+      real(r8), parameter :: half=N_kN
 
       real(r8) :: Kw, Integral_Kp 
       real(r8) :: depth_all
@@ -266,7 +254,7 @@
 # endif
 !
 !----------------------------------------------------------------------
-!  Compute tonelli thrust mask and net thrust on all cell centers
+!  Compute total thrust on all cell centers
 !  where wave data is available at RHO points.
 !----------------------------------------------------------------------
 !
@@ -281,9 +269,9 @@
           kw=2.0_r8*pi/Lwave(i,j)
           Integral_kp=sinh(kw*h(i,j))/(kw*cosh(h(i,j)*kw))
 !
-          cff1=rho0*g*Hwave(i,j)
-          F_bsl=cff1*Integral_kp*0.001_r8
-          F_asl=cff1*Hwave(i,j)*0.5_r8*0.001_r8
+          cff=rho0*g*Hwave(i,j)
+          F_bsl=cff*Integral_kp*N_kN
+          F_asl=half*cff*Hwave(i,j)*N_kN
 !
 !---------------------------------------------------------------------
 !  Total wave thrust at mean sea level.
@@ -306,11 +294,11 @@
           cff1=SIGN(1.0_r8,umask_marsh(i,j))
           cff2=half*(1.0_r8+cff1)
           cff3=half*(1.0_r8-cff1)
-          Thrust_e(i,j)=ABS(umask_marsh(i,j))*                          &
-                           (cff2*FX(i-1,j)+cff3*FX(i,j))
+          Thrust_xi(i,j)=ABS(umask_marsh(i,j))*                         &
+                            (cff2*FX(i,j)+cff3*FX(i-1,j))
 !
-          depth_all=cff2*(h(i,j  )+zeta(i-1,j,1))+                      &
-                    cff3*(h(i-1,j)+zeta(i,j,1  ))
+          depth_all=cff2*(h(i-1,j  )+zeta(i,j,1)  )+                    &
+                    cff3*(h(i,j    )+zeta(i-1,j,1))
           IF(depth_all.lt.0.0_r8) THEN 
             cff4=1.0_r8
           ELSEIF(depth_all.ge.0.0_r8) THEN 
@@ -318,10 +306,10 @@
           ENDIF 
 !
 !---------------------------------------------------------------------
-! Modify horizontal cell face thrust based on water depth  
+! Modify xi cell face thrust based on water depth  
 !---------------------------------------------------------------------
 !
-          Thrust_e(i,j)=cff4*Thrust_e(i,j)
+          Thrust_xi(i,j)=cff4*Thrust_e(i,j)
 !
         END DO
       END DO 
@@ -332,8 +320,8 @@
           cff1=SIGN(1.0_r8,vmask_marsh(i,j))
           cff2=half*(1.0_r8+cff1)
           cff3=half*(1.0_r8-cff1)
-          Thrust_n(i,j)=ABS(vmask_marsh(i,j))*                          &
-                           (cff3*FY(i,j-1)+cff2*FY(i,j))
+          Thrust_eta(i,j)=ABS(vmask_marsh(i,j))*                        &
+                             (cff3*FY(i,j-1)+cff2*FY(i,j))
 !
           depth_all=cff2*(h(i,j-1)+zeta(i,j,1  ))+                      &
                     cff3*(h(i,j  )+zeta(i,j-1,1))
@@ -344,10 +332,10 @@
           ENDIF 
 !
 !---------------------------------------------------------------------
-! Modify vertical cell face thrust based on water depth  
+! Modify eta cell face thrust based on water depth  
 !---------------------------------------------------------------------
 !
-          Thrust_n(i,j)=cff4*Thrust_n(i,j)
+          Thrust_eta(i,j)=cff4*Thrust_n(i,j)
 !
         END DO 
       END DO
@@ -358,10 +346,10 @@
 !
       CALL exchange_u2d_tile (ng, tile,                                 &
      &                            LBi, UBi, LBj, UBj,                   &
-     &                            Thrust_e(:,:))
+     &                            Thrust_xi(:,:))
       CALL exchange_v2d_tile (ng, tile,                                 &
      &                            LBi, UBi, LBj, UBj,                   &
-     &                            Thrust_n(:,:))
+     &                            Thrust_eta(:,:))
 !
 # endif 
 !
@@ -371,9 +359,9 @@
 !
       DO j=Jstr,Jend
         DO i=Istr,Iend
-          cff1=ABS(Thrust_e(i+1,j))+ABS(Thrust_e(i,j))+                 &
-               ABS(Thrust_n(i,j+1))+ABS(Thrust_n(i,j))
-          Thrust_tonelli(i,j)=cff1*marsh_mask(i,j)
+          cff=ABS(Thrust_xi(i,j ))+ABS(Thrust_xi(i+1,j ))+              &
+              ABS(Thrust_eta(i,j))+ABS(Thrust_eta(i,j+1))
+          Thrust_total(i,j)=cff*marsh_mask(i,j)
         END DO
       END DO
 !
@@ -384,13 +372,13 @@
 !
       CALL bc_u2d_tile (ng, tile,                                       &
      &                  LBi, UBi, LBj, UBj,                             &
-     &                  Thrust_e)
+     &                  Thrust_xi)
       CALL bc_v2d_tile (ng, tile,                                       &
      &                  LBi, UBi, LBj, UBj,                             &
-     &                  Thrust_n)
+     &                  Thrust_eta)
       CALL bc_r2d_tile (ng, tile,                                       &
      &                  LBi, UBi, LBj, UBj,                             &
-     &                  Thrust_tonelli)
+     &                  Thrust_total)
 ! 
 # ifdef DISTRIBUTE
 !
@@ -400,7 +388,7 @@
      &                    LBi, UBi, LBj, UBj,                           &
      &                    NghostPoints,                                 &
      &                    EWperiodic(ng), NSperiodic(ng),               &
-     &                    Thrust_tonelli)
+     &                    Thrust_total)
 !
 # endif
 !

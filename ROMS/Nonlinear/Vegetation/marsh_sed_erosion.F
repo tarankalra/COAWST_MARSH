@@ -1,9 +1,8 @@
 #include "cppdefs.h"
 
-      MODULE marsh_sed_bedload_mode1_mod
-
-#if defined SEDIMENT && defined BEDLOAD && defined MARSH_WAVE_EROSION \
-      && defined MARSH_SED_BEDLOAD_MODE1 
+      MODULE marsh_sed_erosion_mod
+!
+#if defined SEDIMENT && defined BEDLOAD && defined MARSH_WAVE_EROSION 
 !
 !svn $Id: marsh_wave_thrust.F 429 2015-04-20 17:30:26Z arango $
 !=======================================================================
@@ -21,12 +20,12 @@
       implicit none
 
       PRIVATE
-      PUBLIC  :: marsh_sed_bedload_mode1
+      PUBLIC  :: marsh_sed_erosion
 
       CONTAINS
 !
 !***********************************************************************
-      SUBROUTINE marsh_sed_bedload_mode1 (ng, tile)
+      SUBROUTINE marsh_sed_erosion (ng, tile)
 !***********************************************************************
 !
       USE mod_param
@@ -50,7 +49,7 @@
 # ifdef PROFILE
       CALL wclock_on (ng, iNLM, 16)
 # endif
-      CALL marsh_sed_bedload_mode1_tile (ng, tile,                      &
+      CALL marsh_sed_erosion_tile (ng, tile,                            &
      &                       LBi, UBi, LBj, UBj,                        &
      &                       IminS, ImaxS, JminS, JmaxS,                &
      &                       GRID(ng) % om_r,                           &
@@ -61,25 +60,21 @@
      &                       GRID(ng) % pn,                             &
      &                       GRID(ng) % h,                              &
      &                       nstp(ng), nnew(ng),                        &
-     &                       VEG(ng) % Thrust_e,                        &
-     &                       VEG(ng) % Thrust_n,                        &
-# ifdef MARSH_LAT_RETREAT
-     &                       VEG(ng) % marsh_flux_e,                    &
-     &                       VEG(ng) % marsh_flux_n,                    &
+     &                       VEG(ng) % Thrust_xi,                       &
+     &                       VEG(ng) % Thrust_eta,                      &
+     &                       VEG(ng) % marsh_mask,                      &
      &                       VEG(ng) % marsh_flux_out,                  &
-# endif 
      &                    SEDBED(ng) % bed_frac,                        &
      &                    SEDBED(ng) % bed,                             &
-     &                    SEDBED(ng) % bed_mass,                        &
-     &                       VEG(ng) % marsh_mask)
+     &                    SEDBED(ng) % bed_mass)
 # ifdef PROFILE
       CALL wclock_off (ng, iNLM, 16)
 # endif
       RETURN
-      END SUBROUTINE marsh_sed_bedload_mode1
+      END SUBROUTINE marsh_sed_erosion_mode1
 !
 !***********************************************************************
-      SUBROUTINE marsh_sed_bedload_mode1_tile (ng, tile,                &
+      SUBROUTINE marsh_sed_erosion_tile (ng, tile,                      &
      &                             LBi, UBi, LBj, UBj,                  &
      &                             IminS, ImaxS, JminS, JmaxS,          &
      &                             om_r, on_r,                          &
@@ -87,13 +82,9 @@
      &                             pm, pn,                              &
      &                             h,                                   &
      &                             nstp, nnew,                          &
-     &                             Thrust_e, Thrust_n,                  &
-# ifdef MARSH_LAT_RETREAT
-     &                             marsh_flux_e, marsh_flux_n,          &
-     &                             marsh_flux_out,                      &
-# endif 
-     &                             bed_frac, bed, bed_mass,             &
-     &                             marsh_mask)
+     &                             Thrust_xi, Thrust_eta,               &
+     &                             marsh_mask, marsh_flux_out,          &
+     &                             bed_frac, bed, bed_mass)
 !***********************************************************************
 !
       USE mod_param
@@ -127,11 +118,9 @@
       real(r8), intent(in) :: pn(LBi:,LBj:)
       real(r8), intent(in) :: h(LBi:,LBj:)
 !
-      real(r8), intent(in) :: Thrust_e(LBi:,LBj:)
-      real(r8), intent(in) :: Thrust_n(LBi:,LBj:)
-# ifdef MARSH_LAT_RETREAT
-      real(r8), intent(inout) :: marsh_flux_e(LBi:,LBj:)
-      real(r8), intent(inout) :: marsh_flux_n(LBi:,LBj:)
+      real(r8), intent(in)    :: Thrust_xi(LBi:,LBj:)
+      real(r8), intent(in)    :: Thrust_eta(LBi:,LBj:)
+      real(r8), intent(inout) :: marsh_mask(LBi:,LBj:)
       real(r8), intent(inout) :: marsh_flux_out(LBi:,LBj:,:)
 # endif 
 !
@@ -139,7 +128,6 @@
       real(r8), intent(inout) :: bed_frac(LBi:,LBj:,:,:)
       real(r8), intent(inout) :: bed_mass(LBi:,LBj:,:,:,:)
 !
-      real(r8), intent(inout) :: marsh_mask(LBi:,LBj:)
 # else
       real(r8), intent(in) :: om_r(LBi:UBi,LBj:UBj)
       real(r8), intent(in) :: on_r(LBi:UBi,LBj:UBj)
@@ -149,19 +137,15 @@
       real(r8), intent(in) :: pn(LBi:UBi,LBj:UBj)
       real(r8), intent(in) :: h(LBi:UBi,LBj:UBj)
 !
-      real(r8), intent(in) :: Thrust_e(LBi:UBi,LBj:UBj)
-      real(r8), intent(in) :: Thrust_n(LBi:UBi,LBj:UBj)
-# ifdef MARSH_LAT_RETREAT
-      real(r8), intent(inout) :: marsh_flux_e(LBi:UBi,LBj:UBj)
-      real(r8), intent(inout) :: marsh_flux_n(LBi:UBi,LBj:UBj)
+      real(r8), intent(in)    :: Thrust_xi(LBi:UBi,LBj:UBj)
+      real(r8), intent(in)    :: Thrust_eta(LBi:UBi,LBj:UBj)
+      real(r8), intent(inout) :: marsh_mask(LBi:UBi,LBj:UBj)
       real(r8), intent(inout) :: marsh_flux_out(LBi:UBi,LBj:UBj,NST)
-# endif 
 !
       real(r8), intent(inout) :: bed(LBi:UBi,LBj:UBj,Nbed,MBEDP)
       real(r8), intent(inout) :: bed_frac(LBi:UBi,LBj:UBj,Nbed,NST)
       real(r8), intent(inout) :: bed_mass(LBi:UBi,LBj:UBj,Nbed,1:2,NST)
 !
-      real(r8), intent(inout) :: marsh_mask(LBi:UBi,LBj:UBj)
 # endif
 !
 !  Local variable declarations.
@@ -189,45 +173,62 @@
               cff=bed_mass(i,j,1,nnew,ised)*om_r(i,j)*on_r(i,j)
 !
 !---------------------------------------------------------------------
-! Add bed mass from sea cell providing horizontal face thrust 
+! Add bed mass to sea cell providing horizontal face thrust 
 !---------------------------------------------------------------------
 !
-              cff1=half*(one-SIGN(one,Thrust_e(i,j)))
-              cff2=half*(one+SIGN(one,Thrust_e(i+1,j)))
-              cff=cff+kN_N*kfac_marsh(ng)*dt(ng)*                       &
-                            ( Thrust_e(i,j  )*on_u(i,j  )*cff1          &
-                             -Thrust_e(i+1,j)*on_u(i+1,j)*cff2) 
+              cff1=half*(one-SIGN(one,Thrust_xi(i,j  )))
+              cff2=half*(one+SIGN(one,Thrust_xi(i+1,j)))
+              cff3=kN_N*kfac_marsh(ng)*dt(ng)*                          &
+                            ( Thrust_xi(i,j  )*on_u(i,j  )*cff1         &
+                             -Thrust_xi(i+1,j)*on_u(i+1,j)*cff2)
+              cff=cff+cff3 
 !
 !---------------------------------------------------------------------
 ! Subtract bed mass from marsh cell if thrust acts on horizontal face 
 ! Marsh cell
 !---------------------------------------------------------------------
 !
-              cff1=half*(one+SIGN(one,Thrust_e(i,j)))
-              cff2=half*(one-SIGN(one,Thrust_e(i+1,j)))
-              cff=cff-kN_N*kfac_marsh(ng)*dt(ng)*                       &
-                            (  Thrust_e(i+1,j)*on_u(i+1,j)*cff2         &
-                              -Thrust_e(i,j  )*on_u(i,j  )*cff1)
+              cff1=half*(one+SIGN(one,Thrust_xi(i,j  )))
+              cff2=half*(one-SIGN(one,Thrust_xi(i+1,j)))
+              cff3=kN_N*kfac_marsh(ng)*dt(ng)*                          &
+                             ( Thrust_xi(i+1,j)*on_u(i+1,j)*cff2        &
+                              -Thrust_xi(i,j  )*on_u(i,j  )*cff1)
+              cff=cff-cff3 
 !
 !---------------------------------------------------------------------
-! Add bed mass from sea cell if it provides vertical face thrust 
+! Sediment flux for each sediment class out of marsh cells
 !---------------------------------------------------------------------
 !
-              cff1=half*(one-SIGN(one,Thrust_n(i,j)))
-              cff2=half*(one+SIGN(one,Thrust_n(i,j+1)))
-              cff=cff+kN_N*kfac_marsh(ng)*dt(ng)*                       &
-                            ( Thrust_n(i,j+1)*om_v(i,j+1)*cff2          &
-                             -Thrust_n(i,j  )*om_v(i,j  )*cff1 )
+              marsh_flux_out(i,j,ised)=cff3
+!
+!---------------------------------------------------------------------
+! Add bed mass to sea cell if it provides vertical face thrust 
+!---------------------------------------------------------------------
+!
+              cff1=half*(one-SIGN(one,Thrust_eta(i,j  )))
+              cff2=half*(one+SIGN(one,Thrust_eta(i,j+1)))
+              cff3=kN_N*kfac_marsh(ng)*dt(ng)*                          &
+                            ( Thrust_eta(i,j+1)*om_v(i,j+1)*cff2        &
+                             -Thrust_eta(i,j  )*om_v(i,j  )*cff1)
+!
+              cff=cff+cff3
 !
 !---------------------------------------------------------------------
 ! Subtract bed mass from marsh cell if thrust acts on vertical face 
 !---------------------------------------------------------------------
 !
-              cff1=half*(one+SIGN(one,Thrust_n(i,j  )))
-              cff2=half*(one-SIGN(one,Thrust_n(i,j+1)))
-              cff=cff-kN_N*kfac_marsh(ng)*dt(ng)*                       &
-                            ( Thrust_n(i,j  )*om_v(i,j  )*cff1          &
-                             -Thrust_n(i,j+1)*om_v(i,j+1)*cff2  )
+              cff1=half*(one+SIGN(one,Thrust_eta(i,j  )))
+              cff2=half*(one-SIGN(one,Thrust_eta(i,j+1)))
+              cff3=kN_N*kfac_marsh(ng)*dt(ng)*                          &
+                            ( Thrust_eta(i,j  )*om_v(i,j  )*cff1        &
+                             -Thrust_eta(i,j+1)*om_v(i,j+1)*cff2)
+              cff=cff-cff3
+!
+!---------------------------------------------------------------------
+! Sediment flux for each sediment class out of marsh cells
+!---------------------------------------------------------------------
+!
+              marsh_flux_out(i,j,ised)=cff3
 !
 !---------------------------------------------------------------------
 ! Update bed mass 
@@ -258,28 +259,19 @@
      &                       (1.0_r8-bed(i,j,1,iporo))),0.0_r8)
             END DO
 !
+# if defined SED_MORPH  
+!
 !---------------------------------------------------------------------
-! Bathymetry based change in marsh mask.
+! Bathymetry based change in marsh mask and erode marsh.
 !---------------------------------------------------------------------
 !
           bathy=h(i,j)-bed(i,j,1,ithck)+bed_thick_old 
 !
-          IF(bathy.lt.DCRIT_MARSH(ng))THEN
-!
-!---------------------------------------------------------------------
-! Erode marsh
-!---------------------------------------------------------------------
-!
-             marsh_mask(i,j)=1.0_r8
-           ELSE
-!
-!---------------------------------------------------------------------
-! Reclaim marsh
-!---------------------------------------------------------------------
-!
+          IF(bathy.gt.DCRIT_MARSH(ng))THEN
              marsh_mask(i,j)=0.0_r8
            END IF
 ! 
+# endif
         END DO
       END DO J_LOOP
 !
@@ -290,7 +282,7 @@
 !
       CALL bc_r2d_tile (ng, tile,                                       &
      &                  LBi, UBi, LBj, UBj,                             &
-                        marsh_mask)
+     &                  marsh_mask)
       DO ised=1,NST
         CALL bc_r3d_tile (ng, tile,                                     &
      &                    LBi, UBi, LBj, UBj, 1, Nbed,                  &
@@ -299,62 +291,40 @@
      &                    LBi, UBi, LBj, UBj, 1, Nbed,                  &
      &                    bed_mass(:,:,:,nnew,ised))
       END DO
-# ifdef DISTRIBUTE
-        CALL mp_exchange2d (ng, tile, iNLM, 2,                          &
-     &                        LBi, UBi, LBj, UBj,                       &
-     &                        NghostPoints,                             &
-     &                        EWperiodic(ng), NSperiodic(ng),           &
-     &                        marsh_mask)
-!
-      CALL mp_exchange4d (ng, tile, iNLM, 2,                            &
-     &                    LBi, UBi, LBj, UBj, 1, Nbed, 1, NST,          &
-     &                    NghostPoints,                                 &
-     &                    EWperiodic(ng), NSperiodic(ng),               &
-     &                    bed_frac,                                     &
-     &                    bed_mass(:,:,:,nnew,:))
-# endif
       DO i=1,MBEDP
         CALL bc_r3d_tile (ng, tile,                                     &
      &                    LBi, UBi, LBj, UBj, 1, Nbed,                  &
      &                    bed(:,:,:,i))
       END DO
 # ifdef DISTRIBUTE
+      CALL mp_exchange2d (ng, tile, iNLM, 1,                            &
+     &                        LBi, UBi, LBj, UBj,                       &
+     &                        NghostPoints,                             &
+     &                        EWperiodic(ng), NSperiodic(ng),           &
+     &                        marsh_mask)
+!
+      CALL mp_exchange3d (ng, tile, iNLM, 1,                            &
+     &                    LBi, UBi, LBj, UBj, 1, NST,                   &
+     &                    NghostPoints,                                 &
+     &                    EWperiodic(ng), NSperiodic(ng),               &
+     &                    marsh_flux_out(:,:,:)  
+!       
+#  endif 
+      CALL mp_exchange4d (ng, tile, iNLM, 2,                            &
+     &                    LBi, UBi, LBj, UBj, 1, Nbed, 1, NST,          &
+     &                    NghostPoints,                                 &
+     &                    EWperiodic(ng), NSperiodic(ng),               &
+     &                    bed_frac,                                     &
+     &                    bed_mass(:,:,:,nnew,:))
+!
       CALL mp_exchange4d (ng, tile, iNLM, 1,                            &
      &                    LBi, UBi, LBj, UBj, 1, Nbed, 1, MBEDP,        &
      &                    NghostPoints,                                 &
      &                    EWperiodic(ng), NSperiodic(ng),               &
      &                    bed) 
 # endif
-# if defined MARSH_LAT_RETREAT
-!     CALL bc_u2d_tile (ng, tile,                                        &
-!     &                  LBi, UBi, LBj, UBj,                             &
-!     &                  marsh_flux_w)
-!     CALL bc_u2d_tile (ng, tile,                                        &
-!     &                 LBi, UBi, LBj, UBj,                              &
-!     &                  marsh_flux_e)
-!     CALL bc_v2d_tile (ng, tile,                                        &
-!     &                 LBi, UBi, LBj, UBj,                              &
-!     &                  marsh_flux_n)
-!     CALL bc_v2d_tile (ng, tile,                                        &
-!     &                 LBi, UBi, LBj, UBj,                              &
-!     &                  marsh_flux_s)
 !
-#  ifdef DISTRIBUTE
-      CALL mp_exchange2d (ng, tile, iNLM, 4,                            &
-     &                    LBi, UBi, LBj, UBj,                           &
-     &                    NghostPoints,                                 &
-     &                    EWperiodic(ng), NSperiodic(ng),               &
-     &                    marsh_flux_w, marsh_flux_e,                   &
-     &                    marsh_flux_n, marsh_flux_s)         
-      CALL mp_exchange3d (ng, tile, iNLM, 1,                            &
-     &                    LBi, UBi, LBj, UBj, 1, NST,                   &
-     &                    NghostPoints,                                 &
-     &                    EWperiodic(ng), NSperiodic(ng),               &
-     &                    marsh_flux_out)         
-#  endif 
-# endif
-!
-      END SUBROUTINE marsh_sed_bedload_mode1_tile
+      END SUBROUTINE marsh_sed_erosion_tile
 #endif
-      END MODULE marsh_sed_bedload_mode1_mod
+      END MODULE marsh_sed_erosion_mod
 

@@ -15,30 +15,12 @@
 !  This routine is the main driver for marsh sediment transport and    !
 !  calls three sub-routines.                                           !
 !                                                                      !
-!  |           | Thrust North|           |                             !
-!  |-----------|-------------|-----------|                             !
-!  |Thrust West|   Marsh     |Thrust East|                             !
-!  |-----------|-------------|-----------|                             !
-!  |           |Thrust South |           |                             !
-!                                                                      !
-! A fraction of bed mass moves from marsh cell to either               !
-!  of the four neighboring cells                                       !
-!  |           |             |           |                             !
-!  |-----------|-------------|-----------|                             !
-!  |  <----    |   marsh     | ---->     |                             !
-!  | add sed   |  <----->    | add sed   |                             !
-!  |           | remove sed  |           |                             !
-!  |-----------|-------------|-----------|                             !
-!  |           |             |           |                             !
-!                                                                      !
-!                                                                      !
 !  1. Compute wave thrust on marshes.                                  !  
 !     --> marsh_wave_thrust.F                                          !
-!  2. Obtain sediment erosion from one of the two user defined methods.!
-!     --> marsh_sed_bedload_mode1.F                                    !
-!     --> marsh_sed_bedload_mode2.F                                    !
+!  2. Obtain sediment erosion and net sed flux out of marsh cells      !
+!     --> marsh_sed_erosion.F                                          !
 !  3. Get the amount of lateral retreat based on mass flux.            !
-!     --> marsh_lat_retreat.F                                          !
+!     --> marsh_retreat.F                                              !
 !                                                                      !
 !  References:                                                         !   
 !                                                                      !
@@ -58,16 +40,12 @@
 !***********************************************************************
 !
       USE mod_stepping 
-# if defined MARSH_WAVE_THRUST 
       USE marsh_wave_thrust_mod, ONLY : marsh_wave_thrust
-#  if defined MARSH_SED_BEDLOAD_MODE1
-      USE marsh_sed_bedload_mode1_mod, ONLY : marsh_sed_bedload_mode1 
+#  if defined MARSH_SED_EROSION
+      USE marsh_sed_erosion, ONLY : marsh_sed_erosion 
 #  endif 
-#  if defined MARSH_SED_BEDLOAD_MODE2
-      USE marsh_sed_bedload_mode2_mod, ONLY : marsh_sed_bedload_mode2
-#  endif 
-#  if defined MARSH_LAT_RETREAT
-      USE marsh_lat_retreat_mod, ONLY : marsh_lat_retreat
+#  if defined MARSH_RETREAT
+      USE marsh_retreat_mod, ONLY : marsh_retreat
 #  endif 
 # endif 
 !
@@ -80,41 +58,29 @@
       CALL wclock_on (ng, iNLM, 16)
 # endif
 !
-# if defined MARSH_WAVE_THRUST
-!
 !***********************************************************************
 ! Wave induced thrust calculation on marsh boundary.
 !***********************************************************************
 !
       CALL marsh_wave_thrust(ng, tile)
 !
-#  if defined MARSH_SED_BEDLOAD_MODE1
+#  if defined MARSH_SED_EROSION
 !
 !***********************************************************************
 ! Marsh sediment erosion based on bathy change in marsh cells.
 !***********************************************************************
-!
-      CALL marsh_sed_bedload_mode1(ng, tile) 
-!
-#  endif 
-!
-#  if defined MARSH_SED_BEDLOAD_MODE2
-!
-!***********************************************************************
-! Marsh sediment erosion based on fixed bathy in marsh cells.
-!***********************************************************************
-!
-      CALL marsh_sed_bedload_mode2(ng, tile) 
+! 
+      CALL marsh_sed_erosion(ng, tile) 
 !
 #  endif 
 !
-#  if defined MARSH_LAT_RETREAT
+#  if defined MARSH_RETREAT
 !
 !***********************************************************************
-! Compute effective lateral retreat. 
+! Compute effective lateral/horizontal retreat. 
 !***********************************************************************
 !
-      CALL marsh_lat_retreat(ng, tile) 
+      CALL marsh_retreat(ng, tile) 
 !
 #  endif 
 # endif 

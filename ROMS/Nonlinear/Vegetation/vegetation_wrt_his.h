@@ -68,9 +68,8 @@
 # endif
 ! 
 # ifdef MARSH_WAVE_EROSION
-#  ifdef MARSH_WAVE_THRUST
 !
-!  Write out initial masking for marshes. 
+!  Write out masking for marsh cells. 
 ! 
       IF (Hout(idTims,ng)) THEN 
         scale=1.0_r8
@@ -93,45 +92,22 @@
         END IF
       END IF
 !
-!  Write out reduced masking (Tonellis masking) based on water depth.
-! 
-      IF (Hout(idTmsk,ng)) THEN 
+!  Write total thrust in all directions due to waves.
+!
+      IF (Hout(idTtot,ng)) THEN
         scale=1.0_r8
         gtype=gfactor*r2dvar
-        status=nf_fwrite2d(ng, iNLM, HIS(ng)%ncid, HIS(ng)%Vid(idTmsk), &
+        status=nf_fwrite2d(ng, iNLM, HIS(ng)%ncid, HIS(ng)%Vid(idTtot), &
      &                     HIS(ng)%Rindex, gtype,                       &
      &                     LBi, UBi, LBj, UBj, scale,                   &
 #   ifdef MASKING
      &                     GRID(ng) % rmask,                            &
 #   endif
-     &                     VEG(ng)%mask_thrust,                         &
-     &                     SetFillVal= .FALSE.)
-        IF (status.ne.nf90_noerr) THEN 
-          IF (Master) THEN 
-            WRITE (stdout,10) TRIM(Vname(1,idTmsk)), HIS(ng)%Rindex
-          END IF
-          exit_flag=3
-          ioerror=status
-          RETURN
-        END IF
-      END IF
-!
-!  Define Tonelli thrust in all directions due to waves.
-!
-      IF (Hout(idTton,ng)) THEN
-        scale=1.0_r8
-        gtype=gfactor*r2dvar
-        status=nf_fwrite2d(ng, iNLM, HIS(ng)%ncid, HIS(ng)%Vid(idTton), &
-     &                     HIS(ng)%Rindex, gtype,                       &
-     &                     LBi, UBi, LBj, UBj, scale,                   &
-#   ifdef MASKING
-     &                     GRID(ng) % rmask,                            &
-#   endif
-     &                     VEG(ng)%Thrust_tonelli,                      & 
+     &                     VEG(ng)%Thrust_total,                        & 
      &                     SetFillVAl= .FALSE.)
         IF (status.ne.nf90_noerr) THEN
           IF (Master) THEN
-            WRITE (stdout,10) TRIM(Vname(1,idTton)), HIS(ng)%Rindex
+            WRITE (stdout,10) TRIM(Vname(1,idTtot)), HIS(ng)%Rindex
           END IF
           exit_flag=3
           ioerror=status
@@ -140,9 +116,33 @@
       END IF
 # endif 
 !
-# if defined MARSH_LAT_RETREAT
+! Write marsh sediment flux out from marsh cells. 
+! 
+      IF (Hout(idTmfo,ng)) THEN 
+          scale=1.0_r8
+          gtype=gfactor*r3dvar
+          status=nf_fwrite3d(ng, iNLM, HIS(ng)%ncid,                    &
+     &                       HIS(ng)%Vid(idTmfo),                       &
+     &                       HIS(ng)%Rindex, gtype,                     &
+     &                       LBi, UBi, LBj, UBj, 1, NST, scale,         &
+#  ifdef MASKING
+     &                       GRID(ng) % rmask,                          &
+#  endif
+     &                       VEG(ng) % marsh_flux_out,                  &
+     &                       SetFillVal= .FALSE.)
+        IF (status.ne.nf90_noerr) THEN 
+          IF (Master) THEN 
+            WRITE (stdout,10) TRIM(Vname(1,idTmfo)), HIS(ng)%Rindex
+          END IF
+          exit_flag=3
+          ioerror=status
+          RETURN
+        END IF
+      END IF
 !
-!  Amount of marsh lateral retreat.
+# if defined MARSH_RETREAT
+!
+!  Amount of marsh lateral retreat from all directions.
 !
       IF (Hout(idTmmr,ng)) THEN
         scale=1.0_r8

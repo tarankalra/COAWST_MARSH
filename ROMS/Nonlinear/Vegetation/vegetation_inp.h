@@ -94,28 +94,21 @@
               END DO
 #endif
 !            IF (.not.allocated(Rmarsh)) allocate(Rmarsh(Ngrids))
-#if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
-              CASE ('KFAC_MARSH')
-                IF (.not.allocated(KFAC_MARSH))                         &
-     &                 allocate(KFAC_MARSH(Ngrids))
-                Npts=load_r(Nval, Rval, Ngrids, Rmarsh)
-                DO ng=1,Ngrids
-                  KFAC_MARSH(ng)=Rmarsh(ng)
-                END DO
-              CASE ('DCRIT_MARSH')
-                IF (.not.allocated(DCRIT_MARSH))                        &
-     &                 allocate(DCRIT_MARSH(Ngrids))
-                  Npts=load_r(Nval, Rval, Ngrids, Rmarsh)
-                  DO ng=1,Ngrids
-                    DCRIT_MARSH(ng)=Rmarsh(ng)
-                  END DO
-              CASE ('DCRIT_PORO_MARSH')
-                IF (.not.allocated(DCRIT_PORO_MARSH))                   &
-     &                 allocate(DCRIT_PORO_MARSH(Ngrids))
-                  Npts=load_r(Nval, Rval, Ngrids, Rmarsh)
-                DO ng=1,Ngrids
-                  DCRIT_PORO_MARSH(ng)=Rmarsh(ng)
-                END DO
+#if defined MARSH_SED_EROSION
+             CASE ('KFAC_MARSH')
+               IF (.not.allocated(KFAC_MARSH))                          &
+     &                allocate(KFAC_MARSH(Ngrids))
+               Npts=load_r(Nval, Rval, Ngrids, Rmarsh)
+               DO ng=1,Ngrids
+                 KFAC_MARSH(ng)=Rmarsh(ng)
+               END DO
+             CASE ('DCRIT_MARSH')
+               IF (.not.allocated(DCRIT_MARSH))                         &
+     &                allocate(DCRIT_MARSH(Ngrids))
+                 Npts=load_r(Nval, Rval, Ngrids, Rmarsh)
+                 DO ng=1,Ngrids
+                   DCRIT_MARSH(ng)=Rmarsh(ng)
+                 END DO
 #endif
 !
 !-----------------------------------------------------------------------
@@ -177,7 +170,7 @@
               END IF 
               Npts=load_l(Nval, Cval, Ngrids, Hout(idWdvg,:))
 #endif 
-#ifdef MARSH_WAVE_THRUST
+#ifdef MARSH_WAVE_EROSION
             CASE ('Hout(idTims)')
               IF (idTims.eq.0) THEN 
                 IF (Master) WRITE (out,30) 'idTims'
@@ -185,21 +178,21 @@
                 RETURN
               END IF
               Npts=load_l(Nval, Cval, Ngrids, Hout(idTims,:))
-            CASE ('Hout(idTmsk)')
-              IF (idTmsk.eq.0) THEN 
-                IF (Master) WRITE (out,30) 'idTmsk'
+            CASE ('Hout(idTtot)')
+              IF (idTtot.eq.0) THEN 
+                IF (Master) WRITE (out,30) 'idTtot'
                 exit_flag=5
                 RETURN
               END IF
-              Npts=load_l(Nval, Cval, Ngrids, Hout(idTmsk,:))
-            CASE ('Hout(idTton)')
-              IF (idTton.eq.0) THEN 
-                IF (Master) WRITE (out,30) 'idTton'
+              Npts=load_l(Nval, Cval, Ngrids, Hout(idTtot,:))
+            CASE ('Hout(idTmfo)')
+              IF (idTmfo.eq.0) THEN 
+                IF (Master) WRITE (out,30) 'idTmfo'
                 exit_flag=5
                 RETURN
               END IF
-              Npts=load_l(Nval, Cval, Ngrids, Hout(idTton,:))
-# ifdef MARSH_LAT_RETREAT
+              Npts=load_l(Nval, Cval, Ngrids, Hout(idTmfo,:))
+# ifdef MARSH_RETREAT
             CASE ('Hout(idTmmr)')
               IF (idTmmr.eq.0) THEN 
                 IF (Master) WRITE (out,30) 'idTmmr'

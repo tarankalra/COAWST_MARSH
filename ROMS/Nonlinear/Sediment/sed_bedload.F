@@ -58,13 +58,9 @@
 # ifdef BBL_MODEL
       USE mod_bbl
 # endif
-# if defined MARSH_SED_BEDLOAD_MODE1
+# if defined MARSH_SED_EROSION
       USE mod_vegarr
-      USE marsh_sed_bedload_mode1_mod, ONLY : marsh_sed_bedload_mode1
-# endif
-# if defined MARSH_SED_BEDLOAD_MODE2
-      USE mod_vegarr
-      USE marsh_sed_bedload_mode2_mod, ONLY : marsh_sed_bedload_mode2
+      USE marsh_sed_erosion_mod, ONLY : marsh_sed_erosion 
 # endif
 !
 !  Imported variable declarations.
@@ -75,17 +71,14 @@
 !
 # include "tile.h"
 !
-# if defined MARSH_WAVE_THRUST 
-#  ifdef MARSH_SED_BEDLOAD_MODE1
+# if defined MARSH_WAVE_EROSION 
+#  ifdef MARSH_SED_EROSION 
 !
 !-----------------------------------------------------------------------
 !  Compute marsh presence with marsh mask and marsh sediment erosion.
 !-----------------------------------------------------------------------
 !
-      CALL marsh_sed_bedload_mode1 (ng, tile)
-#  endif 
-#  ifdef MARSH_SED_BEDLOAD_MODE2
-      CALL marsh_sed_bedload_mode2 (ng, tile)
+      CALL marsh_sed_erosion (ng, tile)
 #  endif 
 # endif
 !
@@ -127,7 +120,7 @@
 # if defined SED_MORPH
      &                       SEDBED(ng) % bed_thick,                    &
 # endif
-# if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
+# if defined MARSH_SED_EROSION 
      &                       VEG(ng) % marsh_mask,                      &
 # endif
 # if defined BEDLOAD_MPM || defined BEDLOAD_SOULSBY
@@ -176,7 +169,7 @@
 # if defined SED_MORPH
      &                             bed_thick,                           &
 # endif
-# if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
+# if defined MARSH_SED_EROSION 
      &                             marsh_mask,                          &
 # endif
 # if defined BEDLOAD_MPM || defined BEDLOAD_SOULSBY
@@ -239,7 +232,7 @@
 #  if defined SED_MORPH
       real(r8), intent(inout):: bed_thick(LBi:,LBj:,:)
 #  endif
-#  if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
+#  if defined MARSH_SED_EROSION 
       real(r8), intent(in):: marsh_mask(LBi:,LBj:)
 #  endif
 #  if defined BEDLOAD_MPM || defined BEDLOAD_SOULSBY
@@ -287,7 +280,7 @@
 #  if defined SED_MORPH
       real(r8), intent(inout):: bed_thick(LBi:UBi,LBj:UBj,2)
 #  endif
-#  if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
+#  if defined MARSH_SED_EROSION 
       real(r8), intent(inout):: marsh_mask(LBi:UBi,LBj:UBj)
 #  endif
 #  if defined BEDLOAD_MPM || defined BEDLOAD_SOULSBY
@@ -598,10 +591,9 @@
             FX_r(i,j)=FX_r(i,j)*morph_fac(ised,ng)
             FE_r(i,j)=FE_r(i,j)*morph_fac(ised,ng)
 #  endif
-#  if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
+#  if defined MARSH_SED_EROSION 
 !
-! if marsh then the bedload is not available for resuspension
-! marsh_mask=1.0 indicates presence of marsh
+! Marsh cells do not participate in bed load calculation.
 !
             FX_r(i,j)=FX_r(i,j)*(1.0_r8-marsh_mask(i,j))
             FE_r(i,j)=FE_r(i,j)*(1.0_r8-marsh_mask(i,j))
@@ -877,30 +869,10 @@
               bed_mass(i,j,k,nnew,ised)=bed_mass(i,j,k,nstp,ised)
             END DO
 #  endif
-!#  if defined MARSH_SED_BEDLOAD_MODE2
-!
-! Do not alter marsh thickness in marsh cells when the erosion occurs 
-! through porosity change
-!           
-!            cff=1.0_r8-marsh_mask(i,j)
-!            IF(marsh_mask(i,j).eq.1) THEN 
-!              bed(i,j,1,ithck)=bed(i,j,1,ithck)
-!            ELSE
               bed(i,j,1,ithck)=MAX(bed(i,j,1,ithck)-                    &
      &                           cff/(Srho(ised,ng)*                    &
      &                           (1.0_r8-bed(i,j,1,iporo))),            &
      &                           0.0_r8)
-!            ENDIF 
-!       
-!#  elif !defined MARSH_SED_BEDLOAD_MODE2   
-!            bed(i,j,1,ithck)=MAX(bed(i,j,1,ithck)-                      &
-!     &                           cff/(Srho(ised,ng)*                    &
-!     &                           (1.0_r8-bed(i,j,1,iporo))),            &
-!     &                           0.0_r8)
-!#  endif 
-!#  ifdef MASKING
-!            bed(i,j,1,ithck)=bed(i,j,1,ithck)*rmask(i,j)
-!#  endif
           END DO
         END DO
 !

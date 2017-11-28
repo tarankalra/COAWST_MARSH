@@ -14,10 +14,10 @@
 !  =================================                                   !
 !  NVEG          Number of vegetation types                            !
 !  NVEGP         Number of vegetation array properties                 !
-!  CD_VEG        Drag coefficient for each veg type                    ! 
-!  E_VEG         Youngs modulus for each veg type                      !
-!  VEG_MASSDEN   Mass density for each veg type                        !
-!  VEGHMIXCOEF   Viscosity coefficient for vegetation boundary         ! 
+!  CD_VEG        Drag coefficient from each veg type                   ! 
+!  E_VEG         Youngs modulus from each veg type                     !
+!  VEG_MASSDEN   Mass density from each veg type                       !
+!  VEGHMIXCOEF   Viscosity coefficient from vegetation boundary        ! 
 !                                                                      ! 
 !  Plant Property indices:                                             !
 !  ======================                                              !
@@ -30,7 +30,7 @@
 !                                                                      !
 !  Plant Property indices:                                             !
 !  ======================                                              !
-!  idvprp        Indices for storing plant properties                  ! 
+!  idvprp        Indices storing plant properties                      ! 
 !                                                                      !
 !  Plant Property Output IDs:                                          !
 !  ==========================                                          !
@@ -44,9 +44,9 @@
 !                                                                      !
 !  Marsh wave induced erosion Output:                                  !
 !  ==========================                                          !
-!  idTims        Initial masking for the marsh                         ! 
-!  idTmsk        Reducing masking value due to depth                   ! 
-!  idTton        Tonelli thrust from all directions due to waves       !
+!  idTims        Store masking marsh from marsh cells                  ! 
+!  idTtot        Total thrust from all directions due to waves         !
+!  idTmfo        Marsh sediment flux from marsh cells                  ! 
 !  idTmmr        Amount of marsh retreat from all directions           !
 !=======================================================================
 !
@@ -69,9 +69,11 @@
 #endif 
       integer, allocatable :: idvprp(:)
 !    
-#ifdef MARSH_WAVE_THRUST 
-      integer ::  idTims, idTmsk, idTton
-# if defined MARSH_LAT_RETREAT
+#ifdef MARSH_WAVE_EROSION
+      integer ::  idTims, idTtot
+# if defined MARSH_SED_EROSION 
+      integer ::  idTmfo
+# if defined MARSH_RETREAT
       integer ::  idTmmr
 # endif 
 #endif 
@@ -83,10 +85,9 @@
       real(r8), allocatable :: VEGHMIXCOEF(:,:)
 #endif
 ! 
-#if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
+#if defined MARSH_SED_EROSION
       real(r8), allocatable :: KFAC_MARSH(:)
       real(r8), allocatable :: DCRIT_MARSH(:)
-      real(r8), allocatable :: DCRIT_PORO_MARSH(:)
 #endif 
 !
       CONTAINS 

@@ -41,13 +41,9 @@
 # ifdef BBL_MODEL
       USE mod_bbl
 # endif
-# if defined MARSH_SED_BEDLOAD_MODE1 
+# if defined MARSH_SED_EROSION 
       USE mod_vegarr
-      USE marsh_sed_bedload_mode1_mod, ONLY : marsh_sed_bedload_mode1
-# endif
-# if defined MARSH_SED_BEDLOAD_MODE2
-      USE mod_vegarr
-      USE marsh_sed_bedload_mode2_mod, ONLY : marsh_sed_bedload_mode2
+      USE marsh_sed_erosion_mod, ONLY : marsh_sed_erosion
 # endif
 !
 !  Imported variable declarations.
@@ -58,22 +54,14 @@
 !
 # include "tile.h"
 !
-#if defined MARSH_WAVE_THRUST && defined MARSH_SED_BEDLOAD_MODE1 
+#if defined MARSH_WAVE_EROSION && defined MARSH_SED_EROSION 
 !
 !-----------------------------------------------------------------------
 !  Add the bed mass change in bottom cell due to marsh erosion.
 !-----------------------------------------------------------------------
 !
-      CALL marsh_sed_bedload_mode1 (ng, tile)
+      CALL marsh_sed_erosion (ng, tile)
 #endif 
-#if defined MARSH_WAVE_THRUST && defined MARSH_SED_BEDLOAD_MODE2
-!
-!-----------------------------------------------------------------------
-!  Add the bed mass change in bottom cell due to marsh erosion.
-!-----------------------------------------------------------------------
-!
-      CALL marsh_sed_bedload_mode2 (ng, tile)
-# endif
 !
 # ifdef PROFILE
       CALL wclock_on (ng, iNLM, 16)
@@ -105,8 +93,8 @@
      &                   SEDBED(ng) % bed_thick,                        &
      &                   SEDBED(ng) % bed_poros,                        &
 # endif
-# if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
-     &                       VEG(ng) % marsh_mask,                      &
+# if defined MARSH_SED_EROSION 
+     &                   VEG(ng) % marsh_mask,                          &
 # endif
      &                   SEDBED(ng) % bed,                              &
      &                   SEDBED(ng) % bed_frac,                         &
@@ -141,7 +129,7 @@
      &                         bed_thick,                               &
      &                         bed_poros,                               &
 # endif
-# if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
+# if defined MARSH_SED_EROSION 
      &                         marsh_mask,                              &
 # endif
      &                         bed, bed_frac, bed_mass,                 &
@@ -184,7 +172,7 @@
       real(r8), intent(inout):: bed_thick(LBi:,LBj:,:)
       real(r8), intent(inout):: bed_poros(LBi:,LBj:)
 #  endif
-#  if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
+#  if defined MARSH_SED_EROSION
       real(r8), intent(in):: marsh_mask(LBi:,LBj:)
 #  endif
       real(r8), intent(inout) :: t(LBi:,LBj:,:,:,:)
@@ -215,7 +203,7 @@
       real(r8), intent(inout):: bed_thick(LBi:UBi,LBj:UBj,2)
       real(r8), intent(inout):: bed_poros(LBi:UBi,LBj:UBj)
 #  endif
-#  if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
+#  if defined MARSH_SED_EROSION 
       real(r8), intent(inout):: marsh_mask(LBi:UBi,LBj:UBj)
 #  endif
       real(r8), intent(inout) :: t(LBi:UBi,LBj:UBj,N(ng),3,NT(ng))
@@ -237,9 +225,6 @@
       real(r8), parameter :: eps = 1.0E-14_r8
 
       real(r8) :: cff, cff1, cff2, cff3, cff4
-# if defined MARSH_SED_BEDLOAD_MODE2
-      real(r8) :: cff5, cff6
-# endif
       real(r8) :: thck_avail, thck_to_add
 
       real(r8), dimension(IminS:ImaxS,NST) :: dep_mass
@@ -396,35 +381,11 @@
             bed(i,j,k,ithck)=0.0_r8
             DO ised=1,NST
               bed_frac(i,j,k,ised)=bed_mass(i,j,k,nnew,ised)/cff3
-!
-!# if defined MARSH_SED_BEDLOAD_MODE2
-!
-! If porosity mode of marsh erosion is used, do not alter bed thickness 
-! in marsh cells and store the old bed thickness 
-!
-!              cff5=bed(i,j,k,ithck)*(marsh_mask(i,j))
-!# endif 
-!
               bed(i,j,k,ithck)=MAX(bed(i,j,k,ithck)+                    &
      &                         bed_mass(i,j,k,nnew,ised)/               &
      &                         (Srho(ised,ng)*                          &
      &                          (1.0_r8-bed(i,j,k,iporo))),0.0_r8)
 !
-!# if defined MARSH_SED_BEDLOAD_MODE2
-!
-! If porosity mode of marsh erosion is used, do not alter bed thickness 
-! in marsh cells and use the old bed thickness, otherwise non-marsh cells
-! use the updated bed thickness
-!
-!              cff6=1.0_r8-marsh_mask(i,j)
-!              bed(i,j,k,ithck)=cff5+bed(i,j,k,ithck)*cff6 
-!# endif 
-!
-! Recalculate bed porosity for all sediment types in each bed layers
-! at each cell. 
-!             
-!              bed(i,j,k,iporo)=bed(i,j,k,iporo)*bed_frac(i,j,k,ised)+   &
-!     &                         cff4
             END DO
           END DO
         END DO
@@ -455,9 +416,9 @@
           bottom(i,j,iactv)=MAX(bottom(i,j,iactv)*morph_fac(1,ng),      &
      &                          bottom(i,j,iactv))
 !
-#  if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
+#  if defined MARSH_SED_EROSION 
 !
-! Apply marsh mask to prohibit marsh sediment from suspension
+! Apply marsh mask to prohibit marsh sediment from suspension.
 !
           bottom(i,j,iactv)=bottom(i,j,iactv)*(1.0_r8-marsh_mask(i,j)) 
 #  endif
@@ -560,10 +521,8 @@
         DO i=IstrR,IendR
           bed_thick(i,j,nnew)=0.0_r8
           DO k=1,Nbed
-!#  if !defined MARSH_SED_BEDLOAD_MODE2
             bed_thick(i,j,nnew)=bed_thick(i,j,nnew)+                    &
      &                            bed(i,j,k,ithck)
-!#  endif
           END DO
         END DO
       END DO

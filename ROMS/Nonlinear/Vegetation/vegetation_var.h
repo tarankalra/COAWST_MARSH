@@ -47,6 +47,8 @@
             CASE ('idTton')
               idTton=varid
 #  if defined MARSH_LAT_RETREAT
+            CASE ('idTmfo')
+              idTmfo=varid
             CASE ('idTmmr')
               idTmmr=varid
 #  endif 

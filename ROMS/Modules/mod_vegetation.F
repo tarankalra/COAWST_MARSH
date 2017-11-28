@@ -44,12 +44,11 @@
 **                                                                    **
 **   *  Marsh sediment erosion calculations:                          **
 **                                                                    **
-**        marsh_sed_bedload_mode1.F                                   **
-**        marsh_sed_bedload_mode2.F                                   **
+**        marsh_sed_erosion.F                                         **
 **                                                                    **
 **   *  Marsh lateral retreat calculation:                            **
 **                                                                    **
-**        marsh_lat_retreat.F                                         **
+**        marsh_retreat.F                                             **
 **                                                                    **
 **   *  Internal model parameters declarations:                       **
 **                                                                    **
