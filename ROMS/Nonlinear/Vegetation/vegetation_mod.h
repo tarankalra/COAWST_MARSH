@@ -51,6 +51,7 @@
 !=======================================================================
 !
       USE mod_param
+      USE mod_sediment
 !
       implicit none
 !
@@ -72,7 +73,8 @@
 #ifdef MARSH_WAVE_EROSION
       integer ::  idTims, idTtot
 # if defined MARSH_SED_EROSION 
-      integer ::  idTmfo
+      integer, allocatable ::  idTmfo(:)
+# endif 
 # if defined MARSH_RETREAT
       integer ::  idTmmr
 # endif 
@@ -95,6 +97,7 @@
       SUBROUTINE initialize_vegetation
 !
       USE mod_param
+      USE mod_sediment
 !
       implicit none 
 !
@@ -122,5 +125,9 @@
          allocate ( idvprp(NVEGP) )
        END IF
 #endif 
-      RETURN
+#if defined MARSH_SED_EROSION 
+       IF (.not.allocated(idTmfo)) THEN
+         allocate ( idTmfo(NST) )
+       END IF
+#endif 
       END SUBROUTINE initialize_vegetation

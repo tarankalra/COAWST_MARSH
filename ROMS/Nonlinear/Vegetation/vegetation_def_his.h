@@ -93,25 +93,30 @@
      &                   NF_FOUT, nvd3, t2dgrd, Aval, Vinfo, ncname)
           IF (exit_flag.ne.NoError) RETURN
         END IF
-# endif 
 !
-!  Marsh sediment flux out from marsh cells.
+# ifdef MARSH_SED_EROSION
 !
-        IF (Hout(idTmfo,ng)) THEN 
-          Vinfo( 1)=Vname(1,idTmfo)
-          Vinfo( 2)=Vname(2,idTmfo)
-          Vinfo( 3)=Vname(3,idTmfo)
-          Vinfo(14)=Vname(4,idTmfo)
-          Vinfo(16)=Vname(1,idTmfo)
+!  Marsh sediment flux out from marsh cells from each sedclass type.
+!
+        DO i=1,NST
+          IF (Hout(idTmfo(i),ng)) THEN
+            Vinfo( 1)=Vname(1,idTmfo(i))
+            Vinfo( 2)=Vname(2,idTmfo(i))
+            Vinfo( 3)=Vname(3,idTmfo(i))
+            Vinfo(14)=Vname(4,idTmfo(i))
+            Vinfo(16)=Vname(1,idtime)
 #  if defined WRITE_WATER && defined MASKING
-          Vinfo(20)='mask_rho'
+            Vinfo(20)='mask_rho'
 #  endif
-          Vinfo(22)='coordinates'
-          Aval(5)=REAL(Iinfo(1,idTmfo,ng),r8)
-          status=def_var(ng, iNLM, HIS(ng)%ncid, HIS(ng)%Vid(idTmfo),   &
-     &                   NF_FOUT, nvd4, t3dgrd, Aval, Vinfo, ncname)
-          IF (exit_flag.ne.NoError) RETURN
-        END IF
+            Vinfo(22)='coordinates'
+            Aval(5)=REAL(Iinfo(1,idTmfo(i),ng))
+            status=def_var(ng, iNLM, HIS(ng)%ncid,                      &
+     &                     HIS(ng)%Vid(idTmfo(i)), NF_FOUT,             &
+     &                     nvd3, t2dgrd, Aval, Vinfo, ncname)
+            IF (exit_flag.ne.NoError) RETURN
+          END IF
+        END DO
+# endif
 !
 # ifdef MARSH_RETREAT 
 !

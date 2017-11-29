@@ -39,18 +39,16 @@
               idWdvg=varid
 #endif 
 #if defined MARSH_WAVE_EROSION
-# if defined MARSH_WAVE_THRUST
             CASE ('idTims')
               idTims=varid
-            CASE ('idTmsk')
-              idTmsk=varid
-            CASE ('idTton')
-              idTton=varid
-#  if defined MARSH_LAT_RETREAT
+            CASE ('idTtot')
+              idTtot=varid
+# if defined MARSH_SED_EROSION 
             CASE ('idTmfo')
               idTmfo=varid
+# endif 
+# if defined MARSH_RETREAT
             CASE ('idTmmr')
               idTmmr=varid
-#  endif 
 # endif 
 #endif 

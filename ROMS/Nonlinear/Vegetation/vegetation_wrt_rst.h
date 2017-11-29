@@ -86,67 +86,52 @@
         END IF
 !
 !  Total thrust from all directions due to waves. 
-! 
-        scale=1.0_r8
-        gtype=gfactor*r2dvar
-        status=nf_fwrite2d(ng, iNLM, RST(ng)%ncid, RST(ng)%Vid(idTmsk), &
-     &                     RST(ng)%Rindex, gtype,                       &
-     &                     LBi, UBi, LBj, UBj, scale,                   &
-#   ifdef MASKING
-     &                     GRID(ng) % rmask,                            &
-#   endif
-     &                     VEG(ng)%mask_thrust)
-        IF (status.ne.nf90_noerr) THEN 
-          IF (Master) THEN 
-            WRITE (stdout,10) TRIM(Vname(1,idTmsk)), RST(ng)%Rindex
-          END IF
-          exit_flag=3
-          ioerror=status
-          RETURN
-        END IF
-!
-!  Marsh . 
 !
         scale=1.0_r8
         gtype=gfactor*r2dvar
-        status=nf_fwrite2d(ng, iNLM, RST(ng)%ncid, RST(ng)%Vid(idTton), &
+        status=nf_fwrite2d(ng, iNLM, RST(ng)%ncid, RST(ng)%Vid(idTtot), &
      &                     RST(ng)%Rindex, gtype,                       &    
      &                     LBi, UBi, LBj, UBj, scale,                   &
 #   ifdef MASKING
      &                     GRID(ng) % rmask,                            &
 #   endif
-     &                     VEG(ng)%Thrust_tonelli)
+     &                     VEG(ng)%Thrust_total)
         IF (status.ne.nf90_noerr) THEN
           IF (Master) THEN
-            WRITE (stdout,10) TRIM(Vname(1,idTton)), RST(ng)%Rindex
+            WRITE (stdout,10) TRIM(Vname(1,idTtot)), RST(ng)%Rindex
           END IF
           exit_flag=3
           ioerror=status
           RETURN
         END IF
-#  endif 
 !
-!  Marsh sediment flux out from marsh cells. 
-! 
+# ifdef MARSH_SED_EROSION 
+!
+!  Marsh sediment flux out from marsh cells from each sedclass.
+!
+      DO i=1,NST
         scale=1.0_r8
         gtype=gfactor*r2dvar
-        status=nf_fwrite2d(ng, iNLM, RST(ng)%ncid, RST(ng)%Vid(idTmfo), &
+        status=nf_fwrite2d(ng, iNLM, RST(ng)%ncid,                      &
+     &                     RST(ng)%Vid(idTmfo(i)),                      &
      &                     RST(ng)%Rindex, gtype,                       &
      &                     LBi, UBi, LBj, UBj, scale,                   &
 #   ifdef MASKING
      &                     GRID(ng) % rmask,                            &
 #   endif
-     &                     VEG(ng)%marsh_flux_out)
-        IF (status.ne.nf90_noerr) THEN 
-          IF (Master) THEN 
-            WRITE (stdout,10) TRIM(Vname(1,idTfoo)), RST(ng)%Rindex
+     &                     VEG(ng) % marsh_flux_out(:,:,i))
+        IF (status.ne.nf90_noerr) THEN
+          IF (Master) THEN
+            WRITE (stdout,10) TRIM(Vname(1,idTmfo(i))), RST(ng)%Rindex
           END IF
           exit_flag=3
           ioerror=status
           RETURN
         END IF
+      END DO
+#  endif
 !
-# ifdef MARSH_LAT_RETREAT
+# ifdef MARSH_RETREAT
 !
 !  Amount of marsh retreat from all directions. 
 !

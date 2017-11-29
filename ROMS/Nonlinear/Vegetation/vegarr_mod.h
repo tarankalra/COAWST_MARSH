@@ -45,16 +45,15 @@
 !  BWDYL_veg      Wave streaming effect due to vegetation              !
 # endif
 # ifdef MARSH_WAVE_EROSION 
-!  marsh_mask     User input of marsh masking at MSL                   ! 
+!  marsh_mask     Store masking marsh of marsh cells                   ! 
 !  Thrust_xi      Wave thrust on xi marsh faces                        ! 
 !  Thrust_eta     Wave thrust on eta marsh faces                       ! 
 !  Thrust_total   Total magnitude of thrust on marsh edge              !
+#  if defined MARSH_SED_EROSION                                             
 !  marsh_flux_out Total marsh flux out from a cell                     !
-#  endif                                                               !  
-#  if defined MARSH_RETREAT                                            !
-!   marsh_flux_xi   Marsh flux from xi marsh face                      ! 
-!   marsh_flux_eta  Marsh flux from North marsh face                   ! 
-!   marsh_retreat   Amount of marsh retreat                            !
+#  endif                                                               ! 
+#  if defined MARSH_RETREAT                                            
+!  marsh_retreat  Amount of marsh retreat                              !
 #  endif                                                               ! 
 # endif                                                                ! 
 !                                                                      !
@@ -104,10 +103,10 @@
         real(r8), pointer :: Thrust_xi(:,:)
         real(r8), pointer :: Thrust_eta(:,:)
         real(r8), pointer :: Thrust_total(:,:)
+#  if defined MARSH_SED_EROSION 
         real(r8), pointer :: marsh_flux_out(:,:,:)
+#  endif 
 #  if defined MARSH_RETREAT 
-        real(r8), pointer :: marsh_flux_xi(:,:)
-        real(r8), pointer :: marsh_flux_eta(:,:)
         real(r8), pointer :: marsh_retreat(:,:)
 #  endif 
 # endif
@@ -130,9 +129,6 @@
       USE mod_param
       USE mod_ncparam
       USE mod_vegetation 
-#   if defined MARSH_LAT_RETREAT
-      USE mod_sediment 
-#   endif 
 
       implicit none 
 !                       
@@ -181,10 +177,10 @@
       allocate ( VEG(ng) % Thrust_xi(LBi:UBi,LBj:UBj         ) )
       allocate ( VEG(ng) % Thrust_eta(LBi:UBi,LBj:UBj        ) )
       allocate ( VEG(ng) % Thrust_total(LBi:UBi,LBj:UBj      ) )
+#  if defined MARSH_SED_EROSION 
       allocate ( VEG(ng) % marsh_flux_out(LBi:UBi,LBj:UBj,NST) )
+#  endif
 #  if defined MARSH_RETREAT
-      allocate ( VEG(ng) % marsh_flux_xi(LBi:UBi,LBj:UBj ) )
-      allocate ( VEG(ng) % marsh_flux_eta(LBi:UBi,LBj:UBj) )
       allocate ( VEG(ng) % marsh_retreat(LBi:UBi,LBj:UBj ) )
 #  endif
 # endif
@@ -211,9 +207,6 @@
       USE mod_param
       USE mod_ncparam
       USE mod_vegetation 
-#   if defined MARSH_LAT_RETREAT
-      USE mod_sediment
-#   endif 
 !
 !  Imported variable declarations.
 !
@@ -356,17 +349,17 @@
        VEG(ng) % Thrust_xi(i,j)    = IniVal
        VEG(ng) % Thrust_eta(i,j)   = IniVal  
        VEG(ng) % Thrust_total(i,j) = IniVal
+# ifdef MARSH_SED_EROSION
        DO k=1,NST
          VEG(ng) % marsh_flux_out(i,j,k) = IniVal
        END DO 
+# endif 
      END DO 
    END DO
 !
 #  if defined MARSH_RETREAT
     DO j=Jmin,Jmax
       DO i=Imin,Imax
-        VEG(ng) % marsh_flux_xi(i,j) = IniVal
-        VEG(ng) % marsh_flux_eta(i,j) = IniVal
         VEG(ng) % marsh_retreat(i,j) = IniVal
       END DO 
     END DO

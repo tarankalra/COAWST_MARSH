@@ -8,9 +8,10 @@
 !  Copyright (c) 2002-2016 The ROMS/TOMS Group                         !
 !    Licensed under a MIT/X style license           Hernan G. Arango   !
 !    See License_ROMS.txt                   Alexander F. Shchepetkin   !
-!================================================John C. Warner=========
-!================================================Neil K. Ganju  ========
-!==============================================Tarandeep S. Kalra=======
+!==============================================Tarandeep S. Kalra======!
+!================================================Neil K. Ganju  =======!
+!================================================John C. Warner========!
+!==============================================Julia M. Moriarty=======!
 !                                                                      ! 
 !  This routine is the main driver for marsh sediment transport and    !
 !  calls three sub-routines.                                           !
@@ -41,12 +42,11 @@
 !
       USE mod_stepping 
       USE marsh_wave_thrust_mod, ONLY : marsh_wave_thrust
-#  if defined MARSH_SED_EROSION
-      USE marsh_sed_erosion, ONLY : marsh_sed_erosion 
-#  endif 
-#  if defined MARSH_RETREAT
-      USE marsh_retreat_mod, ONLY : marsh_retreat
-#  endif 
+# if defined MARSH_SED_EROSION
+      USE marsh_sed_erosion_mod, ONLY : marsh_sed_erosion 
+# endif 
+# if defined MARSH_RETREAT
+      USE marsh_retreat_mod,     ONLY : marsh_retreat
 # endif 
 !
 !  Imported variable declarations.
@@ -64,7 +64,7 @@
 !
       CALL marsh_wave_thrust(ng, tile)
 !
-#  if defined MARSH_SED_EROSION
+# if defined MARSH_SED_EROSION
 !
 !***********************************************************************
 ! Marsh sediment erosion based on bathy change in marsh cells.
@@ -72,9 +72,9 @@
 ! 
       CALL marsh_sed_erosion(ng, tile) 
 !
-#  endif 
+# endif 
 !
-#  if defined MARSH_RETREAT
+# if defined MARSH_RETREAT
 !
 !***********************************************************************
 ! Compute effective lateral/horizontal retreat. 
@@ -82,7 +82,6 @@
 !
       CALL marsh_retreat(ng, tile) 
 !
-#  endif 
 # endif 
               
 # ifdef PROFILE

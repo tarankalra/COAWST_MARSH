@@ -2,16 +2,18 @@
 
       MODULE marsh_sed_erosion_mod
 !
-#if defined SEDIMENT && defined BEDLOAD && defined MARSH_WAVE_EROSION 
+#if defined SEDIMENT && defined BEDLOAD && defined MARSH_WAVE_EROSION \
+        && defined MARSH_SED_EROSION  
 !
 !svn $Id: marsh_wave_thrust.F 429 2015-04-20 17:30:26Z arango $
 !=======================================================================
 !  Copyright (c) 2002-2016 The ROMS/TOMS Group                         !
 !    Licensed under a MIT/X style license           Hernan G. Arango   !
 !    See License_ROMS.txt                   Alexander F. Shchepetkin   !
-!================================================Neil K. Ganju  =======!
 !==============================================Tarandeep S. Kalra======!
+!================================================Neil K. Ganju  =======!
 !==============================================John C. Warner==========!
+!==============================================Julia M. Moriarty=======!
 !                                                                      ! 
 !  References:                                                         !
 !                                                                      !
@@ -71,7 +73,7 @@
       CALL wclock_off (ng, iNLM, 16)
 # endif
       RETURN
-      END SUBROUTINE marsh_sed_erosion_mode1
+      END SUBROUTINE marsh_sed_erosion
 !
 !***********************************************************************
       SUBROUTINE marsh_sed_erosion_tile (ng, tile,                      &
@@ -122,7 +124,6 @@
       real(r8), intent(in)    :: Thrust_eta(LBi:,LBj:)
       real(r8), intent(inout) :: marsh_mask(LBi:,LBj:)
       real(r8), intent(inout) :: marsh_flux_out(LBi:,LBj:,:)
-# endif 
 !
       real(r8), intent(inout) :: bed(LBi:,LBj:,:,:)
       real(r8), intent(inout) :: bed_frac(LBi:,LBj:,:,:)
@@ -158,11 +159,6 @@
       real(r8) :: bed_thick_old, bathy
 !
 # include "set_bounds.h"
-
-# if defined MARSH_LAT_RETREAT
-        marsh_flux_e=0.0_r8
-        marsh_flux_n=0.0_r8
-# endif 
 !
         J_LOOP: DO j=Jstr,Jend
           DO i=Istr,Iend
@@ -284,6 +280,9 @@
      &                  LBi, UBi, LBj, UBj,                             &
      &                  marsh_mask)
       DO ised=1,NST
+        CALL bc_r2d_tile (ng, tile,                                     &
+     &                    LBi, UBi, LBj, UBj,                           &
+     &                    marsh_flux_out(:,:,ised))
         CALL bc_r3d_tile (ng, tile,                                     &
      &                    LBi, UBi, LBj, UBj, 1, Nbed,                  &
      &                    bed_frac(:,:,:,ised))
@@ -303,13 +302,12 @@
      &                        EWperiodic(ng), NSperiodic(ng),           &
      &                        marsh_mask)
 !
-      CALL mp_exchange3d (ng, tile, iNLM, 1,                            &
-     &                    LBi, UBi, LBj, UBj, 1, NST,                   &
-     &                    NghostPoints,                                 &
-     &                    EWperiodic(ng), NSperiodic(ng),               &
-     &                    marsh_flux_out(:,:,:)  
+!      CALL mp_exchange3d (ng, tile, iNLM, 1,                            &
+!     &                    LBi, UBi, LBj, UBj, 1, NST,                   &
+!     &                    NghostPoints,                                 &
+!     &                    EWperiodic(ng), NSperiodic(ng),               &
+!     &                    marsh_flux_out(:,:,:)  
 !       
-#  endif 
       CALL mp_exchange4d (ng, tile, iNLM, 2,                            &
      &                    LBi, UBi, LBj, UBj, 1, Nbed, 1, NST,          &
      &                    NghostPoints,                                 &

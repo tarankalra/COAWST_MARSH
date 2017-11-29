@@ -23,11 +23,11 @@
 !  Local variable declarations.
 !
       integer :: Npts, Nval
-      integer :: iveg, ng, status
+      integer :: iveg, ised, ng, status
       integer :: decode_line, load_i, load_l, load_lbc, load_r
 !
       real(r8), dimension(200) :: Rval
-#if defined MARSH_SED_BEDLOAD_MODE1 || defined MARSH_SED_BEDLOAD_MODE2
+#if defined MARSH_SED_EROSION 
 !      real(r8), allocatable :: Rmarsh(:)
       real(r8), dimension(Ngrids) :: Rmarsh
 #endif 
@@ -185,13 +185,17 @@
                 RETURN
               END IF
               Npts=load_l(Nval, Cval, Ngrids, Hout(idTtot,:))
+# ifdef MARSH_SED_EROSION
             CASE ('Hout(idTmfo)')
-              IF (idTmfo.eq.0) THEN 
-                IF (Master) WRITE (out,30) 'idTmfo'
-                exit_flag=5
-                RETURN
-              END IF
-              Npts=load_l(Nval, Cval, Ngrids, Hout(idTmfo,:))
+              DO ised=1,NST
+                IF (idTmfo(ised).eq.0) THEN
+                  IF (Master) WRITE (out,30) 'idTmfo'
+                  exit_flag=5
+                  RETURN
+                END IF
+                Npts=load_l(Nval, Cval, Ngrids, Hout(idTmfo(ised),:))
+              END DO
+# endif 
 # ifdef MARSH_RETREAT
             CASE ('Hout(idTmmr)')
               IF (idTmmr.eq.0) THEN 
@@ -217,17 +221,17 @@
       IF (Lwrite) THEN
         DO ng=1,Ngrids
             WRITE (out,50) ng
-            WRITE (out,60)
 #if defined VEG_DRAG || defined VEG_BIOMASS 
+            WRITE (out,60)
             DO iveg=1,NVEG
               WRITE (out,70) NVEG, CD_VEG(iveg,ng), E_VEG(iveg,ng),     &
      &                       VEG_MASSDENS(iveg,ng), VEGHMIXCOEF(iveg,ng)
             END DO 
 #endif 
-!#if defined MARSH_SED_BEDLOAD_MODE1
-!            WRITE (out,80) KFAC_MARSH(ng), DCRIT_MARSH(ng),            &
-!    &                        DCRIT_PORO_MARSH(ng)
-!#endif 
+#ifdef MARSH_SED_EROSION 
+           WRITE (out,80) KFAC_MARSH(ng)
+           WRITE (out,90) DCRIT_MARSH(ng)
+#endif
         END DO 
 !     END IF 
 !
@@ -259,20 +263,26 @@
 !     &  'Hout(idWdvg).    
 !     &  'Write out wave dissipation due to vegetation.'
 #endif 
+#ifdef V
+       IF (Hout(idTims) WRITE (out,100) Hout(idTims),                   & 
+      &  'Write out wave dissipation due to vegetation.'
+#endif 
        END IF 
    30  FORMAT (/,' read_VegPar - variable info not yet loaded, ',a)
    40  FORMAT (/,' read_VegPar - Error while processing line: ',/,a)
    50  FORMAT (/,/,' Vegetation Parameters, Grid: ',i2.2,               &
       &        /,  ' =================================',/)
+#if defined VEG_DRAG || defined VEG_BIOMASS 
    60  FORMAT (/,1x,'Nveg(unitless)',2x,'Cd_veg(unitless)',2x,          &
       &        'E_veg(N/m2)',2x,'Veg_massdens(kg/m3)',2x,'VegHMixCoef'/)
    70  FORMAT (2x,i2,2(10x,1p,e11.4),2(5x,1p,e11.4))
-   80  FORMAT (10x,l1,2x,a,'(',i2.2,')',t32,a,i2.2,':',1x,a)
-!   90  FORMAT (10x,l1,2x,a,t32,a,i2.2,':',1x,a)
-   90  FORMAT (10x,l1,2x,a,t32,a)
-        
-  100  FORMAT (10x,l1,2x,a,t32,a,1x,a)
-
+#endif
+   80  FORMAT ('Marsh erosion coefficient (s/m) = ',e11.1)
+   90  FORMAT ('Marsh critical elevation  (m)   = ',e11.1)
+#ifdef MARSH_SED_EROSION 
+  100  FORMAT (1x,l1,2x,a,t29,a,i2.2,':',1x,a)
+#endif
+!
       RETURN
       END SUBROUTINE read_VegPar
 

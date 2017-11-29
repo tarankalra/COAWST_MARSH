@@ -8,10 +8,10 @@
 !  Copyright (c) 2002-2016 The ROMS/TOMS Group                         !
 !    Licensed under a MIT/X style license           Hernan G. Arango   !
 !    See License_ROMS.txt                   Alexander F. Shchepetkin   !
-!==============================================Tarandeep S. Kalra=======
-!================================================Neil K. Ganju  ========
-!================================================John C. Warner=========
-!==============================================Julia M. Moriarty========
+!==============================================Tarandeep S. Kalra======!
+!================================================Neil K. Ganju  =======!
+!================================================John C. Warner========!
+!==============================================Julia M. Moriarty=======!
 !                                                                      ! 
 !  This routine computes the wave thrust on marsh edge from wave       !
 !  climate from the adjacent water cells.                              !
@@ -109,7 +109,7 @@
 # endif 
      &                              marsh_mask,                         &
      &                              Thrust_xi,                          &
-     &                              Thrust_eta                          &
+     &                              Thrust_eta,                         &
      &                              Thrust_total,                       &
      &                              zeta)           
 !
@@ -195,7 +195,7 @@
 
       real(r8), parameter :: Inival=0.0_r8
       real(r8), parameter :: half=0.5_r8
-      real(r8), parameter :: half=N_kN
+      real(r8), parameter :: N_kN=0.001_r8
 
       real(r8) :: Kw, Integral_Kp 
       real(r8) :: depth_all
@@ -269,9 +269,9 @@
           kw=2.0_r8*pi/Lwave(i,j)
           Integral_kp=sinh(kw*h(i,j))/(kw*cosh(h(i,j)*kw))
 !
-          cff=rho0*g*Hwave(i,j)
-          F_bsl=cff*Integral_kp*N_kN
-          F_asl=half*cff*Hwave(i,j)*N_kN
+          cff=rho0*g*Hwave(i,j)*N_kN
+          F_asl=half*cff*Hwave(i,j)
+          F_bsl=cff*Integral_kp
 !
 !---------------------------------------------------------------------
 !  Total wave thrust at mean sea level.
@@ -309,7 +309,7 @@
 ! Modify xi cell face thrust based on water depth  
 !---------------------------------------------------------------------
 !
-          Thrust_xi(i,j)=cff4*Thrust_e(i,j)
+          Thrust_xi(i,j)=cff4*Thrust_xi(i,j)
 !
         END DO
       END DO 
@@ -323,6 +323,7 @@
           Thrust_eta(i,j)=ABS(vmask_marsh(i,j))*                        &
                              (cff3*FY(i,j-1)+cff2*FY(i,j))
 !
+          write(60,*) iic(ng),i,j,Thrust_eta(i,j)
           depth_all=cff2*(h(i,j-1)+zeta(i,j,1  ))+                      &
                     cff3*(h(i,j  )+zeta(i,j-1,1))
           IF(depth_all.lt.0.0_r8) THEN 
@@ -335,7 +336,7 @@
 ! Modify eta cell face thrust based on water depth  
 !---------------------------------------------------------------------
 !
-          Thrust_eta(i,j)=cff4*Thrust_n(i,j)
+          Thrust_eta(i,j)=cff4*Thrust_eta(i,j)
 !
         END DO 
       END DO
