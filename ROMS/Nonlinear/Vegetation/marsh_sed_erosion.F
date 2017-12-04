@@ -302,11 +302,11 @@
      &                        EWperiodic(ng), NSperiodic(ng),           &
      &                        marsh_mask)
 !
-!      CALL mp_exchange3d (ng, tile, iNLM, 1,                            &
-!     &                    LBi, UBi, LBj, UBj, 1, NST,                   &
-!     &                    NghostPoints,                                 &
-!     &                    EWperiodic(ng), NSperiodic(ng),               &
-!     &                    marsh_flux_out(:,:,:)  
+      CALL mp_exchange3d (ng, tile, iNLM, 1,                            &
+     &                    LBi, UBi, LBj, UBj, 1, NST,                   &
+     &                    NghostPoints,                                 &
+     &                    EWperiodic(ng), NSperiodic(ng),               &
+     &                    marsh_flux_out) 
 !       
       CALL mp_exchange4d (ng, tile, iNLM, 2,                            &
      &                    LBi, UBi, LBj, UBj, 1, Nbed, 1, NST,          &
