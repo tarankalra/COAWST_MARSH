@@ -196,6 +196,8 @@
       real(r8), parameter :: Inival=0.0_r8
       real(r8), parameter :: half=0.5_r8
       real(r8), parameter :: N_kN=0.001_r8
+      real(r8), parameter :: eps=1.0e-12_r8
+      real(r8), parameter :: depth_const=0.6_r8
 
       real(r8) :: Kw, Integral_Kp 
       real(r8) :: depth_all
@@ -269,9 +271,9 @@
           kw=2.0_r8*pi/Lwave(i,j)
           Integral_kp=sinh(kw*h(i,j))/(kw*cosh(h(i,j)*kw))
 !
-          cff=rho0*g*Hwave(i,j)*N_kN
-          F_asl=half*cff*Hwave(i,j)
-          F_bsl=cff*Integral_kp
+          cff1=rho0*g*Hwave(i,j)*N_kN
+          F_asl=half*cff1*Hwave(i,j)
+          F_bsl=cff1*Integral_kp
 !
 !---------------------------------------------------------------------
 !  Total wave thrust at mean sea level.
@@ -279,7 +281,7 @@
 !
           F_msl=F_asl+F_bsl
           FX(i,j)=F_msl*cos(cff)
-          FY(i,j)=F_msl*sin(cff)
+          FY(i,j)=F_msl*sin(cff)   
 !
         END DO
       END DO
@@ -300,9 +302,9 @@
           depth_all=cff2*(h(i-1,j  )+zeta(i,j,1)  )+                    &
                     cff3*(h(i,j    )+zeta(i-1,j,1))
           IF(depth_all.lt.0.0_r8) THEN 
-            cff4=1.0_r8
+            cff4=1.0_r8*depth_const
           ELSEIF(depth_all.ge.0.0_r8) THEN 
-            cff4=exp(-depth_all*3.0_r8)
+            cff4=exp(-depth_all*3.0_r8)*depth_const
           ENDIF 
 !
 !---------------------------------------------------------------------
@@ -323,13 +325,12 @@
           Thrust_eta(i,j)=ABS(vmask_marsh(i,j))*                        &
                              (cff3*FY(i,j-1)+cff2*FY(i,j))
 !
-          write(60,*) iic(ng),i,j,Thrust_eta(i,j)
           depth_all=cff2*(h(i,j-1)+zeta(i,j,1  ))+                      &
                     cff3*(h(i,j  )+zeta(i,j-1,1))
           IF(depth_all.lt.0.0_r8) THEN 
-            cff4=1.0_r8
+            cff4=1.0_r8*depth_const
           ELSEIF(depth_all.ge.0.0_r8) THEN 
-            cff4=exp(-depth_all*3.0_r8)
+            cff4=exp(-depth_all*3.0_r8)*depth_const
           ENDIF 
 !
 !---------------------------------------------------------------------
@@ -337,7 +338,6 @@
 !---------------------------------------------------------------------
 !
           Thrust_eta(i,j)=cff4*Thrust_eta(i,j)
-!
         END DO 
       END DO
 ! 
