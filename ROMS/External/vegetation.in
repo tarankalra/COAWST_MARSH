@@ -36,7 +36,7 @@
 !==============================================================================
 !
 ! NOTICE: Input parameter units are specified within brackets and default
-! values are specified within braces.
+! ******  values are specified within braces.
 !
     NVEG   == 1
 
@@ -44,31 +44,44 @@
 
     E_VEG == 1.0d9
 
-    VEG_MASSDENS  == 800.0d0
+    VEG_MASSDENS  == 700.0d0
 
-    VEGHMIXCOEF  == 0.0d0
+    VEGHMIXCOEF == 0.1d0
+
+    KFAC_MARSH == 0.6d-9
+
+    DCRIT_MARSH == 0.0d0
 
 ! Logical switches (TRUE/FALSE) to activate writing of vegetation fields
 ! into HISTORY output file: [1:NVEG,Ngrids].
 
-Hout(ipdens)   == T       ! Plant_density      Density of the plant for each vegetation
-Hout(iphght)   == T       ! Plant_height       Height of the plant for each vegetation
-Hout(ipdiam)   == T       ! Plant_diameter     Diameter of the plant for each vegetation
+Hout(ipdens)   == F       ! Plant_density      Density of the plant for each vegetation
+Hout(iphght)   == F       ! Plant_height       Height of the plant for each vegetation
+Hout(ipdiam)   == F       ! Plant_diameter     Diameter of the plant for each vegetation
 Hout(ipthck)   == F       ! Plant_thickness    Thickness of the plant for each vegetation
 Hout(ipagbm)   == F       ! Plant_agb          Above ground plant biomass
 Hout(ipbgbm)   == F       ! Plant_bgb          Below ground plant biomass
-Hout(idWdvg)   == T       ! Dissip_veg         Wave dissipation due to vegetation
-Hout(idTims)   == T       ! marsh_mask         Initial masking for the marsh
-Hout(idTmsk)   == T       ! mask_thrust        masking for getting thrust due to waves
-Hout(idTmax)   == T       ! Thrust_max         maxmimum thrust due to waves
-Hout(idTton)   == T       ! Thrust_tonelli     Tonelli masking based thrust due to waves
+Hout(idWdvg)   == F       ! Dissip_veg         Wave dissipation due to vegetation
+!
+ Hout(idTims)   == T       ! marsh_mask         Store masking marsh from marsh cells
+ Hout(idTtot)   == T       ! Thrust_total       Total thrust from all direction due to waves
+ Hout(idTmfo)   == T       ! marsh_flux_out     Marsh sediment flux out from marsh cells
+!Hout(idTmmr)   == T       ! marsh_retreat      Amount of marsh retreat from all directions
 !
 !  GLOSSARY:
 !  =========
 !
 !------------------------------------------------------------------------------
 !
-!  NVEG           Number of vegetation types 
+!  NVEG           Number of submerged aquatic vegetation types 
+!
+!  SHOOT_DENS     Shoot density for each vegetation type
+!
+!  SHOOT_HGHT     Shoot height for each vegetation type
+!
+!  SHOOT_DIA      Shoot diameter for each vegetation type
+!
+!  SHOOT_THCK     Shoot thicknes for each vegetation types
 !
 !  CD_VEG         Drag coefficient for each vegetation type
 !
@@ -76,4 +89,8 @@ Hout(idTton)   == T       ! Thrust_tonelli     Tonelli masking based thrust due 
 !
 !  VEG_MASSDENS   Mass density for each vegetation type
 !
-!  VEGHMIXCOEF    Mixing coefficient
+!  VEGHMIXCOEF    Additional horizontal viscosity coefficient at the edge of a vegetation patch
+!
+!  KFAC_MARSH     Marsh erosion factor depends on sediment cohesive properties
+! 
+!  DCRIT_MARSH    Critical bed thickness after which marsh mask=0 (i.e. No longer a marsh)

@@ -9021,8 +9021,8 @@
 ! Marsh wave induced erosion variables.
 !------------------------------------------------------------------------------
 !
-'marsh_mask'                                      ! Input/Output
-  'Input masking for getting thrust due to waves at rho pts.'
+'marsh_mask'                                       ! Input/Output
+  'Store masking marsh for marsh cells.'
   'nondimensional'     
   'marsh_mask, scalar, series'
   'ocean_time'
@@ -9030,23 +9030,23 @@
   'r2dvar' 
   1.0d0
 
-'mask_thrust'                                      ! Output
-  'Reduced masking (Tonellis masking) based on water depth.'
-  'nondimensional'     
-  'mask_thrust, scalar, series'
+'Thrust_total'                                     ! Output
+  'Total thrust in all directions due to waves.'
+  'kilonewtons meter-1 '                           ! [kN/m]
+  'Thrust_total, scalar, series'
   'ocean_time'
-  'idTmsk'
-  'r2dvar' 
-  1.0d0
-
-'Thrust_tonelli'                                   ! Output
-  'Tonelli thrust in all directions due to waves.'
-  'kilonewtons/m '                                 ! [kN/m]
-  'Thrust_tonelli, scalar, series'
-  'ocean_time'
-  'idTton'
+  'idTtot'
   'r2dvar'
   1.0d0
+
+'marsh_flux_out'                                   ! Output
+  'Marsh sediment flux out from marsh cells.' 
+  'kg'                                             ! [kg]
+  'marsh_flux_out, scalar, series'
+  'ocean_time'
+  'idTmfo'
+  'r3dvar'
+   1.0d0
 
 'marsh_retreat'                                    ! Output
   'Amount of marsh retreat from all directions.'
@@ -9055,4 +9055,4 @@
   'ocean_time'
   'idTmmr'
   'r2dvar' 
-  1.0d0
+   1.0d0
