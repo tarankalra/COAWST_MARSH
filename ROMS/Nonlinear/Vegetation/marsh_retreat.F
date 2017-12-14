@@ -53,6 +53,7 @@
      &                       GRID(ng) % on_u,                           &
      &                       GRID(ng) % om_v,                           &
      &                       SEDBED(ng) % bed_frac,                     &
+     &                       SEDBED(ng) % bed,                          &
      &                       VEG(ng) % marsh_mask,                      &
      &                       VEG(ng) % marsh_retreat,                   &
      &                       VEG(ng) % Thrust_xi,                       &
@@ -72,6 +73,7 @@
      &                             h,                                   &
      &                             on_u, om_v,                          &
      &                             bed_frac,                            &
+     &                             bed,                                 &
      &                             marsh_mask,                          &
      &                             marsh_retreat,                       &
      &                             Thrust_xi,                           &
@@ -108,7 +110,9 @@
       real(r8), intent(in) :: marsh_mask(LBi:,LBj:)
       real(r8), intent(in) :: Thrust_xi(LBi:,LBj:)
       real(r8), intent(in) :: Thrust_eta(LBi:,LBj:)
-      real(r8), intent(in) :: bed_frac(LBi:,LBj:,:,:)
+!
+      real(r8), intent(in)  :: bed_frac(LBi:,LBj:,:,:)
+      real(r8), intent(in)  :: bed(LBi:,LBj:,:,:)
 !
       real(r8), intent(inout) :: marsh_retreat(LBi:,LBj:)
 # else
@@ -120,7 +124,9 @@
       real(r8), intent(in) :: marsh_mask(LBi:UBi,LBj:UBj)
       real(r8), intent(in) :: Thrust_xi(LBi:UBi,LBj:UBj)
       real(r8), intent(in) :: Thrust_eta(LBi:UBi,LBj:UBj)
+!
       real(r8), intent(in) :: bed_frac(LBi:UBi,LBj:UBj,Nbed,NST)
+      real(r8), intent(in) :: bed(LBi:UBi,LBj:UBj,Nbed,MBEDP)
 !
       real(r8), intent(inout) :: marsh_retreat(LBi:UBi,LBj:UBj)
 # endif
@@ -129,7 +135,7 @@
 !
       integer :: i, ised, j, k
       real(r8) :: cff, cff1, cff2, cff3
-      real(r8) :: flux_out, inv_scarp_hght_eff
+      real(r8) :: flux_out, scarp_hght_eff
 
       real(r8), parameter :: half=0.5_r8, one=1.0_r8
       real(r8), parameter :: kN_N=1000.0_r8 ! convert Thrust from kN to N 
@@ -139,15 +145,6 @@
 !
 # include "set_bounds.h"
 !
-      J_LOOP : DO j=Jstr,Jend
-        DO i=Istr,Iend
-          cff=1.0_r8
-          DO ised=NCS+1,NST
-            cff=cff*Srho(ised,ng)*bed_frac(i,j,1,ised)
-          END DO
-          srho_mean(i,j)=MAX(cff1,1050.0_r8)
-        END DO
-      END DO J_LOOP
 !
 !----------------------------------------------------------------------
 ! Calculated flux out in kg/m from marsh at U-points and V-points.
@@ -156,30 +153,37 @@
       DO j=JstrR,JendR
          DO i=Istr,IendR
           cff=kN_N*kfac_marsh(ng)*dt(ng)          
-          flux_out=cff*Thrust_xi(i,j)*on_u(i,j)
+          flux_out=cff*Thrust_xi(i,j)
 !
           cff1=SIGN(1.0_r8,Thrust_xi(i,j))
           cff2=half*(1.0_r8+cff1)
           cff3=half*(1.0_r8-cff1)
-
-          inv_scarp_hght_eff=cff2*(h(i-1,j)+zeta(i,j,1  ))+             &
-                             cff3*(h(i,j  )+zeta(i-1,j,1))
-          dx_xi(i,j)=ABS(flux_out/inv_scarp_hght_eff)
+!
+          scarp_hght_eff=cff2*(h(i-1,j)+zeta(i,j,1  ))+                 &
+     &                   cff3*(h(i,j  )+zeta(i-1,j,1))
+          dx_xi(i,j)=MIN(ABS(flux_out/scarp_hght_eff),0.0_r8)
+!
         END DO
       END DO
 !
       DO j=Jstr,JendR
         DO i=IstrR,IendR
           cff=kN_N*kfac_marsh(ng)*dt(ng)          
-          flux_out=cff*Thrust_eta(i,j)*om_v(i,j)  !kg
+          flux_out=cff*Thrust_eta(i,j)  !kg/(m)
 !
           cff1=SIGN(1.0_r8,Thrust_eta(i,j))
           cff2=half*(1.0_r8+cff1)
           cff3=half*(1.0_r8-cff1)
-          inv_scarp_hght_eff=cff2*(h(i,j-1)+zeta(i,j,1  ))+             &
-                             cff3*(h(i,j  )+zeta(i,j-1,1))
-          dy_eta(i,j)=ABS(flux_out/(Srho(ised,ng)*                      &
-     &       (1.0_r8-bed(i,j,1,iporo))*om_v(i,j)*inv_scarp_hght_eff))
+          scarp_hght_eff=cff2*(h(i,j-1)+zeta(i,j,1  ))+                 &
+     &                   cff3*(h(i,j  )+zeta(i,j-1,1))
+!
+!-----------------------------------------------------------------------
+! The formulation for effective scarp height can change. 
+! Min keeps infinity values out when scarp height = 0.0. 
+!-----------------------------------------------------------------------
+!
+          dy_eta(i,j)=MIN(ABS(flux_out/scarp_hght_eff),0.0_r8)
+!
         END DO
       END DO
 !
@@ -195,16 +199,22 @@
      &                            dy_eta(:,:))
 !
 # endif
-! 
+!
       DO j=Jstr,Jend
         DO i=Istr,Iend
 !
 !-----------------------------------------------------------------------
-! Total amount of retreat from all four directions
+! Total amount of retreat from all four directions.
 !-----------------------------------------------------------------------
 !
-          marsh_retreat(i,j)=marsh_mask(i,j)*(dx_xi(i,j)+dx_xi(i+1,j)+  &
-     &                                        dy_eta(i,j)+dy_eta(i,j+1))
+          cff=0.0_r8
+          DO ised=1,NST
+            cff1=1.0_r8/(Srho(ised,ng)*(1.0_r8-bed(i,j,1,iporo)))
+            cff=cff+cff1*marsh_mask(i,j)*                               &
+     &                                   (dx_xi(i,j) + dx_xi(i+1,j )+   &
+     &                                    dy_eta(i,j)+dy_eta(i,j+1))
+          END DO 
+          marsh_retreat(i,j)=cff
 !
         END DO
       END DO 
