@@ -155,13 +155,7 @@
           cff=kN_N*kfac_marsh(ng)*dt(ng)          
           flux_out=cff*Thrust_xi(i,j)
 !
-          cff1=SIGN(1.0_r8,Thrust_xi(i,j))
-          cff2=half*(1.0_r8+cff1)
-          cff3=half*(1.0_r8-cff1)
-!
-          scarp_hght_eff=cff2*(h(i-1,j)+zeta(i,j,1  ))+                 &
-     &                   cff3*(h(i,j  )+zeta(i-1,j,1))
-          dx_xi(i,j)=MIN(ABS(flux_out/scarp_hght_eff),0.0_r8)
+          dx_xi(i,j)=ABS(flux_out/on_u(i,j))
 !
         END DO
       END DO
@@ -171,18 +165,7 @@
           cff=kN_N*kfac_marsh(ng)*dt(ng)          
           flux_out=cff*Thrust_eta(i,j)  !kg/(m)
 !
-          cff1=SIGN(1.0_r8,Thrust_eta(i,j))
-          cff2=half*(1.0_r8+cff1)
-          cff3=half*(1.0_r8-cff1)
-          scarp_hght_eff=cff2*(h(i,j-1)+zeta(i,j,1  ))+                 &
-     &                   cff3*(h(i,j  )+zeta(i,j-1,1))
-!
-!-----------------------------------------------------------------------
-! The formulation for effective scarp height can change. 
-! Min keeps infinity values out when scarp height = 0.0. 
-!-----------------------------------------------------------------------
-!
-          dy_eta(i,j)=MIN(ABS(flux_out/scarp_hght_eff),0.0_r8)
+          dy_eta(i,j)=ABS(flux_out/om_v(i,j))
 !
         END DO
       END DO
@@ -209,7 +192,8 @@
 !
           cff=0.0_r8
           DO ised=1,NST
-            cff1=1.0_r8/(Srho(ised,ng)*(1.0_r8-bed(i,j,1,iporo)))
+            cff1=bed_frac(i,j,1,ised)/                                  &
+     &                   (Srho(ised,ng)*(1.0_r8-bed(i,j,1,iporo)))
             cff=cff+cff1*marsh_mask(i,j)*                               &
      &                                   (dx_xi(i,j) + dx_xi(i+1,j )+   &
      &                                    dy_eta(i,j)+dy_eta(i,j+1))
