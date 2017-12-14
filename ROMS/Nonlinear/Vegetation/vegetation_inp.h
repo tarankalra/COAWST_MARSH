@@ -12,6 +12,9 @@
       USE mod_ncparam
       USE mod_scalars
       USE mod_vegetation
+#if defined MARSH_SED_EROSION 
+      USE mod_sediment 
+#endif 
 !
       implicit none
 !
@@ -23,7 +26,7 @@
 !  Local variable declarations.
 !
       integer :: Npts, Nval
-      integer :: iveg, ised, ng, status
+      integer :: i, iveg, ised, ng, status
       integer :: decode_line, load_i, load_l, load_lbc, load_r
 !
       real(r8), dimension(200) :: Rval
@@ -34,6 +37,8 @@
 #ifdef VEG_DRAG 
       real(r8), allocatable :: Rveg(:,:)
 #endif 
+      logical, dimension(NNS,Ngrids) :: Lsand1
+
 !
       character (len=40 ) :: KeyWord
       character (len=256) :: line 
@@ -186,15 +191,56 @@
               END IF
               Npts=load_l(Nval, Cval, Ngrids, Hout(idTtot,:))
 # ifdef MARSH_SED_EROSION
+!                  CASE ('Hout(iTmfo(ised))')
+!                DO ised=1,NST
+!                  IF (idTmfo(ised).eq.0) THEN
+!                    IF (Master) WRITE (out,30) 'idTmfo'
+!                    exit_flag=5
+!                    RETURN
+!                  END IF
+!              Npts=load_l(Nval, Cval, NST*Ngrids, Hout(idTmfo(ised),:))
+!                END DO
+!            CASE ('Hout(idTmfo)')
+!              DO ng=1,Ngrids
+!                DO ised=1,NST
+!                  IF (idTmfo(ised).eq.0) THEN
+!                    IF (Master) WRITE (out,30) 'idTmfo'
+!                    exit_flag=5
+!                    RETURN
+!                  END IF
+!                END DO
+!              END DO
+!              Npts=load_l(Nval, Cval, NNS*Ngrids, Hout(idTmfo)
+
             CASE ('Hout(idTmfo)')
-              DO ised=1,NST
-                IF (idTmfo(ised).eq.0) THEN
-                  IF (Master) WRITE (out,30) 'idTmfo'
-                  exit_flag=5
-                  RETURN
-                END IF
-                Npts=load_l(Nval, Cval, Ngrids, Hout(idTmfo(ised),:))
+              DO ng=1,Ngrids
+                DO ised=1,NST
+                  IF (idTmfo(ised).eq.0) THEN
+                    IF (Master) WRITE (out,30) 'idTmfo'
+                    exit_flag=5
+                    RETURN
+                  END IF
+                END DO
               END DO
+              Npts=load_l(Nval, Cval, NNS*Ngrids, Lsand1)
+              DO ng=1,Ngrids
+                DO ised=1,NST
+                  i=idTmfo(ised)
+                  Hout(i,ng)=Lsand1(ised,ng)
+                END DO
+              END DO
+!
+!            CASE ('Hout(idTmfo)')
+!              DO ised=1,NST
+!                IF (idTmfo(ised).eq.0) THEN
+!                  IF (Master) WRITE (out,30) 'idTmfo'
+!                  exit_flag=5
+!                  RETURN
+!                END IF
+!                write(61,*) ised
+!                write(60,*) Hout(idTmfo(ised),:)
+!                Npts=load_l(Nval, Cval, Ngrids, Hout(idTmfo(ised),:))
+!              END DO
 # endif 
 # ifdef MARSH_RETREAT
             CASE ('Hout(idTmmr)')
