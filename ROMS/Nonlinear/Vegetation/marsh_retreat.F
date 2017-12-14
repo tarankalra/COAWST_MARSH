@@ -171,14 +171,15 @@
       DO j=Jstr,JendR
         DO i=IstrR,IendR
           cff=kN_N*kfac_marsh(ng)*dt(ng)          
-          flux_out=cff*Thrust_eta(i,j)*om_v(i,j)
+          flux_out=cff*Thrust_eta(i,j)*om_v(i,j)  !kg
 !
           cff1=SIGN(1.0_r8,Thrust_eta(i,j))
           cff2=half*(1.0_r8+cff1)
           cff3=half*(1.0_r8-cff1)
           inv_scarp_hght_eff=cff2*(h(i,j-1)+zeta(i,j,1  ))+             &
                              cff3*(h(i,j  )+zeta(i,j-1,1))
-          dy_eta(i,j)=ABS(flux_out/inv_scarp_hght_eff)
+          dy_eta(i,j)=ABS(flux_out/(Srho(ised,ng)*                      &
+     &       (1.0_r8-bed(i,j,1,iporo))*om_v(i,j)*inv_scarp_hght_eff))
         END DO
       END DO
 !

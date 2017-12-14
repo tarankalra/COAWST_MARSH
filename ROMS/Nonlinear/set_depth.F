@@ -50,8 +50,6 @@
 !
 # include "tile.h"
 !
-!# endif
-!
 # ifdef PROFILE
       CALL wclock_on (ng, iNLM, 12)
 # endif

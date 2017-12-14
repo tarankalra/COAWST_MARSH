@@ -175,8 +175,9 @@
               cff1=half*(one-SIGN(one,Thrust_xi(i,j  )))
               cff2=half*(one+SIGN(one,Thrust_xi(i+1,j)))
               cff3=kN_N*kfac_marsh(ng)*dt(ng)*                          &
-                            ( Thrust_xi(i,j  )*on_u(i,j  )*cff1         &
-                             -Thrust_xi(i+1,j)*on_u(i+1,j)*cff2)
+      &                     ( Thrust_xi(i,j  )*on_u(i,j  )*cff1         &
+      &                      -Thrust_xi(i+1,j)*on_u(i+1,j)*cff2)*       &
+      &                     bed_frac(i,j,1,ised)
               cff=cff+cff3 
 !
 !---------------------------------------------------------------------
@@ -189,6 +190,7 @@
               cff3=kN_N*kfac_marsh(ng)*dt(ng)*                          &
                              ( Thrust_xi(i+1,j)*on_u(i+1,j)*cff2        &
                               -Thrust_xi(i,j  )*on_u(i,j  )*cff1)
+      &                     bed_frac(i,j,1,ised)
               cff=cff-cff3 
 !
 !---------------------------------------------------------------------
@@ -206,6 +208,7 @@
               cff3=kN_N*kfac_marsh(ng)*dt(ng)*                          &
                             ( Thrust_eta(i,j+1)*om_v(i,j+1)*cff2        &
                              -Thrust_eta(i,j  )*om_v(i,j  )*cff1)
+      &                     bed_frac(i,j,1,ised)
 !
               cff=cff+cff3
 !
@@ -218,6 +221,7 @@
               cff3=kN_N*kfac_marsh(ng)*dt(ng)*                          &
                             ( Thrust_eta(i,j  )*om_v(i,j  )*cff1        &
                              -Thrust_eta(i,j+1)*om_v(i,j+1)*cff2)
+      &                     bed_frac(i,j,1,ised)
               cff=cff-cff3
 !
 !---------------------------------------------------------------------

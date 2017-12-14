@@ -9039,13 +9039,13 @@
   'r2dvar'
   1.0d0
 
-'marsh_flux_out'                                   ! Output
+'marsh_flux_out_'                                  ! Output
   'Marsh sediment flux out from marsh cells.' 
   'kg'                                             ! [kg]
-  'marsh_flux_out, scalar, series'
+  'marsh_flux_out_, scalar, series'
   'ocean_time'
   'idTmfo'
-  'r3dvar'
+  'r2dvar'
    1.0d0
 
 'marsh_retreat'                                    ! Output
