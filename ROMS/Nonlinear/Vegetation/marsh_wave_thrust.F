@@ -77,6 +77,8 @@
      &                        FORCES(ng) % Dwave,                       &
 # endif 
      &                        VEG(ng) % marsh_mask,                     &
+     &                        VEG(ng) % umask_marsh,                    &
+     &                        VEG(ng) % vmask_marsh,                    &
      &                        VEG(ng) % Thrust_xi,                      &
      &                        VEG(ng) % Thrust_eta,                     &
      &                        VEG(ng) % Thrust_total,                   &
@@ -108,6 +110,8 @@
      &                              Dwave,                              &
 # endif 
      &                              marsh_mask,                         &
+     &                              umask_marsh,                        &
+     &                              vmask_marsh,                        &
      &                              Thrust_xi,                          &
      &                              Thrust_eta,                         &
      &                              Thrust_total,                       &
@@ -156,11 +160,14 @@
 #  ifdef WAVES_DIR
       real(r8), intent(in)  :: Dwave(LBi:,LBj:)
 #  endif 
-      real(r8), intent(in)    :: marsh_mask(LBi:,LBj:)
-      real(r8), intent(inout) :: Thrust_xi(LBi:,LBj:)
-      real(r8), intent(inout) :: Thrust_eta(LBi:,LBj:)
-      real(r8), intent(inout) :: Thrust_total(LBi:,LBj:)
-      real(r8), intent(in)    :: zeta(LBi:,LBj:,:)
+      real(r8), intent(in)       :: marsh_mask(LBi:,LBj:)
+      real(r8), intent(out)      :: umask_marsh(LBi:,LBj:)
+      real(r8), intent(out)      :: vmask_marsh(LBi:,LBj:)
+!
+      real(r8), intent(inout)    :: Thrust_xi(LBi:,LBj:)
+      real(r8), intent(inout)    :: Thrust_eta(LBi:,LBj:)
+      real(r8), intent(inout)    :: Thrust_total(LBi:,LBj:)
+      real(r8), intent(in)       :: zeta(LBi:,LBj:,:)
 # else
       real(r8), intent(in)  :: h(LBi:UBi,LBj:UBj)
       real(r8), intent(in)  :: angler(LBi:UBi,LBj:UBj)
@@ -181,7 +188,9 @@
 #  ifdef WAVES_DIR
       real(r8), intent(in)  :: Dwave(LBi:UBi,LBj:UBj)
 #  endif 
-      real(r8), intent(in)    :: marsh_mask(LBi:UBi,LBj:UBj)
+      real(r8), intent(in)     :: marsh_mask(LBi:UBi,LBj:UBj)
+      real(r8), intent(out)    :: umask_marsh(LBi:UBi,LBj:UBj)
+      real(r8), intent(out)    :: vmask_marsh(LBi:UBi,LBj:UBj)
      
       real(r8), intent(inout) :: Thrust_xi(LBi:UBi,LBj:UBj)
       real(r8), intent(inout) :: Thrust_eta(LBi:UBi,LBj:UBj)
@@ -205,8 +214,6 @@
       real(r8) :: cff, cff1, cff2, cff3, cff4
       real(r8) :: F_asl, F_bsl, F_msl
 
-      real(r8), dimension(IminS:ImaxS,JminS:JmaxS) :: umask_marsh
-      real(r8), dimension(IminS:ImaxS,JminS:JmaxS) :: vmask_marsh
       real(r8), dimension(IminS:ImaxS,JminS:JmaxS) :: FX
       real(r8), dimension(IminS:ImaxS,JminS:JmaxS) :: FY
 
@@ -231,6 +238,7 @@
         END DO
       END DO
 !
+!
       DO j=Jstr,JendR
         DO i=IstrR,IendR
           vmask_marsh(i,j)=marsh_mask(i,j-1)+marsh_mask(i,j)
@@ -242,17 +250,24 @@
         END DO
       END DO
 !
-# ifdef DISTRIBUTE
-! 
 ! Exchange boundary data 
 !
-      CALL exchange_u2d_tile (ng, tile,                                 &
-     &                            LBi, UBi, LBj, UBj,                   &
-     &                            umask_marsh(:,:))
-      CALL exchange_v2d_tile (ng, tile,                                 &
-     &                            LBi, UBi, LBj, UBj,                   &
-     &                            vmask_marsh(:,:))
-!                 
+      IF (EWperiodic(ng).or.NSperiodic(ng)) THEN
+        CALL exchange_u2d_tile (ng, tile,                               &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          umask_marsh(:,:))
+        CALL exchange_v2d_tile (ng, tile,                               &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          vmask_marsh(:,:))
+      END IF
+!
+# ifdef DISTRIBUTE
+!
+      CALL mp_exchange2d (ng, tile, iNLM, 2,                            &
+     &                    LBi, UBi, LBj, UBj,                           &
+     &                    NghostPoints,                                 &
+     &                    EWperiodic(ng), NSperiodic(ng),               &
+     &                    umask_marsh, vmask_marsh)
 # endif
 !
 !----------------------------------------------------------------------
@@ -281,8 +296,8 @@
 !
           F_msl=F_asl+F_bsl
           FX(i,j)=F_msl*cos(cff)
-          FY(i,j)=F_msl*sin(cff)   
-!
+          FY(i,j)=F_msl*sin(cff)
+! 
         END DO
       END DO
 !
@@ -297,24 +312,24 @@
           cff2=half*(1.0_r8+cff1)
           cff3=half*(1.0_r8-cff1)
           Thrust_xi(i,j)=ABS(umask_marsh(i,j))*                         &
-                            (cff2*FX(i,j)+cff3*FX(i-1,j))
+     &                      (cff2*FX(i,j)+cff3*FX(i-1,j))
 !
           depth_all=cff2*(h(i-1,j  )+zeta(i,j,1)  )+                    &
-                    cff3*(h(i,j    )+zeta(i-1,j,1))
-          IF(depth_all.lt.0.0_r8) THEN 
+     &              cff3*(h(i,j    )+zeta(i-1,j,1))
+          IF(depth_all.lt.0.0_r8) THEN
             cff4=1.0_r8*depth_const
-          ELSEIF(depth_all.ge.0.0_r8) THEN 
+          ELSEIF(depth_all.ge.0.0_r8) THEN
             cff4=exp(-depth_all*3.0_r8)*depth_const
-          ENDIF 
+          ENDIF
 !
 !---------------------------------------------------------------------
-! Modify xi cell face thrust based on water depth  
+! Modify xi cell face thrust based on water depth
 !---------------------------------------------------------------------
 !
           Thrust_xi(i,j)=cff4*Thrust_xi(i,j)
 !
         END DO
-      END DO 
+      END DO
 !
       DO j=Jstr,JendR
         DO i=IstrR,IendR
@@ -323,36 +338,45 @@
           cff2=half*(1.0_r8+cff1)
           cff3=half*(1.0_r8-cff1)
           Thrust_eta(i,j)=ABS(vmask_marsh(i,j))*                        &
-                             (cff3*FY(i,j-1)+cff2*FY(i,j))
+     &                       (cff3*FY(i,j-1)+cff2*FY(i,j))
 !
           depth_all=cff2*(h(i,j-1)+zeta(i,j,1  ))+                      &
-                    cff3*(h(i,j  )+zeta(i,j-1,1))
-          IF(depth_all.lt.0.0_r8) THEN 
+     &              cff3*(h(i,j  )+zeta(i,j-1,1))
+          IF(depth_all.lt.0.0_r8) THEN
             cff4=1.0_r8*depth_const
-          ELSEIF(depth_all.ge.0.0_r8) THEN 
+          ELSEIF(depth_all.ge.0.0_r8) THEN
             cff4=exp(-depth_all*3.0_r8)*depth_const
-          ENDIF 
+          ENDIF
 !
 !---------------------------------------------------------------------
-! Modify eta cell face thrust based on water depth  
+! Modify eta cell face thrust based on water depth
 !---------------------------------------------------------------------
 !
           Thrust_eta(i,j)=cff4*Thrust_eta(i,j)
-        END DO 
+        END DO
       END DO
-! 
-# ifdef DISTRIBUTE
-! 
+!
+!
 ! Exchange boundary data 
 !
-      CALL exchange_u2d_tile (ng, tile,                                 &
-     &                            LBi, UBi, LBj, UBj,                   &
-     &                            Thrust_xi(:,:))
-      CALL exchange_v2d_tile (ng, tile,                                 &
-     &                            LBi, UBi, LBj, UBj,                   &
-     &                            Thrust_eta(:,:))
+      IF (EWperiodic(ng).or.NSperiodic(ng)) THEN
+        CALL exchange_u2d_tile (ng, tile,                               &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          Thrust_xi(:,:))
+        CALL exchange_v2d_tile (ng, tile,                               &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          Thrust_eta(:,:))
+      END IF
 !
-# endif 
+# ifdef DISTRIBUTE
+!
+      CALL mp_exchange2d (ng, tile, iNLM, 2,                            &
+     &                    LBi, UBi, LBj, UBj,                           &
+     &                    NghostPoints,                                 &
+     &                    EWperiodic(ng), NSperiodic(ng),               &
+     &                    Thrust_xi, Thrust_eta)
+# endif
+
 !
 !---------------------------------------------------------------------
 ! Sum the thrust from all cell faces to get thrust at cell center
@@ -361,7 +385,7 @@
       DO j=Jstr,Jend
         DO i=Istr,Iend
           cff=ABS(Thrust_xi(i,j ))+ABS(Thrust_xi(i+1,j ))+              &
-              ABS(Thrust_eta(i,j))+ABS(Thrust_eta(i,j+1))
+     &        ABS(Thrust_eta(i,j))+ABS(Thrust_eta(i,j+1))
           Thrust_total(i,j)=cff*marsh_mask(i,j)
         END DO
       END DO

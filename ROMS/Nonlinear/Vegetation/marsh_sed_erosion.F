@@ -162,7 +162,7 @@
 !
         J_LOOP: DO j=Jstr,Jend
           DO i=Istr,Iend
-            SED_LOOP: DO ised=NCS+1,NST
+            SED_LOOP: DO ised=1,NST
 !
 ! Convert bed mass from kg/sq.m to kg in each cell
 !
