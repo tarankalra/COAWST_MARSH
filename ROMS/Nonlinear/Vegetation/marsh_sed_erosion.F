@@ -196,7 +196,7 @@
 ! Sediment flux for each sediment class out of marsh cells
 !---------------------------------------------------------------------
 !
-              marsh_flux_out(i,j,ised)=cff4
+              marsh_flux_out(i,j,ised)=cff4+marsh_flux_out(i,j,ised)
 !
 !---------------------------------------------------------------------
 ! Add bed mass to sea cell if it provides vertical face thrust 
@@ -224,7 +224,7 @@
 ! Sediment flux for each sediment class out of marsh cells
 !---------------------------------------------------------------------
 !
-              marsh_flux_out(i,j,ised)=cff4
+              marsh_flux_out(i,j,ised)=cff4+marsh_flux_out(i,j,ised)
 !
 !---------------------------------------------------------------------
 ! Update bed mass 

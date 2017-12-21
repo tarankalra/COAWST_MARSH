@@ -206,7 +206,7 @@
      &                  (dx_xi_retreat(i,j)+dx_xi_retreat(i+1,j )+      &
      &                   dy_eta_retreat(i,j)+dy_eta_retreat(i,j+1))
           END DO
-          marsh_retreat(i,j)=cff 
+          marsh_retreat(i,j)=cff+marsh_retreat(i,j)
         END DO
       END DO 
 !
