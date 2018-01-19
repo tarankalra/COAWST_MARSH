@@ -211,7 +211,8 @@
       real(r8) :: Kw, Integral_Kp 
       real(r8) :: depth_all
 
-      real(r8) :: cff, cff1, cff2, cff3, cff4
+      real(r8) :: cff, cff1, cff2, cff3, cff4, cff5, cff6, cff7, cff8
+
       real(r8) :: F_asl, F_bsl, F_msl
 
       real(r8), dimension(IminS:ImaxS,JminS:JmaxS) :: FX
@@ -294,7 +295,9 @@
 !  Total wave thrust at mean sea level.
 !---------------------------------------------------------------------
 !
-          F_msl=F_asl+F_bsl
+! used an absolute to avoid integral kp thing from changing sign of FX,FY
+!
+          F_msl=ABS(F_asl+F_bsl)
           FX(i,j)=F_msl*cos(cff)
           FY(i,j)=F_msl*sin(cff)
 ! 
@@ -311,8 +314,15 @@
           cff1=SIGN(1.0_r8,umask_marsh(i,j))
           cff2=half*(1.0_r8+cff1)
           cff3=half*(1.0_r8-cff1)
+!
+          cff6=SIGN(1.0_r8,FX(i,j))
+          cff8=half*(1.0_r8-cff6)
+!
+          cff5=SIGN(1.0_r8,FX(i-1,j))
+          cff7=half*(1.0_r8+cff5)
+!
           Thrust_xi(i,j)=ABS(umask_marsh(i,j))*                         &
-     &                      (cff2*FX(i,j)+cff3*FX(i-1,j))
+     &                      (cff2*cff8*FX(i,j)+cff3*cff7*FX(i-1,j))
 !
           depth_all=cff2*(h(i-1,j  )+zeta(i,j,1)  )+                    &
      &              cff3*(h(i,j    )+zeta(i-1,j,1))
@@ -337,11 +347,19 @@
           cff1=SIGN(1.0_r8,vmask_marsh(i,j))
           cff2=half*(1.0_r8+cff1)
           cff3=half*(1.0_r8-cff1)
+!
+          cff6=SIGN(1.0_r8,FY(i,j))
+          cff8=half*(1.0_r8-cff6)
+!
+          cff5=SIGN(1.0_r8,FY(i,j-1))
+          cff7=half*(1.0_r8+cff5)
+!
           Thrust_eta(i,j)=ABS(vmask_marsh(i,j))*                        &
-     &                       (cff3*FY(i,j-1)+cff2*FY(i,j))
+     &                       (cff3*cff7*FY(i,j-1)+cff2*cff8*FY(i,j))
 !
           depth_all=cff2*(h(i,j-1)+zeta(i,j,1  ))+                      &
      &              cff3*(h(i,j  )+zeta(i,j-1,1))
+!
           IF(depth_all.lt.0.0_r8) THEN
             cff4=1.0_r8*depth_const
           ELSEIF(depth_all.ge.0.0_r8) THEN
@@ -382,8 +400,8 @@
 ! Sum the thrust from all cell faces to get thrust at cell center
 !---------------------------------------------------------------------
 !
-      DO j=Jstr,Jend
-        DO i=Istr,Iend
+      DO j=Jstr-1,Jend+1
+        DO i=Istr-1,Iend+1
           cff=ABS(Thrust_xi(i,j ))+ABS(Thrust_xi(i+1,j ))+              &
      &        ABS(Thrust_eta(i,j))+ABS(Thrust_eta(i,j+1))
           Thrust_total(i,j)=cff*marsh_mask(i,j)
@@ -395,15 +413,15 @@
 !  purposes only.
 !---------------------------------------------------------------------
 !
-      CALL bc_u2d_tile (ng, tile,                                       &
-     &                  LBi, UBi, LBj, UBj,                             &
-     &                  Thrust_xi)
-      CALL bc_v2d_tile (ng, tile,                                       &
-     &                  LBi, UBi, LBj, UBj,                             &
-     &                  Thrust_eta)
-      CALL bc_r2d_tile (ng, tile,                                       &
-     &                  LBi, UBi, LBj, UBj,                             &
-     &                  Thrust_total)
+!      CALL bc_u2d_tile (ng, tile,                                       &
+!     &                  LBi, UBi, LBj, UBj,                             &
+!     &                  Thrust_xi)
+!      CALL bc_v2d_tile (ng, tile,                                       &
+!     &                  LBi, UBi, LBj, UBj,                             &
+!     &                  Thrust_eta)
+!      CALL bc_r2d_tile (ng, tile,                                       &
+!     &                  LBi, UBi, LBj, UBj,                             &
+!     &                  Thrust_total)
 ! 
 # ifdef DISTRIBUTE
 !
