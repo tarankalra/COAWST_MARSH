@@ -196,8 +196,8 @@
 ! Total amount of retreat from all four directions.
 !-----------------------------------------------------------------------
 !
-      DO j=Jstr-1,Jend+1
-        DO i=Istr-1,Iend+1
+      DO j=Jstr,Jend
+        DO i=Istr,Iend
           cff=0.0_r8
           DO ised=1,NST
             cff1=Srho(ised,ng)*(1.0_r8-bed(i,j,1,iporo))+eps
@@ -215,9 +215,9 @@
 !  purposes only.
 !---------------------------------------------------------------------
 !
-!      CALL bc_r2d_tile (ng, tile,                                       &
-!     &                  LBi, UBi, LBj, UBj,                             &
-!     &                  marsh_retreat)
+      CALL bc_r2d_tile (ng, tile,                                       &
+     &                  LBi, UBi, LBj, UBj,                             &
+     &                  marsh_retreat)
 # ifdef DISTRIBUTE
       CALL mp_exchange2d (ng, tile, iNLM, 1,                            &
      &                        LBi, UBi, LBj, UBj,                       &
