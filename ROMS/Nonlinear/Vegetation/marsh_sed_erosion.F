@@ -160,8 +160,8 @@
 !
 # include "set_bounds.h"
 !
-        J_LOOP: DO j=Jstr-1,Jend+1
-          DO i=Istr-1,Iend+1
+        J_LOOP: DO j=Jstr,Jend
+          DO i=Istr,Iend
             SED_LOOP: DO ised=1,NST
 !
 ! Convert bed mass from kg/sq.m to kg in each cell
@@ -297,25 +297,25 @@
 !  purposes only.
 !---------------------------------------------------------------------
 !
-!      CALL bc_r2d_tile (ng, tile,                                       &
-!     &                  LBi, UBi, LBj, UBj,                             &
-!     &                  marsh_mask)
-!      DO ised=1,NST
-!        CALL bc_r2d_tile (ng, tile,                                     &
-!     &                    LBi, UBi, LBj, UBj,                           &
-!     &                    marsh_flux_out(:,:,ised))
-!        CALL bc_r3d_tile (ng, tile,                                     &
-!     &                    LBi, UBi, LBj, UBj, 1, Nbed,                  &
-!     &                    bed_frac(:,:,:,ised))
-!        CALL bc_r3d_tile (ng, tile,                                     &
-!     &                    LBi, UBi, LBj, UBj, 1, Nbed,                  &
-!     &                    bed_mass(:,:,:,nnew,ised))
-!      END DO
-!      DO i=1,MBEDP
-!        CALL bc_r3d_tile (ng, tile,                                     &
-!     &                    LBi, UBi, LBj, UBj, 1, Nbed,                  &
-!     &                    bed(:,:,:,i))
-!      END DO
+      CALL bc_r2d_tile (ng, tile,                                       &
+     &                  LBi, UBi, LBj, UBj,                             &
+     &                  marsh_mask)
+      DO ised=1,NST
+        CALL bc_r2d_tile (ng, tile,                                     &
+     &                    LBi, UBi, LBj, UBj,                           &
+     &                    marsh_flux_out(:,:,ised))
+        CALL bc_r3d_tile (ng, tile,                                     &
+     &                    LBi, UBi, LBj, UBj, 1, Nbed,                  &
+     &                    bed_frac(:,:,:,ised))
+        CALL bc_r3d_tile (ng, tile,                                     &
+     &                    LBi, UBi, LBj, UBj, 1, Nbed,                  &
+     &                    bed_mass(:,:,:,nnew,ised))
+      END DO
+      DO i=1,MBEDP
+        CALL bc_r3d_tile (ng, tile,                                     &
+     &                    LBi, UBi, LBj, UBj, 1, Nbed,                  &
+     &                    bed(:,:,:,i))
+      END DO
 # ifdef DISTRIBUTE
       CALL mp_exchange2d (ng, tile, iNLM, 1,                            &
      &                        LBi, UBi, LBj, UBj,                       &
