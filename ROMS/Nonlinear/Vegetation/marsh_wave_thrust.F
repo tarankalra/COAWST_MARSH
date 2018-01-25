@@ -285,11 +285,12 @@
 !----------------------------------------------------------------------
 !
           kw=2.0_r8*pi/Lwave(i,j)
-          Integral_kp=sinh(kw*h(i,j))/(kw*cosh(h(i,j)*kw))
+          cff1=MAX(0.0_r8,h(i,j)+zeta(i,j,1))
+          Integral_kp=sinh(kw*cff1)/(kw*cosh(kw*cff1))
 !
-          cff1=rho0*g*Hwave(i,j)*N_kN
-          F_asl=half*cff1*Hwave(i,j)
-          F_bsl=cff1*Integral_kp
+          cff2=rho0*g*Hwave(i,j)*N_kN
+          F_asl=half*cff2*Hwave(i,j)
+          F_bsl=cff2*Integral_kp
 !
 !---------------------------------------------------------------------
 !  Total wave thrust at mean sea level.
@@ -297,7 +298,7 @@
 !
 ! used an absolute to avoid integral kp thing from changing sign of FX,FY
 !
-          F_msl=ABS(F_asl+F_bsl)
+          F_msl=F_asl+F_bsl
           FX(i,j)=F_msl*cos(cff)
           FY(i,j)=F_msl*sin(cff)
 ! 
@@ -400,8 +401,8 @@
 ! Sum the thrust from all cell faces to get thrust at cell center
 !---------------------------------------------------------------------
 !
-      DO j=Jstr-1,Jend+1
-        DO i=Istr-1,Iend+1
+      DO j=Jstr,Jend
+        DO i=Istr,Iend
           cff=ABS(Thrust_xi(i,j ))+ABS(Thrust_xi(i+1,j ))+              &
      &        ABS(Thrust_eta(i,j))+ABS(Thrust_eta(i,j+1))
           Thrust_total(i,j)=cff*marsh_mask(i,j)
@@ -413,15 +414,15 @@
 !  purposes only.
 !---------------------------------------------------------------------
 !
-!      CALL bc_u2d_tile (ng, tile,                                       &
-!     &                  LBi, UBi, LBj, UBj,                             &
-!     &                  Thrust_xi)
-!      CALL bc_v2d_tile (ng, tile,                                       &
-!     &                  LBi, UBi, LBj, UBj,                             &
-!     &                  Thrust_eta)
-!      CALL bc_r2d_tile (ng, tile,                                       &
-!     &                  LBi, UBi, LBj, UBj,                             &
-!     &                  Thrust_total)
+      CALL bc_u2d_tile (ng, tile,                                       &
+     &                  LBi, UBi, LBj, UBj,                             &
+     &                  Thrust_xi)
+      CALL bc_v2d_tile (ng, tile,                                       &
+     &                  LBi, UBi, LBj, UBj,                             &
+     &                  Thrust_eta)
+      CALL bc_r2d_tile (ng, tile,                                       &
+     &                  LBi, UBi, LBj, UBj,                             &
+     &                  Thrust_total)
 ! 
 # ifdef DISTRIBUTE
 !
