@@ -206,7 +206,7 @@
       real(r8), parameter :: half=0.5_r8
       real(r8), parameter :: N_kN=0.001_r8
       real(r8), parameter :: eps=1.0e-12_r8
-      real(r8), parameter :: depth_const=0.6_r8
+!      real(r8), parameter :: depth_const=0.6_r8
 
       real(r8) :: Kw, Integral_Kp 
       real(r8) :: depth_all
@@ -285,7 +285,8 @@
 !----------------------------------------------------------------------
 !
           kw=2.0_r8*pi/Lwave(i,j)
-          cff1=MAX(0.0_r8,h(i,j)+zeta(i,j,1))
+!          cff1=MAX(0.0_r8,h(i,j)+zeta(i,j,1))
+          cff1=h(i,j)
           Integral_kp=sinh(kw*cff1)/(kw*cosh(kw*cff1))
 !
           cff2=rho0*g*Hwave(i,j)*N_kN
@@ -328,9 +329,9 @@
           depth_all=cff2*(h(i-1,j  )+zeta(i,j,1)  )+                    &
      &              cff3*(h(i,j    )+zeta(i-1,j,1))
           IF(depth_all.lt.0.0_r8) THEN
-            cff4=1.0_r8*depth_const
+            cff4=1.0_r8
           ELSEIF(depth_all.ge.0.0_r8) THEN
-            cff4=exp(-depth_all*3.0_r8)*depth_const
+            cff4=exp(-depth_all*3.0_r8)
           ENDIF
 !
 !---------------------------------------------------------------------
@@ -362,9 +363,9 @@
      &              cff3*(h(i,j  )+zeta(i,j-1,1))
 !
           IF(depth_all.lt.0.0_r8) THEN
-            cff4=1.0_r8*depth_const
+            cff4=1.0_r8
           ELSEIF(depth_all.ge.0.0_r8) THEN
-            cff4=exp(-depth_all*3.0_r8)*depth_const
+            cff4=exp(-depth_all*3.0_r8)
           ENDIF
 !
 !---------------------------------------------------------------------

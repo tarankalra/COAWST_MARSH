@@ -142,7 +142,7 @@
 !  Local variable declarations.
 !
       integer :: i, ised, j, k
-      real(r8) :: cff, cff1, cff2, cff3
+      real(r8) :: cff, cff1, cff2, cff3, cff4, cff5
       real(r8) :: flux_out, scarp_hght_eff
 
       real(r8), parameter :: half=0.5_r8, one=1.0_r8
@@ -160,7 +160,7 @@
          DO i=Istr,IendR
           cff=kN_N*kfac_marsh(ng)*dt(ng)          
           flux_out=cff*Thrust_xi(i,j)
-          dx_xi_retreat(i,j)=ABS(flux_out/on_u(i,j))
+          dx_xi_retreat(i,j)=ABS(flux_out)
         END DO
       END DO
 !
@@ -168,7 +168,7 @@
         DO i=IstrR,IendR
           cff=kN_N*kfac_marsh(ng)*dt(ng)          
           flux_out=cff*Thrust_eta(i,j)  !kg/(m)
-          dy_eta_retreat(i,j)=ABS(flux_out/om_v(i,j))
+          dy_eta_retreat(i,j)=ABS(flux_out)
         END DO
       END DO
 !
@@ -202,9 +202,13 @@
           DO ised=1,NST
             cff1=Srho(ised,ng)*(1.0_r8-bed(i,j,1,iporo))+eps
             cff1=bed_frac(i,j,1,ised)/cff1
+            cff2=1.0_r8/(ABS(h(i-1,j)-h(i,j))+eps)
+            cff3=1.0_r8/(ABS(h(i,j)-h(i+1,j))+eps)
+            cff4=1.0_r8/(ABS(h(i,j-1)-h(i,j))+eps)
+            cff5=1.0_r8/(ABS(h(i,j)-h(i,j+1))+eps)
             cff=cff+cff1*marsh_mask(i,j)*                               &
-     &                  (dx_xi_retreat(i,j)+dx_xi_retreat(i+1,j )+      &
-     &                   dy_eta_retreat(i,j)+dy_eta_retreat(i,j+1))
+     &             (dx_xi_retreat(i,j)*cff2+dx_xi_retreat(i+1,j)*cff3+  &
+     &              dy_eta_retreat(i,j)*cff4+dy_eta_retreat(i,j+1)*cff5)
           END DO
           marsh_retreat(i,j)=cff+marsh_retreat(i,j)
         END DO
