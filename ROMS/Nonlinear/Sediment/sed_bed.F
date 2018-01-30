@@ -60,7 +60,7 @@
 !  Add the bed mass change in bottom cell due to marsh erosion.
 !-----------------------------------------------------------------------
 !
-      CALL marsh_sed_erosion (ng, tile)
+!      CALL marsh_sed_erosion (ng, tile)
 #endif 
 !
 # ifdef PROFILE

@@ -287,7 +287,7 @@
           kw=2.0_r8*pi/Lwave(i,j)
 !          cff1=MAX(0.0_r8,h(i,j)+zeta(i,j,1))
           cff1=h(i,j)
-          Integral_kp=sinh(kw*cff1)/(kw*cosh(kw*cff1))
+          Integral_kp=ABS(sinh(kw*cff1)/(kw*cosh(kw*cff1)))
 !
           cff2=rho0*g*Hwave(i,j)*N_kN
           F_asl=half*cff2*Hwave(i,j)

@@ -78,7 +78,7 @@
 !  Compute marsh presence with marsh mask and marsh sediment erosion.
 !-----------------------------------------------------------------------
 !
-      CALL marsh_sed_erosion (ng, tile)
+!      CALL marsh_sed_erosion (ng, tile)
 #  endif 
 # endif
 !
